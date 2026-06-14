@@ -1,0 +1,24 @@
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Feed from "./pages/Feed";
+import Market from "./pages/Market";
+import Leaderboard from "./pages/Leaderboard";
+import Profil from "./pages/Profil";
+import Soumettre from "./pages/Soumettre";
+import Admin from "./pages/Admin";
+import Navbar from "./components/Navbar";
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Navbar />
+      <Routes>
+        <Route path="/" element={<Feed />} />
+        <Route path="/market/:id" element={<Market />} />
+        <Route path="/leaderboard" element={<Leaderboard />} />
+        <Route path="/profil/:uid" element={<Profil />} />
+        <Route path="/soumettre" element={<Soumettre />} />
+        <Route path="/admin" element={<Admin />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
