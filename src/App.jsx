@@ -6,6 +6,7 @@ import Profil from "./pages/Profil";
 import Soumettre from "./pages/Soumettre";
 import Admin from "./pages/Admin";
 import Navbar from "./components/Navbar";
+import Settings from "./pages/Settings";
 
 export default function App() {
   return (
@@ -18,6 +19,7 @@ export default function App() {
         <Route path="/profil/:uid" element={<Profil />} />
         <Route path="/soumettre" element={<Soumettre />} />
         <Route path="/admin" element={<Admin />} />
+        <Route path="/settings" element={<Settings />} />
       </Routes>
     </BrowserRouter>
   );

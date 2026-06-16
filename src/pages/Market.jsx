@@ -4,6 +4,7 @@ import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { useAuth } from "../context/AuthContext";
 import { placeBet, calcShares, getPrice } from "../lib/amm";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
 export default function Market() {
   const { id } = useParams();
@@ -14,23 +15,34 @@ export default function Market() {
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [priceHistory, setPriceHistory] = useState([]);
+
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(doc(db, "markets", id), (snap) => {
-      if (snap.exists()) setMarket({ id: snap.id, ...snap.data() });
-    });
-    return unsubscribe;
-  }, [id]);
-
-  useEffect(() => {
-    if (!market || amount <= 0) return;
-    try {
-      const result = calcShares(market.poolYes, market.poolNo, side, amount);
-      setPreview(result);
-    } catch {
-      setPreview(null);
+  const unsubscribe = onSnapshot(doc(db, "markets", id), (snap) => {
+    if (snap.exists()) {
+      const data = { id: snap.id, ...snap.data() };
+      setMarket(data);
+      const total = data.poolYes + data.poolNo;
+      const pct = Math.round((data.poolNo / total) * 100);
+      setPriceHistory((prev) => [
+        ...prev.slice(-29),
+        { time: new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }), oui: pct }
+      ]);
     }
-  }, [market, side, amount]);
+  });
+  return unsubscribe;
+}, [id]);
+
+useEffect(() => {
+  if (!market || amount <= 0) return;
+  try {
+    const result = calcShares(market.poolYes, market.poolNo, side, amount);
+    setPreview(result);
+  } catch {
+    setPreview(null);
+  }
+}, [market, side, amount]);
 
   async function handleBet() {
     if (!user || !market || amount <= 0) return;
@@ -51,6 +63,18 @@ export default function Market() {
   const pctYes = Math.round((market.poolNo / total) * 100);
   const pctNo = 100 - pctYes;
 
+  function shareOnTwitter() {
+  const total = market.poolYes + market.poolNo;
+  const pctYes = Math.round((market.poolNo / total) * 100);
+  const pctNo = 100 - pctYes;
+  const sideLabel = side === "yes" ? "OUI" : "NON";
+  const sidePct = side === "yes" ? pctYes : pctNo;
+
+  const text = `Je parie ${sideLabel} (${sidePct}%) sur :\n\n"${market.question}"\n\nTu penses quoi ? 👁 kassandre.app`;
+  const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+  window.open(url, "_blank");
+}
+
   return (
     <div style={{ maxWidth: "660px", margin: "40px auto", padding: "0 16px" }}>
       <h1 style={{ fontSize: "22px", marginBottom: "24px" }}>{market.question}</h1>
@@ -59,6 +83,22 @@ export default function Market() {
         <div style={{ flex: pctYes, background: "#22c55e", borderRadius: "4px", height: "10px" }}/>
         <div style={{ flex: pctNo, background: "#ef4444", borderRadius: "4px", height: "10px" }}/>
       </div>
+      {priceHistory.length > 1 && (
+  <div style={{ marginBottom: "32px" }}>
+    <p style={{ fontSize: "13px", color: "#6b6b8a", marginBottom: "12px" }}>Évolution des cotes</p>
+    <ResponsiveContainer width="100%" height={120}>
+      <LineChart data={priceHistory}>
+        <XAxis dataKey="time" tick={{ fontSize: 11, fill: "#6b6b8a" }} />
+        <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: "#6b6b8a" }} unit="%" />
+        <Tooltip
+          formatter={(value) => [`${value}%`, "Oui"]}
+          contentStyle={{ background: "#12121a", border: "1px solid #2a2a3e", borderRadius: "8px", color: "#e8e8f0" }}
+        />
+        <Line type="monotone" dataKey="oui" stroke="#7c3aed" strokeWidth={2} dot={false} />
+      </LineChart>
+    </ResponsiveContainer>
+  </div>
+)}
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "32px", fontSize: "14px" }}>
         <span style={{ color: "#22c55e", fontWeight: "600" }}>Oui {pctYes}%</span>
         <span style={{ color: "#ef4444", fontWeight: "600" }}>Non {pctNo}%</span>
@@ -129,6 +169,26 @@ export default function Market() {
           {success && <p style={{ color: "green", marginTop: "8px" }}>Pari placé avec succès.</p>}
         </div>
       )}
+
+      {success && (
+  <div>
+    <p style={{ color: "#7c3aed", marginBottom: "12px" }}>Pari placé avec succès.</p>
+    <button
+      onClick={shareOnTwitter}
+      style={{
+        width: "100%", padding: "10px", background: "#000", color: "#fff",
+        borderRadius: "8px", border: "none", cursor: "pointer",
+        fontWeight: "600", display: "flex", alignItems: "center",
+        justifyContent: "center", gap: "8px", fontSize: "14px"
+      }}
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L1.254 2.25H8.08l4.253 5.622 5.911-5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+      </svg>
+      Partager sur X
+    </button>
+  </div>
+)}
 
       {!user && (
         <p style={{ color: "#888" }}>Connecte toi pour parier.</p>

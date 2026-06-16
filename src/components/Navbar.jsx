@@ -30,9 +30,9 @@ export default function Navbar() {
         {user ? (
           <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
             <span>{user.balance} pts</span>
-            <Link to={`/profil/${user.uid}`}>
-              <img src={user.photoURL} width={32} height={32} style={{ borderRadius: "50%" }} />
-            </Link>
+            <Link to="/settings">
+  <img src={user.photoURL} width={32} height={32} style={{ borderRadius: "50%", border: "2px solid #7c3aed" }} />
+</Link>
             <button onClick={logout}>Déconnexion</button>
           </div>
         ) : (
@@ -42,3 +42,4 @@ export default function Navbar() {
     </nav>
   );
 }
+
