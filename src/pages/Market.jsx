@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { doc, onSnapshot, collection, getDocs } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { useAuth } from "../context/AuthContext";
 import { placeBet, calcShares, placeBetMulti, calcSharesMulti } from "../lib/amm.js";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { doc, onSnapshot, collection, getDocs, query, orderBy } from "firebase/firestore";
 
 export default function Market() {
   const { id } = useParams();
@@ -24,32 +24,41 @@ export default function Market() {
       if (snap.exists()) {
         const data = { id: snap.id, ...snap.data() };
         setMarket(data);
-        if (data.type !== "multi") {
-          const total = data.poolYes + data.poolNo;
-          const pct = Math.round((data.poolNo / total) * 100);
-          setPriceHistory((prev) => [
-            ...prev.slice(-29),
-            { time: new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }), oui: pct }
-          ]);
-        }
       }
     });
     return unsubscribe;
   }, [id]);
 
-useEffect(() => {
-  console.log("market type:", market?.type);
-  if (!market || market.type !== "multi") return;
-  async function loadOptions() {
-    console.log("chargement options pour", id);
-    const snap = await getDocs(collection(db, "markets", id, "options"));
-    console.log("options trouvées:", snap.docs.length);
-    const opts = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-    setOptions(opts);
-    if (opts.length > 0) setSelectedOption(opts[0].id);
-  }
-  loadOptions();
-}, [market]);
+  useEffect(() => {
+    if (!market) return;
+    const q = query(
+      collection(db, "markets", id, "priceHistory"),
+      orderBy("timestamp", "asc")
+    );
+    const unsubscribe = onSnapshot(q, (snap) => {
+      const history = snap.docs.map((d) => {
+        const data = d.data();
+        const ts = data.timestamp?.toDate();
+        return {
+          time: ts ? ts.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : "",
+          oui: data.pctYes,
+        };
+      });
+      setPriceHistory(history);
+    });
+    return unsubscribe;
+  }, [market, id]);
+
+  useEffect(() => {
+    if (!market || market.type !== "multi") return;
+    async function loadOptions() {
+      const snap = await getDocs(collection(db, "markets", id, "options"));
+      const opts = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      setOptions(opts);
+      if (opts.length > 0) setSelectedOption(opts[0].id);
+    }
+    loadOptions();
+  }, [market]);
 
   useEffect(() => {
     if (!market || amount <= 0) return;

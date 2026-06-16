@@ -4,6 +4,32 @@ export function getPrice(poolYes, poolNo) {
   return poolNo / (poolYes + poolNo);
 }
 
+export function calcSharesMulti(pool, totalPool, amount) {
+  const amountAfterFee = amount * (1 - FEE);
+  
+  if (pool <= 0 || totalPool <= 0 || pool >= totalPool) {
+    return { shares: amountAfterFee, newPool: pool, newTotalPool: totalPool + amountAfterFee, pricePerShare: 1 };
+  }
+  
+  const k = pool * (totalPool - pool);
+  const newTotalPool = totalPool + amountAfterFee;
+  const discriminant = newTotalPool * newTotalPool - 4 * k;
+  
+  if (discriminant <= 0) {
+    return { shares: amountAfterFee, newPool: pool, newTotalPool, pricePerShare: 1 };
+  }
+  
+  const newPool = (newTotalPool - Math.sqrt(discriminant)) / 2;
+  const shares = pool - newPool;
+  
+  if (shares <= 0) {
+    return { shares: amountAfterFee, newPool: pool, newTotalPool, pricePerShare: 1 };
+  }
+  
+  const pricePerShare = amountAfterFee / shares;
+  return { shares, newPool, newTotalPool, pricePerShare };
+}
+
 export function calcShares(poolYes, poolNo, side, amount) {
   const amountAfterFee = amount * (1 - FEE);
   const k = poolYes * poolNo;
@@ -24,7 +50,7 @@ export function calcShares(poolYes, poolNo, side, amount) {
 }
 
 export async function placeBet(userId, marketId, side, amount) {
-  const { doc, runTransaction, serverTimestamp } = await import("firebase/firestore");
+  const { doc, runTransaction, serverTimestamp, collection } = await import("firebase/firestore");
   const { db } = await import("./firebase");
 
   const userRef = doc(db, "users", userId);
@@ -52,6 +78,8 @@ export async function placeBet(userId, marketId, side, amount) {
       amount
     );
 
+    const pctYes = Math.round((newPoolNo / (newPoolYes + newPoolNo)) * 100);
+
     tx.update(userRef, {
       balance: user.balance - amount,
       totalBets: (user.totalBets || 0) + 1,
@@ -71,6 +99,13 @@ export async function placeBet(userId, marketId, side, amount) {
       shares,
       priceAtBet: pricePerShare,
       createdAt: serverTimestamp(),
+    });
+
+    const historyRef = doc(collection(db, "markets", marketId, "priceHistory"));
+    tx.set(historyRef, {
+      pctYes,
+      pctNo: 100 - pctYes,
+      timestamp: serverTimestamp(),
     });
   });
 }
@@ -131,19 +166,8 @@ export async function resolveMarket(marketId, outcome) {
   await batch.commit();
 }
 
-export function calcSharesMulti(pool, totalPool, amount) {
-  const FEE = 0.02;
-  const amountAfterFee = amount * (1 - FEE);
-  const k = pool * (totalPool - pool);
-  const newTotalPool = totalPool + amountAfterFee;
-  const newPool = k / (newTotalPool - pool) ;
-  const shares = pool - newPool;
-  const pricePerShare = amountAfterFee / shares;
-  return { shares, newPool, newTotalPool, pricePerShare };
-}
-
 export async function placeBetMulti(userId, marketId, optionId, amount) {
-  const { doc, runTransaction, serverTimestamp, collection } = await import("firebase/firestore");
+  const { doc, runTransaction, serverTimestamp, collection, getDocs } = await import("firebase/firestore");
   const { db } = await import("./firebase");
 
   const userRef = doc(db, "users", userId);
@@ -169,6 +193,9 @@ export async function placeBetMulti(userId, marketId, optionId, amount) {
       amount
     );
 
+    const newTotalPool = option.totalPool + amount * 0.98;
+    const pct = Math.round((newPool / newTotalPool) * 100);
+
     tx.update(userRef, {
       balance: user.balance - amount,
       totalBets: (user.totalBets || 0) + 1,
@@ -176,7 +203,7 @@ export async function placeBetMulti(userId, marketId, optionId, amount) {
 
     tx.update(optionRef, {
       pool: newPool,
-      totalPool: option.totalPool + amount * 0.98,
+      totalPool: newTotalPool,
       lastUpdated: serverTimestamp(),
     });
 
@@ -189,6 +216,13 @@ export async function placeBetMulti(userId, marketId, optionId, amount) {
       shares,
       priceAtBet: pricePerShare,
       createdAt: serverTimestamp(),
+    });
+
+    const historyRef = doc(collection(db, "markets", marketId, "priceHistory"));
+    tx.set(historyRef, {
+      optionId,
+      pct,
+      timestamp: serverTimestamp(),
     });
   });
 }
