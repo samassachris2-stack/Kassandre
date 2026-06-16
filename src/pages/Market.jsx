@@ -18,19 +18,19 @@ export default function Market() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [priceHistory, setPriceHistory] = useState([]);
+  const [multiHistory, setMultiHistory] = useState([]);
 
   useEffect(() => {
     const unsubscribe = onSnapshot(doc(db, "markets", id), (snap) => {
       if (snap.exists()) {
-        const data = { id: snap.id, ...snap.data() };
-        setMarket(data);
+        setMarket({ id: snap.id, ...snap.data() });
       }
     });
     return unsubscribe;
   }, [id]);
 
   useEffect(() => {
-    if (!market) return;
+    if (!market || market.type === "multi") return;
     const q = query(
       collection(db, "markets", id, "priceHistory"),
       orderBy("timestamp", "asc")
@@ -59,6 +59,30 @@ export default function Market() {
     }
     loadOptions();
   }, [market]);
+
+  useEffect(() => {
+    if (!market || market.type !== "multi" || options.length === 0) return;
+    const q = query(
+      collection(db, "markets", id, "priceHistory"),
+      orderBy("timestamp", "asc")
+    );
+    const unsubscribe = onSnapshot(q, (snap) => {
+      const raw = snap.docs.map((d) => ({
+        ...d.data(),
+        time: d.data().timestamp?.toDate()?.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) || "",
+      }));
+      const times = [...new Set(raw.map((r) => r.time))];
+      const history = times.map((time) => {
+        const entry = { time };
+        raw.filter((r) => r.time === time).forEach((r) => {
+          entry[r.optionId] = r.pct;
+        });
+        return entry;
+      });
+      setMultiHistory(history);
+    });
+    return unsubscribe;
+  }, [market, id, options]);
 
   useEffect(() => {
     if (!market || amount <= 0) return;
@@ -144,22 +168,50 @@ export default function Market() {
       )}
 
       {isMulti && options.length > 0 && (
-        <div style={{ marginBottom: "24px" }}>
-          {options.map((opt) => {
-            const pct = Math.round((opt.pool / opt.totalPool) * 100);
-            return (
-              <div key={opt.id} style={{ marginBottom: "8px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "14px", marginBottom: "4px" }}>
-                  <span style={{ fontWeight: "600" }}>{opt.label}</span>
-                  <span style={{ color: "#7c3aed" }}>{pct}%</span>
+        <>
+          <div style={{ marginBottom: "16px" }}>
+            {options.map((opt) => {
+              const pct = Math.round((opt.pool / opt.totalPool) * 100);
+              return (
+                <div key={opt.id} style={{ marginBottom: "8px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "14px", marginBottom: "4px" }}>
+                    <span style={{ fontWeight: "600" }}>{opt.label}</span>
+                    <span style={{ color: "#7c3aed" }}>{pct}%</span>
+                  </div>
+                  <div style={{ background: "#1a1a2e", borderRadius: "4px", height: "6px" }}>
+                    <div style={{ width: `${pct}%`, background: "#7c3aed", borderRadius: "4px", height: "6px" }}/>
+                  </div>
                 </div>
-                <div style={{ background: "#1a1a2e", borderRadius: "4px", height: "6px" }}>
-                  <div style={{ width: `${pct}%`, background: "#7c3aed", borderRadius: "4px", height: "6px" }}/>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+
+          {multiHistory.length > 1 && (
+            <div style={{ marginBottom: "32px" }}>
+              <p style={{ fontSize: "13px", color: "#6b6b8a", marginBottom: "12px" }}>Évolution des cotes</p>
+              <ResponsiveContainer width="100%" height={150}>
+                <LineChart data={multiHistory}>
+                  <XAxis dataKey="time" tick={{ fontSize: 11, fill: "#6b6b8a" }} />
+                  <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: "#6b6b8a" }} unit="%" />
+                  <Tooltip
+                    contentStyle={{ background: "#12121a", border: "1px solid #2a2a3e", borderRadius: "8px", color: "#e8e8f0" }}
+                  />
+                  {options.map((opt, i) => (
+                    <Line
+                      key={opt.id}
+                      type="monotone"
+                      dataKey={opt.id}
+                      name={opt.label}
+                      stroke={["#7c3aed", "#22c55e", "#ef4444", "#f59e0b", "#06b6d4"][i % 5]}
+                      strokeWidth={2}
+                      dot={false}
+                    />
+                  ))}
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </>
       )}
 
       {market.status === "open" && user && (
