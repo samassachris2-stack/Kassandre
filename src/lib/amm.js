@@ -130,3 +130,65 @@ export async function resolveMarket(marketId, outcome) {
 
   await batch.commit();
 }
+
+export function calcSharesMulti(pool, totalPool, amount) {
+  const FEE = 0.02;
+  const amountAfterFee = amount * (1 - FEE);
+  const k = pool * (totalPool - pool);
+  const newTotalPool = totalPool + amountAfterFee;
+  const newPool = k / (newTotalPool - pool) ;
+  const shares = pool - newPool;
+  const pricePerShare = amountAfterFee / shares;
+  return { shares, newPool, newTotalPool, pricePerShare };
+}
+
+export async function placeBetMulti(userId, marketId, optionId, amount) {
+  const { doc, runTransaction, serverTimestamp, collection } = await import("firebase/firestore");
+  const { db } = await import("./firebase");
+
+  const userRef = doc(db, "users", userId);
+  const optionRef = doc(db, "markets", marketId, "options", optionId);
+  const betRef = doc(db, "bets", `${userId}_${marketId}_${optionId}_${Date.now()}`);
+
+  await runTransaction(db, async (tx) => {
+    const userSnap = await tx.get(userRef);
+    const optionSnap = await tx.get(optionRef);
+
+    if (!userSnap.exists()) throw new Error("Utilisateur introuvable");
+    if (!optionSnap.exists()) throw new Error("Option introuvable");
+
+    const user = userSnap.data();
+    const option = optionSnap.data();
+
+    if (user.balance < amount) throw new Error("Solde insuffisant");
+    if (amount <= 0) throw new Error("Montant invalide");
+
+    const { shares, newPool, pricePerShare } = calcSharesMulti(
+      option.pool,
+      option.totalPool,
+      amount
+    );
+
+    tx.update(userRef, {
+      balance: user.balance - amount,
+      totalBets: (user.totalBets || 0) + 1,
+    });
+
+    tx.update(optionRef, {
+      pool: newPool,
+      totalPool: option.totalPool + amount * 0.98,
+      lastUpdated: serverTimestamp(),
+    });
+
+    tx.set(betRef, {
+      userId,
+      marketId,
+      optionId,
+      type: "multi",
+      amount,
+      shares,
+      priceAtBet: pricePerShare,
+      createdAt: serverTimestamp(),
+    });
+  });
+}
