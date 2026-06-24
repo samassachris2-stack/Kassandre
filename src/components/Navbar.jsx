@@ -107,12 +107,12 @@ export default function Navbar() {
 
       <div style={S.navLinks}>
         <Link
-          to="/leaderboard"
-          style={S.navLink(location.pathname === "/leaderboard")}
-          onMouseEnter={(e) => { if (location.pathname !== "/leaderboard") e.currentTarget.style.color = "#e8e8f0"; }}
-          onMouseLeave={(e) => { if (location.pathname !== "/leaderboard") e.currentTarget.style.color = "#a8a8b8"; }}
+          to="/portefeuille"
+          style={S.navLink(location.pathname === "/portefeuille")}
+          onMouseEnter={(e) => { if (location.pathname !== "/portefeuille") e.currentTarget.style.color = "#e8e8f0"; }}
+          onMouseLeave={(e) => { if (location.pathname !== "/portefeuille") e.currentTarget.style.color = "#a8a8b8"; }}
         >
-          Classement
+          Portefeuille
         </Link>
         <Link
           to="/soumettre"
