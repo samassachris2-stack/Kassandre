@@ -468,3 +468,62 @@ export async function sellSharesMulti(userId, marketId, optionId, sharesToSell) 
     tx.set(historyRef, historyEntry);
   });
 }
+
+export async function resolveMarketMulti(marketId, winningOptionId) {
+  const { doc, runTransaction, collection, getDocs, query, where, writeBatch, serverTimestamp } = await import("firebase/firestore");
+  const { db } = await import("./firebase");
+
+  const marketRef = doc(db, "markets", marketId);
+
+  await runTransaction(db, async (tx) => {
+    const marketSnap = await tx.get(marketRef);
+    if (!marketSnap.exists()) throw new Error("Marché introuvable");
+    if (marketSnap.data().status !== "open") throw new Error("Marché déjà résolu");
+    tx.update(marketRef, { status: "resolved", outcome: winningOptionId, resolvedAt: serverTimestamp() });
+  });
+
+  const allBetsQuery = query(
+    collection(db, "bets"),
+    where("marketId", "==", marketId),
+    where("type", "==", "multi")
+  );
+  const allBetsSnap = await getDocs(allBetsQuery);
+
+  let totalPool = 0;
+  let totalWinningShares = 0;
+  const winningBets = [];
+
+  allBetsSnap.forEach((betDoc) => {
+    const bet = betDoc.data();
+    totalPool += bet.amount;
+    if (bet.optionId === winningOptionId) {
+      totalWinningShares += bet.shares;
+      winningBets.push(bet);
+    }
+  });
+
+  const batch = writeBatch(db);
+
+  for (const bet of winningBets) {
+    const ratio = bet.shares / totalWinningShares;
+    const winnings = totalPool * ratio * 0.98;
+    const userRef = doc(db, "users", bet.userId);
+    const userSnap = await getDocs(query(collection(db, "users"), where("__name__", "==", bet.userId)));
+    const currentBalance = userSnap.docs[0]?.data()?.balance || 0;
+
+    batch.update(userRef, { balance: currentBalance + Math.round(winnings) });
+
+    const notifRef = doc(db, "notifications", `${bet.userId}_${marketId}`);
+    batch.set(notifRef, {
+      userId: bet.userId,
+      type: "resolved",
+      marketId,
+      outcome: winningOptionId,
+      payout: Math.round(winnings),
+      read: false,
+      createdAt: serverTimestamp(),
+    });
+  }
+
+  await batch.commit();
+}

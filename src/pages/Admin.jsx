@@ -2,7 +2,45 @@ import { useState, useEffect } from "react";
 import { collection, addDoc, getDocs, updateDoc, doc, serverTimestamp, query, where, onSnapshot, setDoc } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { useAuth } from "../context/AuthContext";
-import { resolveMarket } from "../lib/amm.js";
+import { resolveMarket, resolveMarketMulti } from "../lib/amm.js";
+
+function MultiResolveButtons({ marketId }) {
+  const [options, setOptions] = useState([]);
+
+  useEffect(() => {
+    async function load() {
+      const { collection, getDocs } = await import("firebase/firestore");
+      const { db } = await import("../lib/firebase");
+      const snap = await getDocs(collection(db, "markets", marketId, "options"));
+      setOptions(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+    }
+    load();
+  }, [marketId]);
+
+  async function handleResolve(optionId, label) {
+    if (!confirm(`Résoudre avec "${label}" comme gagnant ?`)) return;
+    try {
+      await resolveMarketMulti(marketId, optionId);
+      alert("Marché résolu et gains distribués.");
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
+  return (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+      {options.map((opt) => (
+        <button
+          key={opt.id}
+          onClick={() => handleResolve(opt.id, opt.label)}
+          style={{ padding: "8px 16px", background: "#7c3aed", color: "#fff", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: "600", fontSize: "13px" }}
+        >
+          Résoudre : {opt.label}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 export default function Admin() {
   const { user } = useAuth();
@@ -235,8 +273,8 @@ export default function Admin() {
             </div>
           )}
           {market.type === "multi" && (
-            <p style={{ fontSize: "13px", color: "#6b6b8a" }}>Résolution multi-choix via Firebase console pour l'instant.</p>
-          )}
+  <MultiResolveButtons marketId={market.id} />
+)}
         </div>
       ))}
 
