@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { collection, addDoc, getDocs, updateDoc, doc, serverTimestamp, query, where, onSnapshot, setDoc } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { useAuth } from "../context/AuthContext";
-import { resolveMarket, resolveMarketMulti } from "../lib/amm.js";
+import { resolveMarket } from "../lib/amm.js";
 
 function MultiResolveButtons({ marketId }) {
   const [options, setOptions] = useState([]);
@@ -20,7 +20,7 @@ function MultiResolveButtons({ marketId }) {
   async function handleResolve(optionId, label) {
     if (!confirm(`Résoudre avec "${label}" comme gagnant ?`)) return;
     try {
-      await resolveMarketMulti(marketId, optionId);
+      await resolveMarket(marketId, optionId);
       alert("Marché résolu et gains distribués.");
     } catch (e) {
       alert(e.message);
@@ -90,18 +90,21 @@ export default function Admin() {
         setLoading(false);
         return;
       }
+      const liquidityB = Math.round(75 * Math.log(validOptions.length + 1));
       const marketRef = await addDoc(collection(db, "markets"), {
         question, description, resolutionDate, resolutionSource,
         type: "multi",
         status: "open", outcome: null,
+        liquidityB,
         createdBy: user.uid,
         createdAt: serverTimestamp(),
       });
+      const equalPrice = 1 / validOptions.length;
       for (const label of validOptions) {
         await setDoc(doc(db, "markets", marketRef.id, "options", label.toLowerCase().replace(/\s+/g, "_")), {
           label,
-          pool: 100,
-          totalPool: 100,
+          q: 0,
+          price: equalPrice,
           createdAt: serverTimestamp(),
         });
       }

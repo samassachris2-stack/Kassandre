@@ -134,6 +134,7 @@ export async function placeBet(userId, marketId, side, amount) {
 
     const pctYes = Math.round((newPoolNo / (newPoolYes + newPoolNo)) * 100);
     const currentShares = positionSnap.exists() ? positionSnap.data().shares : 0;
+    const currentCost = positionSnap.exists() ? (positionSnap.data().totalCost || 0) : 0;
 
     tx.update(userRef, {
       balance: user.balance - amount,
@@ -147,6 +148,7 @@ export async function placeBet(userId, marketId, side, amount) {
     tx.set(positionRef, {
       userId, marketId, side,
       shares: currentShares + shares,
+      totalCost: currentCost + amount,
       lastUpdated: serverTimestamp(),
     });
     tx.set(betRef, {
@@ -198,6 +200,10 @@ export async function sellShares(userId, marketId, side, sharesToSell) {
 
     const pctYes = Math.round((newPoolNo / (newPoolYes + newPoolNo)) * 100);
 
+    const currentCost = position.totalCost || 0;
+    const costRatio = sharesToSell / position.shares;
+    const costRemoved = currentCost * costRatio;
+
     tx.update(userRef, {
       balance: user.balance + proceeds,
     });
@@ -210,6 +216,7 @@ export async function sellShares(userId, marketId, side, sharesToSell) {
 
     tx.update(positionRef, {
       shares: position.shares - sharesToSell,
+      totalCost: Math.max(0, currentCost - costRemoved),
       lastUpdated: serverTimestamp(),
     });
 
@@ -234,7 +241,7 @@ export async function sellShares(userId, marketId, side, sharesToSell) {
 }
 
 export async function resolveMarket(marketId, outcome) {
-  const { doc, runTransaction, collection, getDocs, query, where, writeBatch, serverTimestamp } = await import("firebase/firestore");
+  const { doc, getDoc, runTransaction, collection, getDocs, query, where, writeBatch, serverTimestamp } = await import("firebase/firestore");
   const { db } = await import("./firebase");
 
   const marketRef = doc(db, "markets", marketId);
@@ -271,20 +278,34 @@ export async function resolveMarket(marketId, outcome) {
 
   const batch = writeBatch(db);
 
+  const winnerIds = [...new Set(winSnap.docs.map((d) => d.data().userId))];
+  const winnerBalances = {};
+  await Promise.all(winnerIds.map(async (uid) => {
+    const uSnap = await getDoc(doc(db, "users", uid));
+    winnerBalances[uid] = uSnap.exists() ? (uSnap.data().balance || 0) : 0;
+  }));
+
+  const payoutByUser = {};
+
   winSnap.forEach((betDoc) => {
     const bet = betDoc.data();
     const ratio = totalWinningShares > 0 ? bet.shares / totalWinningShares : 0;
     const winnings = bet.amount + ratio * totalLosingAmount * 0.98;
-    const userRef = doc(db, "users", bet.userId);
-    batch.update(userRef, { balance: bet.amount });
+    payoutByUser[bet.userId] = (payoutByUser[bet.userId] || 0) + winnings;
+  });
 
-    const notifRef = doc(db, "notifications", `${bet.userId}_${marketId}`);
+  Object.entries(payoutByUser).forEach(([uid, totalWinnings]) => {
+    const userRef = doc(db, "users", uid);
+    const newBalance = (winnerBalances[uid] || 0) + totalWinnings;
+    batch.update(userRef, { balance: newBalance });
+
+    const notifRef = doc(db, "notifications", `${uid}_${marketId}`);
     batch.set(notifRef, {
-      userId: bet.userId,
+      userId: uid,
       type: "resolved",
       marketId,
       outcome,
-      payout: Math.round(winnings),
+      payout: Math.round(totalWinnings),
       read: false,
       createdAt: serverTimestamp(),
     });
@@ -330,6 +351,7 @@ export async function placeBetMulti(userId, marketId, optionId, amount) {
     );
 
     const currentShares = positionSnap.exists() ? positionSnap.data().shares : 0;
+    const currentCost = positionSnap.exists() ? (positionSnap.data().totalCost || 0) : 0;
 
     tx.update(userRef, {
       balance: user.balance - amount,
@@ -351,6 +373,7 @@ export async function placeBetMulti(userId, marketId, optionId, amount) {
       optionId,
       type: "multi",
       shares: currentShares + shares,
+      totalCost: currentCost + amount,
       lastUpdated: serverTimestamp(),
     });
 
@@ -438,6 +461,10 @@ export async function sellSharesMulti(userId, marketId, optionId, sharesToSell) 
 
     const newPrices = getPricesLMSR(newQuantities, b);
 
+    const currentCost = position.totalCost || 0;
+    const costRatio = sharesToSell / position.shares;
+    const costRemoved = currentCost * costRatio;
+
     tx.update(userRef, { balance: user.balance + proceeds });
 
     optionDocs.forEach((d, i) => {
@@ -450,6 +477,7 @@ export async function sellSharesMulti(userId, marketId, optionId, sharesToSell) 
 
     tx.update(positionRef, {
       shares: position.shares - sharesToSell,
+      totalCost: Math.max(0, currentCost - costRemoved),
       lastUpdated: serverTimestamp(),
     });
 
@@ -467,63 +495,4 @@ export async function sellSharesMulti(userId, marketId, optionId, sharesToSell) 
     optionIds.forEach((id, i) => { historyEntry[id] = Math.round(newPrices[i] * 100); });
     tx.set(historyRef, historyEntry);
   });
-}
-
-export async function resolveMarketMulti(marketId, winningOptionId) {
-  const { doc, runTransaction, collection, getDocs, query, where, writeBatch, serverTimestamp } = await import("firebase/firestore");
-  const { db } = await import("./firebase");
-
-  const marketRef = doc(db, "markets", marketId);
-
-  await runTransaction(db, async (tx) => {
-    const marketSnap = await tx.get(marketRef);
-    if (!marketSnap.exists()) throw new Error("Marché introuvable");
-    if (marketSnap.data().status !== "open") throw new Error("Marché déjà résolu");
-    tx.update(marketRef, { status: "resolved", outcome: winningOptionId, resolvedAt: serverTimestamp() });
-  });
-
-  const allBetsQuery = query(
-    collection(db, "bets"),
-    where("marketId", "==", marketId),
-    where("type", "==", "multi")
-  );
-  const allBetsSnap = await getDocs(allBetsQuery);
-
-  let totalPool = 0;
-  let totalWinningShares = 0;
-  const winningBets = [];
-
-  allBetsSnap.forEach((betDoc) => {
-    const bet = betDoc.data();
-    totalPool += bet.amount;
-    if (bet.optionId === winningOptionId) {
-      totalWinningShares += bet.shares;
-      winningBets.push(bet);
-    }
-  });
-
-  const batch = writeBatch(db);
-
-  for (const bet of winningBets) {
-    const ratio = bet.shares / totalWinningShares;
-    const winnings = totalPool * ratio * 0.98;
-    const userRef = doc(db, "users", bet.userId);
-    const userSnap = await getDocs(query(collection(db, "users"), where("__name__", "==", bet.userId)));
-    const currentBalance = userSnap.docs[0]?.data()?.balance || 0;
-
-    batch.update(userRef, { balance: currentBalance + Math.round(winnings) });
-
-    const notifRef = doc(db, "notifications", `${bet.userId}_${marketId}`);
-    batch.set(notifRef, {
-      userId: bet.userId,
-      type: "resolved",
-      marketId,
-      outcome: winningOptionId,
-      payout: Math.round(winnings),
-      read: false,
-      createdAt: serverTimestamp(),
-    });
-  }
-
-  await batch.commit();
 }
