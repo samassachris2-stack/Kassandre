@@ -528,6 +528,7 @@ export default function Portefeuille() {
 
   const [tab, setTab] = useState("open");
   const [typeFilter, setTypeFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState([]);
   const [sortBy, setSortBy] = useState("value");
   const [expandedId, setExpandedId] = useState(null);
   const [tradingPos, setTradingPos] = useState(null);
@@ -588,6 +589,7 @@ export default function Portefeuille() {
             question: market.question,
             status: market.status,
             marketType: market.type === "multi" ? "multi" : "binary",
+            categories: Array.isArray(market.categories) ? market.categories : (market.category ? [market.category] : []),
             isResolved,
             won,
             currentPrice,
@@ -612,16 +614,104 @@ export default function Portefeuille() {
           .filter((b) => b.createdAt)
           .sort((a, b) => a.createdAt.seconds - b.createdAt.seconds);
 
-        if (allBets.length > 0) {
-          let running = 0;
-          const points = allBets.map((b) => {
-            running += b.amount;
-            const d = b.createdAt.toDate();
-            return {
-              time: d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" }),
-              valeur: Math.max(0, running),
-            };
+        // Complète marketsData avec les marchés référencés uniquement par des bets
+        // (au cas où une position aurait été entièrement liquidée et ne serait plus
+        // couverte par la requête "positions" ci-dessus)
+        const betMarketIds = [...new Set(allBets.map((b) => b.marketId))];
+        const missingMarketIds = betMarketIds.filter((mid) => !marketsData[mid]);
+        await Promise.all(missingMarketIds.map(async (mid) => {
+          const mSnap = await getDoc(doc(db, "markets", mid));
+          if (mSnap.exists()) marketsData[mid] = { id: mid, ...mSnap.data() };
+        }));
+
+        if (allBets.length > 0) {          // Charge le priceHistory de chaque marché concerné
+          const priceHistories = {};
+          await Promise.all(betMarketIds.map(async (mid) => {
+            const phQ = query(collection(db, "markets", mid, "priceHistory"), orderBy("timestamp", "asc"));
+            const phSnap = await getDocs(phQ);
+            priceHistories[mid] = phSnap.docs
+              .map((d) => d.data())
+              .filter((p) => p.timestamp)
+              .map((p) => ({ ...p, ts: p.timestamp.toDate().getTime() }));
+          }));
+
+          // Construit une clé de position unique par marché/côté(ou option)
+          function posKey(bet) {
+            return bet.type === "multi" ? `${bet.marketId}_${bet.optionId}` : `${bet.marketId}_${bet.side}`;
+          }
+
+          // État courant des parts détenues par position, mis à jour au fil du temps
+          const sharesByPos = {};
+          allBets.forEach((b) => { sharesByPos[posKey(b)] = 0; });
+
+          // Fusionne tous les points de prix de tous les marchés concernés en une
+          // seule timeline, avec le marketId associé à chaque point
+          const allPricePoints = [];
+          betMarketIds.forEach((mid) => {
+            (priceHistories[mid] || []).forEach((p) => {
+              allPricePoints.push({ marketId: mid, ts: p.ts, data: p });
+            });
           });
+          allPricePoints.sort((a, b) => a.ts - b.ts);
+
+          // Dernier prix connu par position (clé identique à posKey), mis à jour
+          // au fil de la timeline de prix
+          const lastPriceByPos = {};
+
+          let betIdx = 0;
+          const points = [];
+
+          for (const pricePoint of allPricePoints) {
+            // Applique tous les bets survenus avant ou au moment de ce point de prix
+            while (betIdx < allBets.length && allBets[betIdx].createdAt.toMillis() <= pricePoint.ts) {
+              const b = allBets[betIdx];
+              const key = posKey(b);
+              sharesByPos[key] = (sharesByPos[key] || 0) + b.shares;
+              betIdx++;
+            }
+
+            // Met à jour le dernier prix connu pour les positions de CE marché
+            const market = marketsData[pricePoint.marketId];
+            const isMultiMarket = market?.type === "multi";
+
+            if (isMultiMarket) {
+              // Le point contient un % par optionId (ex: { gadi_eizenkot: 31, ... })
+              Object.keys(pricePoint.data).forEach((field) => {
+                if (field === "timestamp" || field === "ts") return;
+                const key = `${pricePoint.marketId}_${field}`;
+                lastPriceByPos[key] = pricePoint.data[field] / 100;
+              });
+            } else {
+              lastPriceByPos[`${pricePoint.marketId}_yes`] = (pricePoint.data.pctYes ?? 0) / 100;
+              lastPriceByPos[`${pricePoint.marketId}_no`] = (pricePoint.data.pctNo ?? 0) / 100;
+            }
+
+            // Calcule la valeur totale du portefeuille à cet instant : somme sur
+            // toutes les positions connues de (parts détenues × dernier prix connu)
+            let totalValue = 0;
+            Object.keys(sharesByPos).forEach((key) => {
+              const shares = sharesByPos[key];
+              if (shares > 0.001) {
+                const price = lastPriceByPos[key] ?? 0;
+                totalValue += shares * price;
+              }
+            });
+
+            const d = new Date(pricePoint.ts);
+            points.push({
+              time: d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" }),
+              valeur: Math.max(0, totalValue),
+            });
+          }
+
+          // Applique les éventuels bets restants après le dernier point de prix connu
+          while (betIdx < allBets.length) {
+            const b = allBets[betIdx];
+            const key = posKey(b);
+            sharesByPos[key] = (sharesByPos[key] || 0) + b.shares;
+            betIdx++;
+          }
+
           setValueHistory(points);
         }
       } catch (e) {
@@ -636,12 +726,15 @@ export default function Portefeuille() {
   const displayedPositions = useMemo(() => {
     let list = tab === "open" ? positions : resolvedPositions;
     if (typeFilter !== "all") list = list.filter((p) => p.marketType === typeFilter);
+    if (categoryFilter.length > 0) {
+      list = list.filter((p) => (p.categories || []).some((c) => categoryFilter.includes(c)));
+    }
     const sorted = [...list];
     if (sortBy === "value") sorted.sort((a, b) => b.currentValue - a.currentValue);
     else if (sortBy === "pnl") sorted.sort((a, b) => b.pnl - a.pnl);
     else if (sortBy === "date") sorted.sort((a, b) => b.lastUpdated - a.lastUpdated);
     return sorted;
-  }, [tab, positions, resolvedPositions, typeFilter, sortBy]);
+  }, [tab, positions, resolvedPositions, typeFilter, categoryFilter, sortBy]);
 
   if (!user) {
     return <div style={S.page}><div style={S.emptyState}>Connecte-toi pour voir ton portefeuille.</div></div>;
@@ -684,13 +777,13 @@ export default function Portefeuille() {
 
       {valueHistory.length > 1 && (
         <div style={S.chartWrap}>
-          <p style={S.chartLabel}>Évolution du capital investi</p>
+          <p style={S.chartLabel}>Évolution de la valeur du portefeuille</p>
           <ResponsiveContainer width="100%" height={140}>
             <LineChart data={valueHistory}>
               <XAxis dataKey="time" tick={{ fontSize: 11, fill: "#6b6b8a" }} />
               <YAxis tick={{ fontSize: 11, fill: "#6b6b8a" }} width={40} />
               <Tooltip
-                formatter={(v) => [`${v.toFixed(2)} pts`, "Capital investi"]}
+                formatter={(v) => [`${v.toFixed(2)} pts`, "Valeur du portefeuille"]}
                 contentStyle={{ background: "#12121a", border: "1px solid #2a2a3e", borderRadius: "8px", fontSize: "12px" }}
               />
               <Line type="monotone" dataKey="valeur" stroke="#7c3aed" strokeWidth={2} dot={false} />
@@ -717,6 +810,33 @@ export default function Portefeuille() {
           <option value="pnl">Trier par gain/perte</option>
           <option value="date">Trier par date</option>
         </select>
+      </div>
+
+      <div style={{ ...S.controlsRow, marginTop: "-8px" }}>
+        {["Sport", "Politique", "Crypto", "Tech", "Économie", "International", "Culture", "Climat", "Autre"].map((cat) => {
+          const active = categoryFilter.includes(cat);
+          return (
+            <button
+              key={cat}
+              onClick={() => {
+                setCategoryFilter((prev) =>
+                  active ? prev.filter((c) => c !== cat) : [...prev, cat]
+                );
+              }}
+              style={S.filterBtn(active)}
+            >
+              {cat}
+            </button>
+          );
+        })}
+        {categoryFilter.length > 0 && (
+          <button
+            onClick={() => setCategoryFilter([])}
+            style={{ ...S.filterBtn(false), color: "#ef4444", borderColor: "rgba(239,68,68,0.3)" }}
+          >
+            Réinitialiser
+          </button>
+        )}
       </div>
 
       {displayedPositions.length === 0 && (
