@@ -17,6 +17,115 @@ const SORT_OPTIONS = [
   { value: "volume", label: "Volume" },
 ];
 
+function FeaturedCarousel({ markets }) {
+  const [index, setIndex] = useState(0);
+
+  const featured = useMemo(() => {
+    const pinned = markets.filter((m) => m.pinnedFeatured);
+    const rest = markets
+      .filter((m) => !m.pinnedFeatured)
+      .map((m) => ({
+        ...m,
+        _volume: m.type === "multi" ? 0 : (m.poolYes || 0) + (m.poolNo || 0),
+      }))
+      .sort((a, b) => b._volume - a._volume)
+      .slice(0, 5);
+    // Le(s) marché(s) épinglé(s) passent toujours en tête, suivis du top volume
+    const combined = [...pinned, ...rest];
+    // Dédoublonne au cas où un marché épinglé serait aussi dans le top volume
+    const seen = new Set();
+    return combined.filter((m) => {
+      if (seen.has(m.id)) return false;
+      seen.add(m.id);
+      return true;
+    }).slice(0, 5);
+  }, [markets]);
+
+  useEffect(() => {
+    if (index >= featured.length) setIndex(0);
+  }, [featured, index]);
+
+  if (featured.length === 0) return null;
+
+  const market = featured[index];
+  const isMulti = market.type === "multi";
+  const total = isMulti ? 0 : (market.poolYes || 0) + (market.poolNo || 0);
+  const pctYes = isMulti ? null : Math.round((market.poolYes / total) * 100);
+
+  return (
+    <div style={{ marginBottom: "28px" }}>
+      <Link to={`/market/${market.id}`} style={{ textDecoration: "none", color: "inherit" }}>
+        <div style={{
+          position: "relative",
+          borderRadius: "18px",
+          overflow: "hidden",
+          minHeight: "220px",
+          border: "0.5px solid rgba(124,58,237,0.2)",
+          background: market.coverImageUrl
+            ? `linear-gradient(to right, rgba(10,10,15,0.92), rgba(10,10,15,0.55)), url(${market.coverImageUrl}) center / cover no-repeat`
+            : "linear-gradient(135deg, #1a1a2e, #13131a)",
+          padding: "28px 32px",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+        }}>
+          <div>
+            {market.pinnedFeatured && (
+              <span style={{
+                fontSize: "11px", fontWeight: "700", color: "#f59e0b",
+                background: "rgba(245,158,11,0.15)", border: "0.5px solid rgba(245,158,11,0.4)",
+                borderRadius: "6px", padding: "3px 10px", marginBottom: "12px", display: "inline-block",
+              }}>
+                ★ À LA UNE
+              </span>
+            )}
+            <h2 style={{ fontSize: "26px", fontWeight: "700", color: "#fff", margin: "0 0 8px", lineHeight: "1.3", maxWidth: "560px" }}>
+              {market.question}
+            </h2>
+            {(Array.isArray(market.categories) ? market.categories : (market.category ? [market.category] : [])).map((cat) => (
+              <span key={cat} style={{
+                fontSize: "12px", fontWeight: "500", color: "#c4b5fd",
+                background: "rgba(124,58,237,0.2)", borderRadius: "6px",
+                padding: "2px 9px", marginRight: "6px",
+              }}>{cat}</span>
+            ))}
+          </div>
+
+          <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
+            {!isMulti ? (
+              <div>
+                <span style={{ fontSize: "42px", fontWeight: "800", color: "#a78bfa", lineHeight: 1 }}>{pctYes}%</span>
+                <span style={{ fontSize: "15px", color: "#d4d4d8", marginLeft: "10px" }}>de chance que OUI</span>
+              </div>
+            ) : (
+              <span style={{ fontSize: "15px", color: "#d4d4d8" }}>Multi-choix</span>
+            )}
+            <span style={{ fontSize: "13px", color: "#a8a8b8" }}>Résolution : {market.resolutionDate}</span>
+          </div>
+        </div>
+      </Link>
+
+      {featured.length > 1 && (
+        <div style={{ display: "flex", justifyContent: "center", gap: "6px", marginTop: "12px" }}>
+          {featured.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setIndex(i)}
+              style={{
+                width: i === index ? "20px" : "7px", height: "7px", borderRadius: "4px",
+                border: "none", cursor: "pointer", padding: 0,
+                background: i === index ? "#7c3aed" : "rgba(124,58,237,0.25)",
+                transition: "width 0.2s",
+              }}
+              aria-label={`Marché à la une ${i + 1}`}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function MultiLeaderGauge({ marketId }) {
   const [options, setOptions] = useState(null);
 
@@ -248,6 +357,8 @@ export default function Feed() {
     <>
     <div style={{ maxWidth: "900px", margin: "40px auto", padding: "0 16px" }}>
       <h1 style={{ fontSize: "24px", marginBottom: "20px", color: "#e8e8f0" }}>Marchés ouverts</h1>
+
+      <FeaturedCarousel markets={markets} />
 
       {/* ── Barre de recherche ── */}
       <input

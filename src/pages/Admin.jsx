@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { collection, addDoc, getDocs, updateDoc, doc, serverTimestamp, query, where, onSnapshot, setDoc } from "firebase/firestore";
-import { db } from "../lib/firebase";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { db, storage } from "../lib/firebase";
 import { useAuth } from "../context/AuthContext";
 import { resolveMarket } from "../lib/amm.js";
 
@@ -38,6 +39,257 @@ function MultiResolveButtons({ marketId }) {
           Résoudre : {opt.label}
         </button>
       ))}
+    </div>
+  );
+}
+
+const CROP_RATIO = 900 / 280; // ratio largeur/hauteur du carrousel (un peu plus que le visible pour la marge)
+
+function ImageCropper({ file, onConfirm, onCancel }) {
+  const canvasRef = useRef(null);
+  const imgRef = useRef(null);
+  const [imgLoaded, setImgLoaded] = useState(false);
+  const [zoom, setZoom] = useState(1);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const dragState = useRef(null);
+
+  const CANVAS_W = 600;
+  const CANVAS_H = Math.round(CANVAS_W / CROP_RATIO);
+
+  const [objectUrl, setObjectUrl] = useState(null);
+
+  useEffect(() => {
+    const url = URL.createObjectURL(file);
+    setObjectUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+
+  useEffect(() => {
+    if (!objectUrl) return;
+    const img = new Image();
+    img.onload = () => {
+      imgRef.current = img;
+      // Zoom minimal pour couvrir tout le cadre (comme object-fit: cover)
+      const minZoom = Math.max(CANVAS_W / img.width, CANVAS_H / img.height);
+      setZoom(minZoom);
+      setOffset({ x: 0, y: 0 });
+      setImgLoaded(true);
+    };
+    img.src = objectUrl;
+  }, [objectUrl]);
+
+  useEffect(() => {
+    if (!imgLoaded) return;
+    draw();
+  }, [imgLoaded, zoom, offset]);
+
+  function draw() {
+    const canvas = canvasRef.current;
+    const img = imgRef.current;
+    if (!canvas || !img) return;
+    const ctx = canvas.getContext("2d");
+    canvas.width = CANVAS_W;
+    canvas.height = CANVAS_H;
+    ctx.fillStyle = "#0a0a0f";
+    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+
+    const drawW = img.width * zoom;
+    const drawH = img.height * zoom;
+    const x = (CANVAS_W - drawW) / 2 + offset.x;
+    const y = (CANVAS_H - drawH) / 2 + offset.y;
+    ctx.drawImage(img, x, y, drawW, drawH);
+  }
+
+  function clampOffset(next, currentZoom) {
+    const img = imgRef.current;
+    if (!img) return next;
+    const drawW = img.width * currentZoom;
+    const drawH = img.height * currentZoom;
+    const maxX = Math.max(0, (drawW - CANVAS_W) / 2);
+    const maxY = Math.max(0, (drawH - CANVAS_H) / 2);
+    return {
+      x: Math.min(maxX, Math.max(-maxX, next.x)),
+      y: Math.min(maxY, Math.max(-maxY, next.y)),
+    };
+  }
+
+  function handlePointerDown(e) {
+    dragState.current = { startX: e.clientX, startY: e.clientY, origin: offset };
+  }
+  function handlePointerMove(e) {
+    if (!dragState.current) return;
+    const dx = e.clientX - dragState.current.startX;
+    const dy = e.clientY - dragState.current.startY;
+    setOffset(clampOffset({ x: dragState.current.origin.x + dx, y: dragState.current.origin.y + dy }, zoom));
+  }
+  function handlePointerUp() {
+    dragState.current = null;
+  }
+
+  function handleZoomChange(e) {
+    const img = imgRef.current;
+    if (!img) return;
+    const minZoom = Math.max(CANVAS_W / img.width, CANVAS_H / img.height);
+    const maxZoom = minZoom * 3;
+    const newZoom = minZoom + (maxZoom - minZoom) * (Number(e.target.value) / 100);
+    setZoom(newZoom);
+    setOffset((prev) => clampOffset(prev, newZoom));
+  }
+
+  function handleConfirm() {
+    // Rendu final à pleine résolution (1600x ratio) pour une bonne qualité d'affichage
+    const FINAL_W = 1600;
+    const FINAL_H = Math.round(FINAL_W / CROP_RATIO);
+    const scale = FINAL_W / CANVAS_W;
+
+    const finalCanvas = document.createElement("canvas");
+    finalCanvas.width = FINAL_W;
+    finalCanvas.height = FINAL_H;
+    const ctx = finalCanvas.getContext("2d");
+    const img = imgRef.current;
+    const drawW = img.width * zoom * scale;
+    const drawH = img.height * zoom * scale;
+    const x = (FINAL_W - drawW) / 2 + offset.x * scale;
+    const y = (FINAL_H - drawH) / 2 + offset.y * scale;
+    ctx.drawImage(img, x, y, drawW, drawH);
+
+    finalCanvas.toBlob((blob) => onConfirm(blob), "image/jpeg", 0.9);
+  }
+
+  return (
+    <div style={{
+      position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)",
+      display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "20px",
+    }}>
+      <div style={{ background: "#13131a", border: "1px solid #2a2a3e", borderRadius: "16px", padding: "20px", maxWidth: "640px", width: "100%" }}>
+        <p style={{ fontSize: "14px", fontWeight: "600", color: "#e8e8f0", marginBottom: "12px" }}>
+          Ajuste le cadrage de l'image
+        </p>
+
+        {!imgLoaded ? (
+          <p style={{ color: "#8888a0", fontSize: "13px", padding: "40px 0", textAlign: "center" }}>Chargement de l'image...</p>
+        ) : (
+          <>
+            <canvas
+              ref={canvasRef}
+              width={CANVAS_W}
+              height={CANVAS_H}
+              style={{ width: "100%", height: "auto", borderRadius: "10px", cursor: "grab", display: "block", touchAction: "none" }}
+              onPointerDown={handlePointerDown}
+              onPointerMove={handlePointerMove}
+              onPointerUp={handlePointerUp}
+              onPointerLeave={handlePointerUp}
+            />
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "14px" }}>
+              <span style={{ fontSize: "12px", color: "#8888a0" }}>Zoom</span>
+              <input
+                type="range" min="0" max="100" defaultValue="0"
+                onChange={handleZoomChange}
+                style={{ flex: 1 }}
+              />
+            </div>
+            <p style={{ fontSize: "11px", color: "#6b6b80", marginTop: "6px" }}>
+              Glisse l'image pour la repositionner.
+            </p>
+          </>
+        )}
+
+        <div style={{ display: "flex", gap: "8px", marginTop: "16px" }}>
+          <button
+            onClick={onCancel}
+            style={{ flex: 1, padding: "10px", borderRadius: "8px", border: "1px solid #2a2a3e", background: "transparent", color: "#8888a0", cursor: "pointer", fontWeight: "600", fontSize: "13px" }}
+          >
+            Annuler
+          </button>
+          <button
+            onClick={handleConfirm}
+            disabled={!imgLoaded}
+            style={{ flex: 2, padding: "10px", borderRadius: "8px", border: "none", background: "#7c3aed", color: "#fff", cursor: "pointer", fontWeight: "600", fontSize: "13px" }}
+          >
+            Valider le cadrage
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FeaturedSettings({ market }) {
+  const [uploading, setUploading] = useState(false);
+  const [pendingFile, setPendingFile] = useState(null);
+  const fileInputRef = useRef(null);
+
+  function handleImageChange(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      alert("L'image doit faire moins de 10 Mo.");
+      return;
+    }
+    if (!file.type.startsWith("image/")) {
+      alert("Le fichier doit être une image.");
+      return;
+    }
+    setPendingFile(file);
+    e.target.value = ""; // permet de re-sélectionner le même fichier plus tard
+  }
+
+  async function handleCropConfirm(blob) {
+    setPendingFile(null);
+    setUploading(true);
+    try {
+      const imgRef = ref(storage, `market-covers/${market.id}`);
+      await uploadBytes(imgRef, blob);
+      const url = await getDownloadURL(imgRef);
+      await updateDoc(doc(db, "markets", market.id), { coverImageUrl: url });
+    } catch (err) {
+      alert("Erreur lors de l'upload : " + err.message);
+    }
+    setUploading(false);
+  }
+
+  async function togglePin() {
+    try {
+      await updateDoc(doc(db, "markets", market.id), { pinnedFeatured: !market.pinnedFeatured });
+    } catch (err) {
+      alert("Erreur : " + err.message);
+    }
+  }
+
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "10px", paddingTop: "10px", borderTop: "1px solid #2a2a3e" }}>
+      {market.coverImageUrl && (
+        <img src={market.coverImageUrl} alt="" style={{ width: "44px", height: "44px", borderRadius: "8px", objectFit: "cover" }} />
+      )}
+      <button
+        onClick={() => fileInputRef.current?.click()}
+        disabled={uploading}
+        style={{ padding: "6px 12px", background: "#1a1a2e", color: "#a78bfa", borderRadius: "6px", border: "1px solid #7c3aed", cursor: "pointer", fontSize: "12px", fontWeight: "600" }}
+      >
+        {uploading ? "Envoi..." : market.coverImageUrl ? "Changer l'image" : "+ Image de couverture"}
+      </button>
+      <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleImageChange} />
+
+      {pendingFile && (
+        <ImageCropper
+          file={pendingFile}
+          onConfirm={handleCropConfirm}
+          onCancel={() => setPendingFile(null)}
+        />
+      )}
+
+      <button
+        onClick={togglePin}
+        style={{
+          padding: "6px 12px", borderRadius: "6px", border: "1px solid",
+          borderColor: market.pinnedFeatured ? "#f59e0b" : "#2a2a3e",
+          background: market.pinnedFeatured ? "rgba(245,158,11,0.15)" : "#1a1a2e",
+          color: market.pinnedFeatured ? "#f59e0b" : "#8888a0",
+          cursor: "pointer", fontSize: "12px", fontWeight: "600", marginLeft: "auto",
+        }}
+      >
+        {market.pinnedFeatured ? "★ Épinglé à la une" : "☆ Épingler à la une"}
+      </button>
     </div>
   );
 }
@@ -434,6 +686,7 @@ export default function Admin() {
           {market.type === "multi" && (
   <MultiResolveButtons marketId={market.id} />
 )}
+          <FeaturedSettings market={market} />
         </div>
       ))}
 
