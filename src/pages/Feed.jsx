@@ -135,7 +135,7 @@ function MultiLeaderGauge({ marketId }) {
     });
   }, [marketId]);
 
-  if (!options) {
+  if (!options || options.length === 0) {
     return <div style={{ width: 56, height: 56, flexShrink: 0 }} />;
   }
 

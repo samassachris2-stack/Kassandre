@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { collection, addDoc, getDocs, updateDoc, doc, serverTimestamp, query, where, onSnapshot, setDoc } from "firebase/firestore";
+import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, serverTimestamp, query, where, onSnapshot, setDoc, writeBatch } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../lib/firebase";
 import { useAuth } from "../context/AuthContext";
@@ -294,6 +294,236 @@ function FeaturedSettings({ market }) {
   );
 }
 
+// Parseur CSV minimal : gère les guillemets pour les champs contenant des
+// virgules ou des retours à la ligne, sans dépendance externe.
+function parseCsv(text) {
+  const rows = [];
+  let row = [];
+  let field = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    const next = text[i + 1];
+
+    if (inQuotes) {
+      if (char === '"' && next === '"') { field += '"'; i++; }
+      else if (char === '"') { inQuotes = false; }
+      else { field += char; }
+    } else {
+      if (char === '"') { inQuotes = true; }
+      else if (char === ',') { row.push(field); field = ""; }
+      else if (char === '\n' || char === '\r') {
+        if (char === '\r' && next === '\n') i++;
+        row.push(field);
+        if (row.some((f) => f.trim() !== "")) rows.push(row);
+        row = [];
+        field = "";
+      } else {
+        field += char;
+      }
+    }
+  }
+  if (field !== "" || row.length > 0) {
+    row.push(field);
+    if (row.some((f) => f.trim() !== "")) rows.push(row);
+  }
+  return rows;
+}
+
+function CsvImport({ onAddToQueue }) {
+  const [csvType, setCsvType] = useState("binary");
+  const [rawText, setRawText] = useState("");
+  const [parsed, setParsed] = useState(null); // null = pas encore prévisualisé
+  const [parseErrors, setParseErrors] = useState([]);
+  const fileInputRef = useRef(null);
+
+  function handleFileChange(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => setRawText(ev.target.result);
+    reader.readAsText(file, "utf-8");
+    e.target.value = "";
+  }
+
+  function buildPreview() {
+    const rows = parseCsv(rawText);
+    if (rows.length === 0) {
+      alert("Le CSV est vide ou n'a pas pu être lu.");
+      return;
+    }
+
+    const header = rows[0].map((h) => h.trim().toLowerCase());
+    const dataRows = rows.slice(1);
+
+    const expectedCols = csvType === "binary"
+      ? ["question", "description", "categories", "resolutiondate", "resolutionsource"]
+      : ["question", "description", "categories", "resolutiondate", "resolutionsource", "options"];
+
+    const missing = expectedCols.filter((c) => !header.includes(c));
+    if (missing.length > 0) {
+      alert(`Colonnes manquantes dans l'en-tête : ${missing.join(", ")}`);
+      return;
+    }
+
+    const colIndex = {};
+    expectedCols.forEach((c) => { colIndex[c] = header.indexOf(c); });
+
+    const results = [];
+    const errors = [];
+
+    dataRows.forEach((row, i) => {
+      const lineNum = i + 2; // +1 pour l'en-tête, +1 pour l'index 0-based
+      const question = (row[colIndex.question] || "").trim();
+      const description = (row[colIndex.description] || "").trim();
+      const categoriesRaw = (row[colIndex.categories] || "").trim();
+      const resolutionDate = (row[colIndex.resolutiondate] || "").trim();
+      const resolutionSource = (row[colIndex.resolutionsource] || "").trim();
+
+      if (!question || !resolutionDate || !resolutionSource) {
+        errors.push(`Ligne ${lineNum} : question, date ou source manquante — ignorée.`);
+        return;
+      }
+
+      const categories = categoriesRaw.split("|").map((c) => c.trim()).filter(Boolean);
+      if (categories.length === 0) {
+        errors.push(`Ligne ${lineNum} : aucune catégorie valide — ignorée.`);
+        return;
+      }
+
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(resolutionDate)) {
+        errors.push(`Ligne ${lineNum} : date "${resolutionDate}" invalide (format attendu AAAA-MM-JJ) — ignorée.`);
+        return;
+      }
+
+      if (csvType === "binary") {
+        results.push({
+          marketType: "binary", question, description, categories,
+          resolutionDate, resolutionSource, options: [],
+        });
+      } else {
+        const optionsRaw = (row[colIndex.options] || "").trim();
+        const options = optionsRaw.split("|").map((o) => o.trim()).filter(Boolean);
+        if (options.length < 2) {
+          errors.push(`Ligne ${lineNum} : moins de 2 options valides — ignorée.`);
+          return;
+        }
+        results.push({
+          marketType: "multi", question, description, categories,
+          resolutionDate, resolutionSource, options,
+        });
+      }
+    });
+
+    setParsed(results);
+    setParseErrors(errors);
+  }
+
+  function confirmImport() {
+    if (!parsed || parsed.length === 0) return;
+    parsed.forEach((item) => onAddToQueue(item));
+    setParsed(null);
+    setParseErrors([]);
+    setRawText("");
+  }
+
+  return (
+    <div style={{ border: "1px solid #2a2a3e", borderRadius: "12px", padding: "20px", marginBottom: "32px" }}>
+      <h3 style={{ fontSize: "16px", marginBottom: "12px" }}>Import CSV</h3>
+
+      <div style={{ display: "flex", gap: "8px", marginBottom: "12px" }}>
+        <button
+          onClick={() => { setCsvType("binary"); setParsed(null); }}
+          style={{
+            padding: "6px 16px", borderRadius: "8px", border: "none", cursor: "pointer",
+            background: csvType === "binary" ? "#7c3aed" : "#1a1a2e", color: "#e8e8f0", fontWeight: "600", fontSize: "13px",
+          }}
+        >
+          Format Oui/Non
+        </button>
+        <button
+          onClick={() => { setCsvType("multi"); setParsed(null); }}
+          style={{
+            padding: "6px 16px", borderRadius: "8px", border: "none", cursor: "pointer",
+            background: csvType === "multi" ? "#7c3aed" : "#1a1a2e", color: "#e8e8f0", fontWeight: "600", fontSize: "13px",
+          }}
+        >
+          Format Multi-choix
+        </button>
+      </div>
+
+      <p style={{ fontSize: "12px", color: "#6b6b8a", marginBottom: "10px", lineHeight: "1.6" }}>
+        Colonnes attendues : <code>question,description,categories,resolutionDate,resolutionSource{csvType === "multi" ? ",options" : ""}</code>
+        <br />
+        Catégories {csvType === "multi" ? "et options " : ""}séparées par <code>|</code> dans une même cellule. Date au format AAAA-MM-JJ.
+      </p>
+
+      <div style={{ display: "flex", gap: "8px", marginBottom: "12px" }}>
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          style={{ padding: "10px 16px", background: "#1a1a2e", color: "#a78bfa", borderRadius: "8px", border: "1px solid #7c3aed", cursor: "pointer", fontWeight: "600", fontSize: "13px" }}
+        >
+          Choisir un fichier .csv
+        </button>
+        <input ref={fileInputRef} type="file" accept=".csv,text/csv" style={{ display: "none" }} onChange={handleFileChange} />
+        {rawText && (
+          <button
+            onClick={buildPreview}
+            style={{ padding: "10px 16px", background: "#7c3aed", color: "#fff", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: "600", fontSize: "13px" }}
+          >
+            Prévisualiser
+          </button>
+        )}
+      </div>
+
+      <textarea
+        placeholder="Ou colle directement le contenu CSV ici..."
+        value={rawText}
+        onChange={(e) => { setRawText(e.target.value); setParsed(null); }}
+        style={{ width: "100%", minHeight: "100px", padding: "10px", borderRadius: "8px", border: "1px solid #2a2a3e", background: "#12121a", color: "#e8e8f0", fontFamily: "monospace", fontSize: "12px", boxSizing: "border-box" }}
+      />
+
+      {parsed !== null && (
+        <div style={{ marginTop: "16px" }}>
+          <p style={{ fontSize: "13px", fontWeight: "600", marginBottom: "8px", color: parsed.length > 0 ? "#22c55e" : "#ef4444" }}>
+            {parsed.length} marché(s) valide(s) détecté(s){parseErrors.length > 0 ? `, ${parseErrors.length} ligne(s) ignorée(s)` : ""}.
+          </p>
+
+          {parseErrors.length > 0 && (
+            <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "8px", padding: "10px", marginBottom: "12px" }}>
+              {parseErrors.map((err, i) => (
+                <p key={i} style={{ fontSize: "12px", color: "#ef4444", margin: "2px 0" }}>{err}</p>
+              ))}
+            </div>
+          )}
+
+          {parsed.length > 0 && (
+            <>
+              <div style={{ maxHeight: "240px", overflowY: "auto", marginBottom: "12px" }}>
+                {parsed.map((item, i) => (
+                  <div key={i} style={{ padding: "8px 12px", background: "#12121a", borderRadius: "8px", marginBottom: "6px", fontSize: "13px" }}>
+                    <p style={{ fontWeight: "600", marginBottom: "2px" }}>{item.question}</p>
+                    <p style={{ fontSize: "11px", color: "#6b6b8a" }}>
+                      {item.marketType === "multi" ? `Multi (${item.options.join(", ")})` : "Oui/Non"} · {item.categories.join(", ")} · {item.resolutionDate}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={confirmImport}
+                style={{ width: "100%", padding: "12px", background: "#22c55e", color: "#fff", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: "600" }}
+              >
+                Ajouter ces {parsed.length} marché(s) à la liste d'attente
+              </button>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Admin() {
   const { user } = useAuth();
   const [question, setQuestion] = useState("");
@@ -307,6 +537,8 @@ export default function Admin() {
   const [success, setSuccess] = useState(false);
   const [submissions, setSubmissions] = useState([]);
   const [markets, setMarkets] = useState([]);
+  const [selectedToDelete, setSelectedToDelete] = useState([]);
+  const [deleting, setDeleting] = useState(false);
   const [queue, setQueue] = useState([]);
   const [creatingQueue, setCreatingQueue] = useState(false);
   const [queueProgress, setQueueProgress] = useState(null);
@@ -381,8 +613,24 @@ export default function Admin() {
         createdAt: serverTimestamp(),
       });
       const equalPrice = 1 / payload.options.length;
+      const usedIds = new Set();
       for (const label of payload.options) {
-        await setDoc(doc(db, "markets", marketRef.id, "options", label.toLowerCase().replace(/\s+/g, "_")), {
+        let baseId = label
+          .toLowerCase()
+          .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // retire les accents
+          .replace(/[^a-z0-9\s]/g, "") // retire tout sauf lettres/chiffres/espaces
+          .trim()
+          .replace(/\s+/g, "_");
+        if (!baseId) baseId = "option";
+        let finalId = baseId;
+        let suffix = 1;
+        while (usedIds.has(finalId)) {
+          finalId = `${baseId}_${suffix}`;
+          suffix++;
+        }
+        usedIds.add(finalId);
+
+        await setDoc(doc(db, "markets", marketRef.id, "options", finalId), {
           label,
           q: 0,
           price: equalPrice,
@@ -483,11 +731,112 @@ export default function Admin() {
     }
   }
 
+  function toggleSelectForDelete(marketId) {
+    setSelectedToDelete((prev) =>
+      prev.includes(marketId) ? prev.filter((id) => id !== marketId) : [...prev, marketId]
+    );
+  }
+
+  async function deleteOneMarket(marketId) {
+    // Supprime les options (marchés multi)
+    const errors = [];
+
+    // Supprime les options (marchés multi)
+    try {
+      const optsSnap = await getDocs(collection(db, "markets", marketId, "options"));
+      if (!optsSnap.empty) {
+        const optsBatch = writeBatch(db);
+        optsSnap.docs.forEach((d) => optsBatch.delete(d.ref));
+        await optsBatch.commit();
+      }
+    } catch (e) {
+      errors.push(`options: ${e.message}`);
+    }
+
+    // Supprime l'historique de prix
+    try {
+      const histSnap = await getDocs(collection(db, "markets", marketId, "priceHistory"));
+      if (!histSnap.empty) {
+        const histBatch = writeBatch(db);
+        histSnap.docs.forEach((d) => histBatch.delete(d.ref));
+        await histBatch.commit();
+      }
+    } catch (e) {
+      errors.push(`priceHistory: ${e.message}`);
+    }
+
+    // Supprime les bets liés à ce marché. Suppression individuelle pour la
+    // même raison que les positions (limite des get() par batch avec isAdmin()).
+    try {
+      const betsSnap = await getDocs(query(collection(db, "bets"), where("marketId", "==", marketId)));
+      for (const d of betsSnap.docs) {
+        try {
+          await deleteDoc(d.ref);
+        } catch (e) {
+          errors.push(`bet ${d.id}: ${e.message}`);
+        }
+      }
+    } catch (e) {
+      errors.push(`bets (lecture): ${e.message}`);
+    }
+
+    // Supprime les positions liées à ce marché. Suppression individuelle
+    // (pas en batch) car la règle isAdmin() fait un get() supplémentaire à
+    // chaque évaluation, et Firestore limite à 10 get() par batch/transaction —
+    // un batch de plus de 10 positions échouerait sinon avec permission-denied.
+    try {
+      const posSnap = await getDocs(query(collection(db, "positions"), where("marketId", "==", marketId)));
+      for (const d of posSnap.docs) {
+        try {
+          await deleteDoc(d.ref);
+        } catch (e) {
+          errors.push(`position ${d.id}: ${e.message}`);
+        }
+      }
+    } catch (e) {
+      errors.push(`positions (lecture): ${e.message}`);
+    }
+
+    // Supprime le marché lui-même — toujours tenté, même si une étape précédente a échoué
+    try {
+      await deleteDoc(doc(db, "markets", marketId));
+    } catch (e) {
+      errors.push(`marché: ${e.message}`);
+    }
+
+    if (errors.length > 0) {
+      throw new Error(errors.join(" | "));
+    }
+  }
+
+  async function handleBulkDelete() {
+    if (selectedToDelete.length === 0) return;
+    const confirmMsg = selectedToDelete.length === 1
+      ? "Supprimer ce marché et toutes ses données associées (options, paris, positions) ? Action irréversible."
+      : `Supprimer ces ${selectedToDelete.length} marchés et toutes leurs données associées ? Action irréversible.`;
+    if (!confirm(confirmMsg)) return;
+
+    setDeleting(true);
+    for (const marketId of selectedToDelete) {
+      try {
+        await deleteOneMarket(marketId);
+      } catch (e) {
+        alert(`Erreur lors de la suppression de ${marketId} : ${e.message}`);
+      }
+    }
+    setDeleting(false);
+    setSelectedToDelete([]);
+  }
+
   if (!user) return <p style={{ padding: "40px" }}>Connecte toi d'abord.</p>;
 
   return (
     <div style={{ maxWidth: "700px", margin: "40px auto", padding: "0 16px" }}>
       <h1 style={{ fontSize: "24px", marginBottom: "32px" }}>Admin</h1>
+
+      <CsvImport
+        onAddToQueue={(item) => setQueue((prev) => [...prev, { ...item, _id: `${Date.now()}_${Math.random()}` }])}
+      />
 
       <h2 style={{ fontSize: "18px", marginBottom: "16px" }}>Créer un marché</h2>
 
@@ -661,10 +1010,44 @@ export default function Admin() {
       )}
 
       <h2 style={{ fontSize: "18px", marginBottom: "16px" }}>Marchés ouverts ({markets.length})</h2>
+
+      {selectedToDelete.length > 0 && (
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px", padding: "10px 14px", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "8px" }}>
+          <span style={{ fontSize: "13px", color: "#ef4444", fontWeight: "600" }}>
+            {selectedToDelete.length} sélectionné(s)
+          </span>
+          <button
+            onClick={handleBulkDelete}
+            disabled={deleting}
+            style={{ padding: "6px 14px", background: deleting ? "#7a2a2a" : "#ef4444", color: "#fff", borderRadius: "6px", border: "none", cursor: deleting ? "not-allowed" : "pointer", fontWeight: "600", fontSize: "13px" }}
+          >
+            {deleting ? "Suppression..." : "Supprimer la sélection"}
+          </button>
+          <button
+            onClick={() => setSelectedToDelete([])}
+            style={{ padding: "6px 14px", background: "transparent", color: "#8888a0", borderRadius: "6px", border: "1px solid #2a2a3e", cursor: "pointer", fontSize: "13px" }}
+          >
+            Annuler la sélection
+          </button>
+        </div>
+      )}
+
       {markets.map((market) => (
-        <div key={market.id} style={{ border: "1px solid #2a2a3e", borderRadius: "12px", padding: "16px", marginBottom: "12px" }}>
-          <p style={{ fontWeight: "600", marginBottom: "4px" }}>{market.question}</p>
-          <p style={{ fontSize: "12px", color: "#6b6b8a", marginBottom: "12px" }}>
+        <div key={market.id} style={{
+          border: selectedToDelete.includes(market.id) ? "1px solid #ef4444" : "1px solid #2a2a3e",
+          borderRadius: "12px", padding: "16px", marginBottom: "12px",
+          background: selectedToDelete.includes(market.id) ? "rgba(239,68,68,0.05)" : "transparent",
+        }}>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: "10px", marginBottom: "4px" }}>
+            <input
+              type="checkbox"
+              checked={selectedToDelete.includes(market.id)}
+              onChange={() => toggleSelectForDelete(market.id)}
+              style={{ marginTop: "3px", cursor: "pointer", flexShrink: 0 }}
+            />
+            <p style={{ fontWeight: "600", marginBottom: "4px" }}>{market.question}</p>
+          </div>
+          <p style={{ fontSize: "12px", color: "#6b6b8a", marginBottom: "12px", marginLeft: "26px" }}>
             {market.type === "multi" ? "Multi-choix" : "Oui/Non"} · Résolution : {market.resolutionDate}
           </p>
           {market.type === "binary" && (
