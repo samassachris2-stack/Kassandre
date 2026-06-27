@@ -310,6 +310,7 @@ export default function Feed() {
   const [activeCategories, setActiveCategories] = useState([]);
   const [sortBy, setSortBy] = useState("recent");
   const [selectedTag, setSelectedTag] = useState(null);
+  const [tagsExpanded, setTagsExpanded] = useState(false);
 
   // Pré-filtrage depuis la route (ex: lien "Sport" du footer →
   // /categorie/Sport). Réagit à catFromRoute pour gérer la navigation
@@ -322,6 +323,7 @@ export default function Feed() {
       setActiveCategories([]);
     }
     setSelectedTag(null); // changement de catégorie → on repart sans tag actif
+    setTagsExpanded(false);
   }, [catFromRoute]);
 
   useEffect(() => {
@@ -430,7 +432,7 @@ export default function Feed() {
           <span>Tous</span>
           <span style={{ fontSize: "12px", color: "#6b6b8a" }}>{marketsInCategory.length}</span>
         </button>
-        {tagsInCategory.map(({ tag, count }) => (
+        {(tagsExpanded ? tagsInCategory : tagsInCategory.slice(0, 12)).map(({ tag, count }) => (
           <button
             key={tag}
             onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
@@ -449,6 +451,19 @@ export default function Feed() {
             <span style={{ fontSize: "12px", color: "#6b6b8a" }}>{count}</span>
           </button>
         ))}
+        {tagsInCategory.length > 12 && (
+          <button
+            onClick={() => setTagsExpanded((v) => !v)}
+            style={{
+              width: "100%", padding: "8px 12px", marginTop: "4px",
+              borderRadius: "8px", cursor: "pointer", textAlign: "left",
+              border: "none", background: "transparent",
+              color: "#7c3aed", fontWeight: "600", fontSize: "13px",
+            }}
+          >
+            {tagsExpanded ? "Voir moins" : `Voir plus (+${tagsInCategory.length - 12})`}
+          </button>
+        )}
         {tagsInCategory.length === 0 && (
           <p style={{ fontSize: "12px", color: "#6b6b8a", padding: "10px 12px" }}>
             {catFromRoute ? "Aucun tag pour cette catégorie." : "Aucun tag pour l'instant."}
