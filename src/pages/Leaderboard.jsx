@@ -164,7 +164,7 @@ export default function Leaderboard() {
               />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <p style={{ fontWeight: "600", marginBottom: "2px", color: "#e8e8f0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                  {user.displayName}
+                  {user.pseudo || user.displayName}
                 </p>
                 <p style={{ fontSize: "12px", color: "#6b6b8a" }}>
                   {user.totalBets || 0} paris
