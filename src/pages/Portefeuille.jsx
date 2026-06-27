@@ -570,7 +570,7 @@ export default function Portefeuille() {
             color = MULTI_COLORS[idx % MULTI_COLORS.length] || "#7c3aed";
           } else {
             const total = (market.poolYes || 0) + (market.poolNo || 0);
-            const pctYes = total > 0 ? market.poolYes / total : 0.5;
+            const pctYes = total > 0 ? market.poolNo / total : 0.5;
             currentPrice = pos.side === "yes" ? pctYes : 1 - pctYes;
             color = pos.side === "yes" ? "#22c55e" : "#ef4444";
           }

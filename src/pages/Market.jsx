@@ -521,7 +521,7 @@ export default function Market() {
 
   const isMulti = market.type === "multi";
   const total = isMulti ? 0 : market.poolYes + market.poolNo;
-  const pctYes = isMulti ? null : Math.round((market.poolYes / total) * 100);
+  const pctYes = isMulti ? null : Math.round((market.poolNo / total) * 100);
   const pctNo = isMulti ? null : 100 - pctYes;
 
   const statusLabel = market.status === "open" ? "Ouvert" : market.status === "closed" ? "Fermé" : "Résolu";

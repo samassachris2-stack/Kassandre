@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, serverTimestamp, query, where, onSnapshot, setDoc, writeBatch } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../lib/firebase";
 import { useAuth } from "../context/AuthContext";
-import { resolveMarket } from "../lib/amm.js";
+import { resolveMarket, deleteMarket } from "../lib/amm.js";
 
 function MultiResolveButtons({ marketId }) {
   const [options, setOptions] = useState([]);
@@ -542,15 +542,43 @@ export default function Admin() {
   const [queue, setQueue] = useState([]);
   const [creatingQueue, setCreatingQueue] = useState(false);
   const [queueProgress, setQueueProgress] = useState(null);
+  const [marketSearch, setMarketSearch] = useState("");
+  const [marketCatFilter, setMarketCatFilter] = useState("Toutes");
+
+  // Certains docs Firestore plus anciens stockent `categories` comme une
+  // string unique au lieu d'un array — on normalise toujours en array ici.
+  function toCatArray(cats) {
+    if (Array.isArray(cats)) return cats;
+    if (typeof cats === "string" && cats.trim()) return [cats.trim()];
+    return [];
+  }
+
+  const marketCategories = useMemo(() => {
+    const set = new Set();
+    markets.forEach((m) => toCatArray(m.categories).forEach((c) => set.add(c)));
+    return Array.from(set).sort();
+  }, [markets]);
+
+  const filteredMarkets = useMemo(() => {
+    const q = marketSearch.trim().toLowerCase();
+    return markets
+      .filter((m) => {
+        const matchesSearch = !q || m.question?.toLowerCase().includes(q);
+        const matchesCat = marketCatFilter === "Toutes" || toCatArray(m.categories).includes(marketCatFilter);
+        return matchesSearch && matchesCat;
+      })
+      .sort((a, b) => (b.pinnedFeatured ? 1 : 0) - (a.pinnedFeatured ? 1 : 0));
+  }, [markets, marketSearch, marketCatFilter]);
 
   useEffect(() => {
+    if (!user?.isAdmin) return;
     loadSubmissions();
     const q = query(collection(db, "markets"), where("status", "==", "open"));
     const unsubscribe = onSnapshot(q, (snap) => {
       setMarkets(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     });
     return unsubscribe;
-  }, []);
+  }, [user]);
 
   async function loadSubmissions() {
     const q = query(collection(db, "submissions"), where("status", "==", "pending"));
@@ -738,75 +766,13 @@ export default function Admin() {
   }
 
   async function deleteOneMarket(marketId) {
-    // Supprime les options (marchés multi)
-    const errors = [];
-
-    // Supprime les options (marchés multi)
-    try {
-      const optsSnap = await getDocs(collection(db, "markets", marketId, "options"));
-      if (!optsSnap.empty) {
-        const optsBatch = writeBatch(db);
-        optsSnap.docs.forEach((d) => optsBatch.delete(d.ref));
-        await optsBatch.commit();
-      }
-    } catch (e) {
-      errors.push(`options: ${e.message}`);
-    }
-
-    // Supprime l'historique de prix
-    try {
-      const histSnap = await getDocs(collection(db, "markets", marketId, "priceHistory"));
-      if (!histSnap.empty) {
-        const histBatch = writeBatch(db);
-        histSnap.docs.forEach((d) => histBatch.delete(d.ref));
-        await histBatch.commit();
-      }
-    } catch (e) {
-      errors.push(`priceHistory: ${e.message}`);
-    }
-
-    // Supprime les bets liés à ce marché. Suppression individuelle pour la
-    // même raison que les positions (limite des get() par batch avec isAdmin()).
-    try {
-      const betsSnap = await getDocs(query(collection(db, "bets"), where("marketId", "==", marketId)));
-      for (const d of betsSnap.docs) {
-        try {
-          await deleteDoc(d.ref);
-        } catch (e) {
-          errors.push(`bet ${d.id}: ${e.message}`);
-        }
-      }
-    } catch (e) {
-      errors.push(`bets (lecture): ${e.message}`);
-    }
-
-    // Supprime les positions liées à ce marché. Suppression individuelle
-    // (pas en batch) car la règle isAdmin() fait un get() supplémentaire à
-    // chaque évaluation, et Firestore limite à 10 get() par batch/transaction —
-    // un batch de plus de 10 positions échouerait sinon avec permission-denied.
-    try {
-      const posSnap = await getDocs(query(collection(db, "positions"), where("marketId", "==", marketId)));
-      for (const d of posSnap.docs) {
-        try {
-          await deleteDoc(d.ref);
-        } catch (e) {
-          errors.push(`position ${d.id}: ${e.message}`);
-        }
-      }
-    } catch (e) {
-      errors.push(`positions (lecture): ${e.message}`);
-    }
-
-    // Supprime le marché lui-même — toujours tenté, même si une étape précédente a échoué
-    try {
-      await deleteDoc(doc(db, "markets", marketId));
-    } catch (e) {
-      errors.push(`marché: ${e.message}`);
-    }
-
-    if (errors.length > 0) {
-      throw new Error(errors.join(" | "));
-    }
+    // Délègue tout à la Cloud Function deleteMarket, qui utilise le SDK
+    // admin (firebase-admin) côté serveur — aucune limite de get() liée aux
+    // règles de sécurité (cette limite n'existe que pour les clients), donc
+    // plus besoin du contournement "suppression une par une" qu'on avait dû
+    // mettre en place avant. Le serveur vérifie aussi que l'appelant est
+    // bien admin avant d'agir.
+    await deleteMarket(marketId);
   }
 
   async function handleBulkDelete() {
@@ -828,7 +794,8 @@ export default function Admin() {
     setSelectedToDelete([]);
   }
 
-  if (!user) return <p style={{ padding: "40px" }}>Connecte toi d'abord.</p>;
+  if (!user) return <p style={{ padding: "40px", color: "#8888a0" }}>Connecte-toi pour continuer.</p>;
+  if (!user.isAdmin) return <p style={{ padding: "40px", color: "#8888a0" }}>Page introuvable.</p>;
 
   return (
     <div style={{ maxWidth: "700px", margin: "40px auto", padding: "0 16px" }}>
@@ -1009,7 +976,45 @@ export default function Admin() {
         </div>
       )}
 
-      <h2 style={{ fontSize: "18px", marginBottom: "16px" }}>Marchés ouverts ({markets.length})</h2>
+      <h2 style={{ fontSize: "18px", marginBottom: "16px" }}>Marchés ouverts ({filteredMarkets.length}/{markets.length})</h2>
+
+      <div style={{ display: "flex", gap: "10px", marginBottom: "16px", flexWrap: "wrap" }}>
+        <input
+          type="text"
+          value={marketSearch}
+          onChange={(e) => setMarketSearch(e.target.value)}
+          placeholder="🔍 Rechercher un marché par titre..."
+          style={{
+            flex: "1 1 240px", padding: "10px 14px", background: "#1a1a2e",
+            border: "1px solid #2a2a3e", borderRadius: "8px", color: "#e8e8f0", fontSize: "13px",
+          }}
+        />
+        <select
+          value={marketCatFilter}
+          onChange={(e) => setMarketCatFilter(e.target.value)}
+          style={{
+            padding: "10px 14px", background: "#1a1a2e", border: "1px solid #2a2a3e",
+            borderRadius: "8px", color: "#e8e8f0", fontSize: "13px", cursor: "pointer",
+          }}
+        >
+          <option value="Toutes">Toutes catégories</option>
+          {marketCategories.map((cat) => (
+            <option key={cat} value={cat}>{cat}</option>
+          ))}
+        </select>
+        {(marketSearch || marketCatFilter !== "Toutes") && (
+          <button
+            onClick={() => { setMarketSearch(""); setMarketCatFilter("Toutes"); }}
+            style={{
+              padding: "10px 14px", background: "transparent", color: "#8888a0",
+              border: "1px solid #2a2a3e", borderRadius: "8px", cursor: "pointer", fontSize: "13px",
+            }}
+          >
+            ✕ Réinitialiser
+          </button>
+        )}
+      </div>
+
 
       {selectedToDelete.length > 0 && (
         <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px", padding: "10px 14px", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "8px" }}>
@@ -1032,7 +1037,13 @@ export default function Admin() {
         </div>
       )}
 
-      {markets.map((market) => (
+      {filteredMarkets.length === 0 && (
+        <p style={{ color: "#6b6b8a", fontSize: "13px", textAlign: "center", padding: "30px 0" }}>
+          Aucun marché ne correspond à ta recherche.
+        </p>
+      )}
+
+      {filteredMarkets.map((market) => (
         <div key={market.id} style={{
           border: selectedToDelete.includes(market.id) ? "1px solid #ef4444" : "1px solid #2a2a3e",
           borderRadius: "12px", padding: "16px", marginBottom: "12px",
@@ -1045,10 +1056,14 @@ export default function Admin() {
               onChange={() => toggleSelectForDelete(market.id)}
               style={{ marginTop: "3px", cursor: "pointer", flexShrink: 0 }}
             />
-            <p style={{ fontWeight: "600", marginBottom: "4px" }}>{market.question}</p>
+            <p style={{ fontWeight: "600", marginBottom: "4px" }}>
+              {market.pinnedFeatured && <span style={{ color: "#f59e0b" }}>★ </span>}
+              {market.question}
+            </p>
           </div>
           <p style={{ fontSize: "12px", color: "#6b6b8a", marginBottom: "12px", marginLeft: "26px" }}>
             {market.type === "multi" ? "Multi-choix" : "Oui/Non"} · Résolution : {market.resolutionDate}
+            {toCatArray(market.categories).length > 0 && ` · ${toCatArray(market.categories).join(", ")}`}
           </p>
           {market.type === "binary" && (
             <div style={{ display: "flex", gap: "8px" }}>

@@ -166,6 +166,16 @@ export default function Footer() {
           </div>
 
           <div style={S.col}>
+            <p style={S.colTitle}>Catégories</p>
+            {["Sport", "Politique", "Crypto", "Tech", "Économie", "International", "Culture", "Climat"].map((cat) => (
+              <Link key={cat} to={`/?cat=${encodeURIComponent(cat)}`} style={S.link}
+                onMouseEnter={(e) => { e.currentTarget.style.color = "#e8e8f0"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = "#a8a8b8"; }}
+              >{cat}</Link>
+            ))}
+          </div>
+
+          <div style={S.col}>
             <p style={S.colTitle}>Légal</p>
             <Link to="/cgu" style={S.link}
               onMouseEnter={(e) => { e.currentTarget.style.color = "#e8e8f0"; }}

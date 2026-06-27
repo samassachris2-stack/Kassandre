@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { collection, query, where, orderBy, onSnapshot, getDocs } from "firebase/firestore";
 import { db } from "../lib/firebase";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { placeBet, calcShares, getBidAsk } from "../lib/amm.js";
 
@@ -50,7 +50,7 @@ function FeaturedCarousel({ markets }) {
   const market = featured[index];
   const isMulti = market.type === "multi";
   const total = isMulti ? 0 : (market.poolYes || 0) + (market.poolNo || 0);
-  const pctYes = isMulti ? null : Math.round((market.poolYes / total) * 100);
+  const pctYes = isMulti ? null : Math.round((market.poolNo / total) * 100);
 
   return (
     <div style={{ marginBottom: "28px" }}>
@@ -303,11 +303,24 @@ function QuickBetModal({ market, side, onClose }) {
 
 export default function Feed() {
   const { user, login } = useAuth();
+  const [searchParams] = useSearchParams();
   const [quickBet, setQuickBet] = useState(null);
   const [markets, setMarkets] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategories, setActiveCategories] = useState([]);
   const [sortBy, setSortBy] = useState("recent");
+
+  // Pré-filtrage depuis l'URL (ex: lien "Sport" du footer → /?cat=Sport).
+  // On ne lit le param qu'une fois au montage, pas à chaque changement de
+  // l'URL, pour ne pas écraser une sélection que l'utilisateur ferait
+  // ensuite manuellement avec les pills.
+  useEffect(() => {
+    const catFromUrl = searchParams.get("cat");
+    if (catFromUrl && CATEGORIES.includes(catFromUrl) && catFromUrl !== "Tous") {
+      setActiveCategories([catFromUrl]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const q = query(
@@ -429,7 +442,7 @@ export default function Feed() {
       {visibleMarkets.map((market) => {
         const isMulti = market.type === "multi";
         const total = isMulti ? 0 : market.poolYes + market.poolNo;
-        const pctYes = isMulti ? null : Math.round((market.poolYes / total) * 100);
+        const pctYes = isMulti ? null : Math.round((market.poolNo / total) * 100);
         const pctNo = isMulti ? null : 100 - pctYes;
         const { bid, ask } = isMulti ? { bid: 0, ask: 0 } : getBidAsk(pctYes / 100);
 
