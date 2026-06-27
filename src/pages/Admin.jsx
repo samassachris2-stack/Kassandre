@@ -217,6 +217,7 @@ function ImageCropper({ file, onConfirm, onCancel }) {
 function FeaturedSettings({ market }) {
   const [uploading, setUploading] = useState(false);
   const [pendingFile, setPendingFile] = useState(null);
+  const [newTag, setNewTag] = useState("");
   const fileInputRef = useRef(null);
 
   function handleImageChange(e) {
@@ -256,7 +257,29 @@ function FeaturedSettings({ market }) {
     }
   }
 
+  const currentTags = market.tags || [];
+
+  async function addTag() {
+    const tag = newTag.trim();
+    if (!tag || currentTags.includes(tag)) { setNewTag(""); return; }
+    try {
+      await updateDoc(doc(db, "markets", market.id), { tags: [...currentTags, tag] });
+      setNewTag("");
+    } catch (err) {
+      alert("Erreur : " + err.message);
+    }
+  }
+
+  async function removeTag(tag) {
+    try {
+      await updateDoc(doc(db, "markets", market.id), { tags: currentTags.filter((t) => t !== tag) });
+    } catch (err) {
+      alert("Erreur : " + err.message);
+    }
+  }
+
   return (
+    <>
     <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "10px", paddingTop: "10px", borderTop: "1px solid #2a2a3e" }}>
       {market.coverImageUrl && (
         <img src={market.coverImageUrl} alt="" style={{ width: "44px", height: "44px", borderRadius: "8px", objectFit: "cover" }} />
@@ -291,6 +314,39 @@ function FeaturedSettings({ market }) {
         {market.pinnedFeatured ? "★ Épinglé à la une" : "☆ Épingler à la une"}
       </button>
     </div>
+
+    <div style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "8px", flexWrap: "wrap" }}>
+      {currentTags.map((tag) => (
+        <span key={tag} style={{
+          display: "flex", alignItems: "center", gap: "5px",
+          fontSize: "11px", fontWeight: "500", color: "#a78bfa",
+          background: "rgba(124,58,237,0.12)", borderRadius: "6px",
+          padding: "3px 6px 3px 9px", border: "0.5px solid rgba(124,58,237,0.25)",
+        }}>
+          {tag}
+          <button
+            onClick={() => removeTag(tag)}
+            aria-label={`Retirer le tag ${tag}`}
+            style={{ background: "none", border: "none", color: "#a78bfa", cursor: "pointer", padding: 0, fontSize: "13px", lineHeight: 1 }}
+          >
+            ×
+          </button>
+        </span>
+      ))}
+      <input
+        type="text"
+        value={newTag}
+        onChange={(e) => setNewTag(e.target.value)}
+        onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addTag(); } }}
+        placeholder="+ tag (ex: Trump)"
+        style={{
+          fontSize: "12px", padding: "5px 9px", borderRadius: "6px",
+          border: "1px solid #2a2a3e", background: "#12121a", color: "#e8e8f0",
+          width: "120px",
+        }}
+      />
+    </div>
+    </>
   );
 }
 
@@ -369,6 +425,7 @@ function CsvImport({ onAddToQueue }) {
 
     const colIndex = {};
     expectedCols.forEach((c) => { colIndex[c] = header.indexOf(c); });
+    const tagsColIndex = header.indexOf("tags"); // optionnelle, -1 si absente
 
     const results = [];
     const errors = [];
@@ -380,6 +437,8 @@ function CsvImport({ onAddToQueue }) {
       const categoriesRaw = (row[colIndex.categories] || "").trim();
       const resolutionDate = (row[colIndex.resolutiondate] || "").trim();
       const resolutionSource = (row[colIndex.resolutionsource] || "").trim();
+      const tagsRaw = tagsColIndex >= 0 ? (row[tagsColIndex] || "").trim() : "";
+      const tags = tagsRaw.split("|").map((t) => t.trim()).filter(Boolean);
 
       if (!question || !resolutionDate || !resolutionSource) {
         errors.push(`Ligne ${lineNum} : question, date ou source manquante — ignorée.`);
@@ -399,7 +458,7 @@ function CsvImport({ onAddToQueue }) {
 
       if (csvType === "binary") {
         results.push({
-          marketType: "binary", question, description, categories,
+          marketType: "binary", question, description, categories, tags,
           resolutionDate, resolutionSource, options: [],
         });
       } else {
@@ -410,7 +469,7 @@ function CsvImport({ onAddToQueue }) {
           return;
         }
         results.push({
-          marketType: "multi", question, description, categories,
+          marketType: "multi", question, description, categories, tags,
           resolutionDate, resolutionSource, options,
         });
       }
@@ -455,6 +514,8 @@ function CsvImport({ onAddToQueue }) {
 
       <p style={{ fontSize: "12px", color: "#6b6b8a", marginBottom: "10px", lineHeight: "1.6" }}>
         Colonnes attendues : <code>question,description,categories,resolutionDate,resolutionSource{csvType === "multi" ? ",options" : ""}</code>
+        <br />
+        Colonne optionnelle : <code>tags</code> (séparés par <code>|</code>, ex: <code>Trump|Midterms</code>).
         <br />
         Catégories {csvType === "multi" ? "et options " : ""}séparées par <code>|</code> dans une même cellule. Date au format AAAA-MM-JJ.
       </p>
@@ -505,7 +566,7 @@ function CsvImport({ onAddToQueue }) {
                   <div key={i} style={{ padding: "8px 12px", background: "#12121a", borderRadius: "8px", marginBottom: "6px", fontSize: "13px" }}>
                     <p style={{ fontWeight: "600", marginBottom: "2px" }}>{item.question}</p>
                     <p style={{ fontSize: "11px", color: "#6b6b8a" }}>
-                      {item.marketType === "multi" ? `Multi (${item.options.join(", ")})` : "Oui/Non"} · {item.categories.join(", ")} · {item.resolutionDate}
+                      {item.marketType === "multi" ? `Multi (${item.options.join(", ")})` : "Oui/Non"} · {item.categories.join(", ")}{item.tags?.length > 0 && ` · #${item.tags.join(" #")}`} · {item.resolutionDate}
                     </p>
                   </div>
                 ))}
@@ -529,6 +590,7 @@ export default function Admin() {
   const [question, setQuestion] = useState("");
   const [description, setDescription] = useState("");
   const [categories, setCategories] = useState(["Sport"]);
+  const [tagsInput, setTagsInput] = useState("");
   const [resolutionDate, setResolutionDate] = useState("");
   const [resolutionSource, setResolutionSource] = useState("");
   const [marketType, setMarketType] = useState("binary");
@@ -589,6 +651,7 @@ export default function Admin() {
   function resetForm() {
     setQuestion("");
     setDescription("");
+    setTagsInput("");
     setResolutionDate("");
     setResolutionSource("");
     setOptions(["", ""]);
@@ -598,16 +661,17 @@ export default function Admin() {
 
   function buildMarketPayload() {
     if (!question || !resolutionDate || !resolutionSource || categories.length === 0) return null;
+    const tags = tagsInput.split(",").map((t) => t.trim()).filter(Boolean);
     if (marketType === "multi") {
       const validOptions = options.filter((o) => o.trim());
       if (validOptions.length < 2) return null;
       return {
-        marketType, question, description, categories, resolutionDate, resolutionSource,
+        marketType, question, description, categories, tags, resolutionDate, resolutionSource,
         options: validOptions,
       };
     }
     return {
-      marketType, question, description, categories, resolutionDate, resolutionSource,
+      marketType, question, description, categories, tags, resolutionDate, resolutionSource,
       options: [],
     };
   }
@@ -618,6 +682,7 @@ export default function Admin() {
         question: payload.question,
         description: payload.description,
         categories: payload.categories,
+        tags: payload.tags || [],
         resolutionDate: payload.resolutionDate,
         resolutionSource: payload.resolutionSource,
         type: "binary",
@@ -632,6 +697,7 @@ export default function Admin() {
         question: payload.question,
         description: payload.description,
         categories: payload.categories,
+        tags: payload.tags || [],
         resolutionDate: payload.resolutionDate,
         resolutionSource: payload.resolutionSource,
         type: "multi",
@@ -872,6 +938,12 @@ export default function Admin() {
           </div>
         </div>
         <input
+          placeholder="Tags (ex: Trump, Midterms, Congrès — séparés par des virgules)"
+          value={tagsInput}
+          onChange={(e) => setTagsInput(e.target.value)}
+          style={{ padding: "10px", borderRadius: "8px", border: "1px solid #2a2a3e", background: "#12121a", color: "#e8e8f0" }}
+        />
+        <input
           type="date"
           value={resolutionDate}
           onChange={(e) => setResolutionDate(e.target.value)}
@@ -949,7 +1021,7 @@ export default function Admin() {
               <div>
                 <p style={{ fontWeight: "600", fontSize: "14px", marginBottom: "2px" }}>{item.question}</p>
                 <p style={{ fontSize: "12px", color: "#6b6b8a" }}>
-                  {item.marketType === "multi" ? `Multi-choix (${item.options.length} options)` : "Oui/Non"} · {item.categories.join(", ")} · {item.resolutionDate}
+                  {item.marketType === "multi" ? `Multi-choix (${item.options.length} options)` : "Oui/Non"} · {item.categories.join(", ")}{item.tags?.length > 0 && ` · #${item.tags.join(" #")}`} · {item.resolutionDate}
                 </p>
               </div>
               <button

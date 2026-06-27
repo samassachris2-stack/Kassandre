@@ -3,7 +3,7 @@ import { collection, query, where, orderBy, onSnapshot, getDocs } from "firebase
 import { db } from "../lib/firebase";
 import { Link, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { placeBet, calcShares, getBidAsk } from "../lib/amm.js";
+import { placeBet, calcShares } from "../lib/amm.js";
 
 const MULTI_COLORS = ["#7c3aed", "#22c55e", "#ef4444", "#f59e0b", "#06b6d4"];
 
@@ -309,6 +309,7 @@ export default function Feed() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategories, setActiveCategories] = useState([]);
   const [sortBy, setSortBy] = useState("recent");
+  const [selectedTag, setSelectedTag] = useState(null);
 
   // Pré-filtrage depuis la route (ex: lien "Sport" du footer →
   // /categorie/Sport). Réagit à catFromRoute pour gérer la navigation
@@ -320,6 +321,7 @@ export default function Feed() {
     } else if (!catFromRoute) {
       setActiveCategories([]);
     }
+    setSelectedTag(null); // changement de catégorie → on repart sans tag actif
   }, [catFromRoute]);
 
   useEffect(() => {
@@ -336,14 +338,33 @@ export default function Feed() {
     return unsubscribe;
   }, []);
 
-  const visibleMarkets = useMemo(() => {
-    let list = markets;
+  // Marchés de la catégorie active, AVANT filtre par tag — sert de base pour
+  // calculer la liste de tags disponibles et leur compteur dans la sidebar.
+  const marketsInCategory = useMemo(() => {
+    if (activeCategories.length === 0) return markets;
+    return markets.filter((m) => {
+      const cats = Array.isArray(m.categories) ? m.categories : (m.category ? [m.category] : []);
+      return cats.some((c) => activeCategories.includes(c));
+    });
+  }, [markets, activeCategories]);
 
-    if (activeCategories.length > 0) {
-      list = list.filter((m) => {
-        const cats = Array.isArray(m.categories) ? m.categories : (m.category ? [m.category] : []);
-        return cats.some((c) => activeCategories.includes(c));
+  const tagsInCategory = useMemo(() => {
+    const counts = {};
+    marketsInCategory.forEach((m) => {
+      (m.tags || []).forEach((tag) => {
+        counts[tag] = (counts[tag] || 0) + 1;
       });
+    });
+    return Object.entries(counts)
+      .map(([tag, count]) => ({ tag, count }))
+      .sort((a, b) => b.count - a.count);
+  }, [marketsInCategory, catFromRoute]);
+
+  const visibleMarkets = useMemo(() => {
+    let list = marketsInCategory;
+
+    if (selectedTag) {
+      list = list.filter((m) => (m.tags || []).includes(selectedTag));
     }
 
     if (searchTerm.trim()) {
@@ -364,7 +385,7 @@ export default function Feed() {
     // "recent" garde l'ordre déjà fourni par la requête Firestore (createdAt desc)
 
     return sorted;
-  }, [markets, activeCategories, searchTerm, sortBy]);
+  }, [marketsInCategory, selectedTag, searchTerm, sortBy]);
 
   useEffect(() => {
     document.title = catFromRoute
@@ -374,7 +395,68 @@ export default function Feed() {
 
   return (
     <>
-    <div style={{ maxWidth: "900px", margin: "40px auto", padding: "0 16px" }}>
+    <style>{`
+      .kassandre-feed-layout { display: flex; }
+      @media (max-width: 720px) {
+        .kassandre-feed-layout { flex-direction: column; }
+        .kassandre-feed-sidebar { position: static !important; flex: none !important; width: 100%; }
+      }
+    `}</style>
+    <div className="kassandre-feed-layout" style={{
+      maxWidth: "1140px",
+      margin: "40px auto",
+      padding: "0 16px",
+      gap: "28px",
+      alignItems: "flex-start",
+    }}>
+      <aside className="kassandre-feed-sidebar" style={{
+        flex: "0 0 200px",
+        position: "sticky",
+        top: "76px",
+      }}>
+        <button
+          onClick={() => setSelectedTag(null)}
+          style={{
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            width: "100%", padding: "10px 12px", marginBottom: "4px",
+            borderRadius: "8px", cursor: "pointer", textAlign: "left",
+            border: "none",
+            background: !selectedTag ? "rgba(124,58,237,0.15)" : "transparent",
+            color: !selectedTag ? "#a78bfa" : "#a8a8b8",
+            fontWeight: !selectedTag ? "600" : "500",
+            fontSize: "14px",
+          }}
+        >
+          <span>Tous</span>
+          <span style={{ fontSize: "12px", color: "#6b6b8a" }}>{marketsInCategory.length}</span>
+        </button>
+        {tagsInCategory.map(({ tag, count }) => (
+          <button
+            key={tag}
+            onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
+            style={{
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+              width: "100%", padding: "10px 12px", marginBottom: "4px",
+              borderRadius: "8px", cursor: "pointer", textAlign: "left",
+              border: "none",
+              background: selectedTag === tag ? "rgba(124,58,237,0.15)" : "transparent",
+              color: selectedTag === tag ? "#a78bfa" : "#a8a8b8",
+              fontWeight: selectedTag === tag ? "600" : "500",
+              fontSize: "14px",
+            }}
+          >
+            <span>{tag}</span>
+            <span style={{ fontSize: "12px", color: "#6b6b8a" }}>{count}</span>
+          </button>
+        ))}
+        {tagsInCategory.length === 0 && (
+          <p style={{ fontSize: "12px", color: "#6b6b8a", padding: "10px 12px" }}>
+            {catFromRoute ? "Aucun tag pour cette catégorie." : "Aucun tag pour l'instant."}
+          </p>
+        )}
+      </aside>
+
+      <div style={{ flex: 1, minWidth: 0 }}>
       <h1 style={{ fontSize: "24px", marginBottom: "20px", color: "#e8e8f0" }}>
         {catFromRoute ? `Marchés — ${catFromRoute}` : "Marchés ouverts"}
       </h1>
@@ -447,129 +529,131 @@ export default function Feed() {
         <p style={{ color: "#6b6b8a" }}>Aucun marché ne correspond à ta recherche.</p>
       )}
 
-      {visibleMarkets.map((market) => {
-        const isMulti = market.type === "multi";
-        const total = isMulti ? 0 : market.poolYes + market.poolNo;
-        const pctYes = isMulti ? null : Math.round((market.poolNo / total) * 100);
-        const pctNo = isMulti ? null : 100 - pctYes;
-        const { bid, ask } = isMulti ? { bid: 0, ask: 0 } : getBidAsk(pctYes / 100);
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+        gap: "14px",
+      }}>
+        {visibleMarkets.map((market) => {
+          const isMulti = market.type === "multi";
+          const total = isMulti ? 0 : market.poolYes + market.poolNo;
+          const pctYes = isMulti ? null : Math.round((market.poolNo / total) * 100);
+          const pctNo = isMulti ? null : 100 - pctYes;
+          const volume = isMulti ? 0 : Math.round(total);
 
-        return (
-          <Link
-            key={market.id}
-            to={`/market/${market.id}`}
-            style={{ textDecoration: "none", color: "inherit" }}
-          >
-            <div style={{
-              border: "0.5px solid rgba(124,58,237,0.15)",
-              borderRadius: "14px",
-              padding: "16px 20px",
-              marginBottom: "12px",
-              cursor: "pointer",
-              background: "#13131a",
-              transition: "border-color 0.15s, background 0.15s",
-            }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = "rgba(124,58,237,0.35)";
-                e.currentTarget.style.background = "#1a1a24";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = "rgba(124,58,237,0.15)";
-                e.currentTarget.style.background = "#13131a";
-              }}
+          return (
+            <Link
+              key={market.id}
+              to={`/market/${market.id}`}
+              style={{ textDecoration: "none", color: "inherit" }}
             >
-              {/* Top row: title + gauge */}
-              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "12px", marginBottom: "12px" }}>
-                <p style={{ fontWeight: "500", fontSize: "15px", color: "#e8e8f0", lineHeight: "1.45", flex: 1, margin: 0 }}>
-                  {market.question}
-                </p>
-                {!isMulti && (() => {
-                  const circumference = 2 * Math.PI * 26;
-                  const offset = circumference * (1 - pctYes / 100);
-                  return (
-                    <svg width="56" height="56" viewBox="0 0 64 64" style={{ flexShrink: 0 }}>
-                      <circle cx="32" cy="32" r="26" fill="none" stroke="rgba(124,58,237,0.15)" strokeWidth="6" />
-                      <circle
-                        cx="32" cy="32" r="26" fill="none" stroke="#7c3aed" strokeWidth="6"
-                        strokeDasharray={circumference}
-                        strokeDashoffset={offset}
-                        strokeLinecap="round"
-                        transform="rotate(-90 32 32)"
-                      />
-                      <text x="32" y="29" textAnchor="middle" fontSize="15" fontWeight="600" fill="#e8e8f0">{pctYes}%</text>
-                      <text x="32" y="42" textAnchor="middle" fontSize="8" fill="#8888a0" letterSpacing="0.5">OUI</text>
-                    </svg>
-                  );
-                })()}
-                {isMulti && <MultiLeaderGauge marketId={market.id} />}
-              </div>
-
-              {/* OUI / NON boutons cliquables */}
-              {!isMulti && (
-                <div style={{ display: "flex", gap: "8px", marginBottom: "10px" }}>
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      if (!user) { login(); return; }
-                      setQuickBet({ market, side: "yes" });
-                    }}
-                    style={{
-                      flex: 1, padding: "8px", borderRadius: "8px", cursor: "pointer",
-                      border: "0.5px solid rgba(34,197,94,0.35)", background: "rgba(34,197,94,0.12)",
-                      color: "#22c55e", fontWeight: "600", fontSize: "13px",
-                    }}
-                  >
-                    OUI · {pctYes}%
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      if (!user) { login(); return; }
-                      setQuickBet({ market, side: "no" });
-                    }}
-                    style={{
-                      flex: 1, padding: "8px", borderRadius: "8px", cursor: "pointer",
-                      border: "0.5px solid rgba(239,68,68,0.35)", background: "rgba(239,68,68,0.12)",
-                      color: "#ef4444", fontWeight: "600", fontSize: "13px",
-                    }}
-                  >
-                    NON · {pctNo}%
-                  </button>
+              <div
+                className="kassandre-market-card"
+                style={{
+                  border: "0.5px solid rgba(124,58,237,0.15)",
+                  borderRadius: "14px",
+                  padding: "16px",
+                  cursor: "pointer",
+                  background: market.coverImageUrl
+                    ? `linear-gradient(160deg, rgba(10,10,15,0.78), rgba(10,10,15,0.94)), url(${market.coverImageUrl}) center / cover no-repeat`
+                    : "#13131a",
+                  transition: "border-color 0.15s, filter 0.15s",
+                  display: "flex",
+                  flexDirection: "column",
+                  height: "100%",
+                  boxSizing: "border-box",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(124,58,237,0.35)";
+                  e.currentTarget.style.filter = "brightness(1.08)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(124,58,237,0.15)";
+                  e.currentTarget.style.filter = "brightness(1)";
+                }}
+              >
+                {/* Top row: titre + gauge */}
+                <div style={{ display: "flex", alignItems: "flex-start", gap: "10px", marginBottom: "10px" }}>
+                  <p style={{
+                    fontWeight: "500", fontSize: "14px", color: "#e8e8f0", lineHeight: "1.35",
+                    flex: 1, margin: 0,
+                    display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
+                  }}>
+                    {market.question}
+                  </p>
+                  {!isMulti && (() => {
+                    const circumference = 2 * Math.PI * 18;
+                    const offset = circumference * (1 - pctYes / 100);
+                    return (
+                      <svg width="42" height="42" viewBox="0 0 44 44" style={{ flexShrink: 0 }}>
+                        <circle cx="22" cy="22" r="18" fill="none" stroke="rgba(124,58,237,0.15)" strokeWidth="4" />
+                        <circle
+                          cx="22" cy="22" r="18" fill="none" stroke="#7c3aed" strokeWidth="4"
+                          strokeDasharray={circumference}
+                          strokeDashoffset={offset}
+                          strokeLinecap="round"
+                          transform="rotate(-90 22 22)"
+                        />
+                        <text x="22" y="26" textAnchor="middle" fontSize="11" fontWeight="600" fill="#e8e8f0">{pctYes}%</text>
+                      </svg>
+                    );
+                  })()}
+                  {isMulti && <MultiLeaderGauge marketId={market.id} />}
                 </div>
-              )}
 
-              {!isMulti && (
-                <div style={{ display: "flex", justifyContent: "center", gap: "6px", fontSize: "11px", marginBottom: "4px" }}>
-                  <span style={{ color: "#22c55e" }}>Achat {ask.toFixed(2)} pts</span>
-                  <span style={{ color: "#8888a0" }}>·</span>
-                  <span style={{ color: "#ef4444" }}>Vente {bid.toFixed(2)} pts</span>
+                {/* Boutons OUI / NON compacts */}
+                {!isMulti && (
+                  <div style={{ display: "flex", gap: "6px", marginTop: "auto", marginBottom: "10px" }}>
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (!user) { login(); return; }
+                        setQuickBet({ market, side: "yes" });
+                      }}
+                      style={{
+                        flex: 1, padding: "7px", borderRadius: "7px", cursor: "pointer",
+                        border: "0.5px solid rgba(34,197,94,0.35)", background: "rgba(34,197,94,0.12)",
+                        color: "#22c55e", fontWeight: "600", fontSize: "12px",
+                      }}
+                    >
+                      Oui · {pctYes}%
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (!user) { login(); return; }
+                        setQuickBet({ market, side: "no" });
+                      }}
+                      style={{
+                        flex: 1, padding: "7px", borderRadius: "7px", cursor: "pointer",
+                        border: "0.5px solid rgba(239,68,68,0.35)", background: "rgba(239,68,68,0.12)",
+                        color: "#ef4444", fontWeight: "600", fontSize: "12px",
+                      }}
+                    >
+                      Non · {pctNo}%
+                    </button>
+                  </div>
+                )}
+
+                {isMulti && (
+                  <p style={{ fontSize: "11px", color: "#8888a0", marginTop: "auto", marginBottom: "10px" }}>
+                    Multi-choix
+                  </p>
+                )}
+
+                {/* Footer meta : volume + résolution */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: "11px", color: "#8888a0" }}>
+                  <span>{!isMulti ? `${volume} pts Vol.` : "—"}</span>
+                  <span>Résolution : {market.resolutionDate}</span>
                 </div>
-              )}
-
-              {isMulti && (
-                <p style={{ fontSize: "11px", color: "#8888a0", textAlign: "center", marginTop: "-4px", marginBottom: "8px" }}>
-                  Multi-choix
-                </p>
-              )}
-
-              {/* Footer meta */}
-              <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", color: "#8888a0", marginTop: "4px", flexWrap: "wrap" }}>
-                {(Array.isArray(market.categories) ? market.categories : (market.category ? [market.category] : [])).map((cat) => (
-                  <span key={cat} style={{
-                    fontSize: "11px", fontWeight: "500",
-                    background: "rgba(124,58,237,0.12)", color: "#a78bfa",
-                    borderRadius: "6px", padding: "2px 8px",
-                    border: "0.5px solid rgba(124,58,237,0.2)",
-                  }}>{cat}</span>
-                ))}
-                <span style={{ marginLeft: "auto" }}>Résolution : {market.resolutionDate}</span>
               </div>
-            </div>
-          </Link>
-        );
-      })}
+            </Link>
+          );
+        })}
+      </div>
+      </div>
     </div>
 
     {quickBet && (
