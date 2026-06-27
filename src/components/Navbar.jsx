@@ -162,12 +162,12 @@ export default function Navbar() {
             Portefeuille
           </Link>
           <Link
-            to="/soumettre"
-            style={S.navLink(location.pathname === "/soumettre")}
-            onMouseEnter={(e) => { if (location.pathname !== "/soumettre") e.currentTarget.style.color = "#e8e8f0"; }}
-            onMouseLeave={(e) => { if (location.pathname !== "/soumettre") e.currentTarget.style.color = "#a8a8b8"; }}
+            to="/leaderboard"
+            style={S.navLink(location.pathname === "/leaderboard")}
+            onMouseEnter={(e) => { if (location.pathname !== "/leaderboard") e.currentTarget.style.color = "#e8e8f0"; }}
+            onMouseLeave={(e) => { if (location.pathname !== "/leaderboard") e.currentTarget.style.color = "#a8a8b8"; }}
           >
-            Proposer
+            Classement
           </Link>
         </div>
 
@@ -221,11 +221,11 @@ export default function Navbar() {
             Portefeuille
           </Link>
           <Link
-            to="/soumettre"
-            style={S.mobileLink(location.pathname === "/soumettre")}
+            to="/leaderboard"
+            style={S.mobileLink(location.pathname === "/leaderboard")}
             onClick={() => setMenuOpen(false)}
           >
-            Proposer
+            Classement
           </Link>
           <button
             onClick={() => { setMenuOpen(false); logout(); }}

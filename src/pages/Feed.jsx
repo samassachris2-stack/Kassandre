@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { collection, query, where, orderBy, onSnapshot, getDocs } from "firebase/firestore";
 import { db } from "../lib/firebase";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { placeBet, calcShares, getBidAsk } from "../lib/amm.js";
 
@@ -303,24 +303,24 @@ function QuickBetModal({ market, side, onClose }) {
 
 export default function Feed() {
   const { user, login } = useAuth();
-  const [searchParams] = useSearchParams();
+  const { cat: catFromRoute } = useParams();
   const [quickBet, setQuickBet] = useState(null);
   const [markets, setMarkets] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategories, setActiveCategories] = useState([]);
   const [sortBy, setSortBy] = useState("recent");
 
-  // Pré-filtrage depuis l'URL (ex: lien "Sport" du footer → /?cat=Sport).
-  // On ne lit le param qu'une fois au montage, pas à chaque changement de
-  // l'URL, pour ne pas écraser une sélection que l'utilisateur ferait
-  // ensuite manuellement avec les pills.
+  // Pré-filtrage depuis la route (ex: lien "Sport" du footer →
+  // /categorie/Sport). Réagit à catFromRoute pour gérer la navigation
+  // directe d'une page catégorie à une autre (même composant Feed réutilisé
+  // par React Router, donc pas de remontage entre les deux).
   useEffect(() => {
-    const catFromUrl = searchParams.get("cat");
-    if (catFromUrl && CATEGORIES.includes(catFromUrl) && catFromUrl !== "Tous") {
-      setActiveCategories([catFromUrl]);
+    if (catFromRoute && CATEGORIES.includes(catFromRoute) && catFromRoute !== "Tous") {
+      setActiveCategories([catFromRoute]);
+    } else if (!catFromRoute) {
+      setActiveCategories([]);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [catFromRoute]);
 
   useEffect(() => {
     const q = query(
@@ -366,12 +366,20 @@ export default function Feed() {
     return sorted;
   }, [markets, activeCategories, searchTerm, sortBy]);
 
+  useEffect(() => {
+    document.title = catFromRoute
+      ? `${catFromRoute} — Kassandre`
+      : "Kassandre — Marchés ouverts";
+  }, [catFromRoute]);
+
   return (
     <>
     <div style={{ maxWidth: "900px", margin: "40px auto", padding: "0 16px" }}>
-      <h1 style={{ fontSize: "24px", marginBottom: "20px", color: "#e8e8f0" }}>Marchés ouverts</h1>
+      <h1 style={{ fontSize: "24px", marginBottom: "20px", color: "#e8e8f0" }}>
+        {catFromRoute ? `Marchés — ${catFromRoute}` : "Marchés ouverts"}
+      </h1>
 
-      <FeaturedCarousel markets={markets} />
+      {!catFromRoute && <FeaturedCarousel markets={markets} />}
 
       {/* ── Barre de recherche ── */}
       <input
