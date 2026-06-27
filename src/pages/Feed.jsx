@@ -592,7 +592,7 @@ export default function Feed() {
                   <p style={{
                     fontWeight: "500", fontSize: "14px", color: "#e8e8f0", lineHeight: "1.35",
                     flex: 1, margin: 0,
-                    display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
+                    display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden",
                   }}>
                     {market.question}
                   </p>
