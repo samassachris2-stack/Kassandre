@@ -111,7 +111,7 @@ const S = {
     flexDirection: "column",
     padding: "8px 16px 16px",
     gap: "4px",
-    zIndex: 48,
+    zIndex: 52,
     maxHeight: "calc(100vh - 108px)",
     overflowY: "auto",
   },
