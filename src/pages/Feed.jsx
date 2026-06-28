@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { collection, query, where, orderBy, onSnapshot, getDocs } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { Link, useParams, useNavigate } from "react-router-dom";
@@ -312,6 +312,30 @@ export default function Feed() {
   const [sortBy, setSortBy] = useState("recent");
   const [selectedTag, setSelectedTag] = useState(null);
   const [tagsExpanded, setTagsExpanded] = useState(false);
+  const contentColRef = useRef(null);
+  const searchSentinelRef = useRef(null);
+  const [searchBarRect, setSearchBarRect] = useState(null);
+  const [searchBarSticky, setSearchBarSticky] = useState(false);
+
+  useEffect(() => {
+    function updateStickyState() {
+      if (!searchSentinelRef.current || !contentColRef.current) return;
+      const sentinelTop = searchSentinelRef.current.getBoundingClientRect().top;
+      const shouldStick = sentinelTop <= 118;
+      setSearchBarSticky(shouldStick);
+      if (shouldStick) {
+        const rect = contentColRef.current.getBoundingClientRect();
+        setSearchBarRect({ left: rect.left, width: rect.width });
+      }
+    }
+    requestAnimationFrame(updateStickyState);
+    window.addEventListener("scroll", updateStickyState, { passive: true });
+    window.addEventListener("resize", updateStickyState);
+    return () => {
+      window.removeEventListener("scroll", updateStickyState);
+      window.removeEventListener("resize", updateStickyState);
+    };
+  }, [catFromRoute, tagFromRoute]);
 
   // Pré-filtrage depuis la route (ex: lien "Sport" du footer → /Sport,
   // ou badge tag sur une card → /Politique/Trump). Réagit à catFromRoute
@@ -425,13 +449,12 @@ export default function Feed() {
       margin: "40px auto",
       padding: "0 16px",
       gap: "28px",
-      alignItems: "flex-start",
     }}>
       <aside className="kassandre-feed-sidebar" style={{
         flex: "0 0 200px",
         position: "sticky",
-        top: "76px",
-        maxHeight: "calc(100vh - 96px)",
+        top: "108px",
+        maxHeight: "calc(100vh - 128px)",
         overflowY: "auto",
         paddingRight: "4px",
       }}>
@@ -517,7 +540,7 @@ export default function Feed() {
         )}
       </aside>
 
-      <div style={{ flex: 1, minWidth: 0 }}>
+      <div ref={contentColRef} style={{ flex: 1, minWidth: 0 }}>
       <h1 style={{ fontSize: "24px", marginBottom: "20px", color: "#e8e8f0" }}>
         {tagFromRoute
           ? `Marchés — ${catFromRoute} — #${tagFromRoute}`
@@ -529,21 +552,33 @@ export default function Feed() {
       {!catFromRoute && !tagFromRoute && <FeaturedCarousel markets={markets} />}
 
       {/* ── Barre de recherche ── */}
+      <div ref={searchSentinelRef} style={{ height: "1px" }} />
+      {searchBarSticky && <div style={{ height: "47px", marginBottom: "14px" }} />}
       <input
         type="text"
         placeholder="Rechercher un marché..."
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
-        style={{
-          width: "100%", padding: "11px 16px", borderRadius: "10px",
-          border: "0.5px solid rgba(124,58,237,0.2)", background: "#0f0f17",
-          color: "#e8e8f0", fontSize: "14px", outline: "none",
-          marginBottom: "14px", boxSizing: "border-box",
-        }}
+        style={
+          searchBarSticky && searchBarRect
+            ? {
+                position: "fixed", top: "118px", left: searchBarRect.left, width: searchBarRect.width,
+                zIndex: 51, padding: "11px 16px", borderRadius: "10px",
+                border: "0.5px solid rgba(124,58,237,0.2)", background: "#0f0f17",
+                color: "#e8e8f0", fontSize: "14px", outline: "none",
+                boxSizing: "border-box",
+              }
+            : {
+                width: "100%", padding: "11px 16px", borderRadius: "10px",
+                border: "0.5px solid rgba(124,58,237,0.2)", background: "#0f0f17",
+                color: "#e8e8f0", fontSize: "14px", outline: "none",
+                boxSizing: "border-box", marginBottom: "14px",
+              }
+        }
       />
 
       {/* ── Pills catégories + tri ── */}
-      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "20px", flexWrap: "wrap" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", marginTop: "14px", marginBottom: "10px" }}>
         <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", flex: 1 }}>
           {CATEGORIES.map((cat) => {
             const isTous = cat === "Tous";

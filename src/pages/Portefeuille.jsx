@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { collection, query, where, getDocs, doc, getDoc, orderBy } from "firebase/firestore";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { db } from "../lib/firebase";
 import { useAuth } from "../context/AuthContext";
 import {
@@ -425,6 +425,40 @@ function TradeModal({ pos, onClose, onDone }) {
   );
 }
 
+function InfoTooltip({ text }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <span style={{ position: "relative", display: "inline-flex", marginLeft: "6px" }}>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        onBlur={() => setOpen(false)}
+        aria-label="Informations"
+        style={{
+          width: "16px", height: "16px", borderRadius: "50%",
+          border: "1px solid #6b6b8a", background: "transparent",
+          color: "#6b6b8a", fontSize: "10px", fontWeight: "700",
+          lineHeight: "1", cursor: "pointer", padding: 0,
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}
+      >
+        i
+      </button>
+      {open && (
+        <div style={{
+          position: "absolute", top: "20px", right: 0, zIndex: 20,
+          width: "220px", padding: "10px 12px", borderRadius: "8px",
+          background: "#1a1a26", border: "1px solid rgba(124,58,237,0.3)",
+          boxShadow: "0 4px 16px rgba(0,0,0,0.5)",
+          fontSize: "12px", color: "#c8c8d8", lineHeight: "1.5",
+          textAlign: "left", fontWeight: "400",
+        }}>
+          {text}
+        </div>
+      )}
+    </span>
+  );
+}
+
 function ExpandedDetail({ pos }) {
   const [history, setHistory] = useState([]);
   const [txs, setTxs] = useState([]);
@@ -448,6 +482,7 @@ function ExpandedDetail({ pos }) {
       const priceHistSnap = await getDocs(priceHistQ);
 
       let cumulativeShares = 0;
+      let cumulativeCost = 0;
       let betIdx = 0;
       const points = [];
 
@@ -458,6 +493,7 @@ function ExpandedDetail({ pos }) {
 
         while (betIdx < relevantBets.length && relevantBets[betIdx].createdAt?.toDate() <= ts) {
           cumulativeShares += relevantBets[betIdx].shares;
+          cumulativeCost += relevantBets[betIdx].amount;
           betIdx++;
         }
 
@@ -470,7 +506,8 @@ function ExpandedDetail({ pos }) {
 
         points.push({
           time: ts.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" }),
-          valeur: Math.max(0, cumulativeShares * price),
+          valeur: cumulativeShares * price,
+          cout: cumulativeCost,
         });
       });
 
@@ -484,16 +521,21 @@ function ExpandedDetail({ pos }) {
     <div style={S.detailPanel}>
       {!loadingDetail && history.length > 1 && (
         <>
-          <p style={S.detailChartLabel}>Évolution de la valeur</p>
-          <ResponsiveContainer width="100%" height={100}>
+          <p style={{ ...S.detailChartLabel, display: "flex", alignItems: "center" }}>
+            Évolution de la valeur
+            <InfoTooltip text="La courbe pleine montre la valeur actuelle de tes parts. La courbe pointillée montre combien tu as investi au total. Si la courbe pleine est sous la pointillée, tu es en perte." />
+          </p>
+          <ResponsiveContainer width="100%" height={120}>
             <LineChart data={history}>
               <XAxis dataKey="time" tick={{ fontSize: 10, fill: "#6b6b8a" }} />
               <YAxis tick={{ fontSize: 10, fill: "#6b6b8a" }} width={36} />
               <Tooltip
-                formatter={(v) => [`${v.toFixed(2)} pts`, "Valeur"]}
+                formatter={(v, name) => [`${v.toFixed(2)} pts`, name === "valeur" ? "Valeur" : "Coût investi"]}
                 contentStyle={{ background: "#12121a", border: "1px solid #2a2a3e", borderRadius: "8px", fontSize: "12px" }}
               />
+              <Legend wrapperStyle={{ fontSize: "11px" }} formatter={(v) => (v === "valeur" ? "Valeur" : "Coût investi")} />
               <Line type="monotone" dataKey="valeur" stroke={pos.color} strokeWidth={2} dot={false} />
+              <Line type="monotone" dataKey="cout" stroke="#6b6b8a" strokeWidth={1.5} strokeDasharray="4 3" dot={false} />
             </LineChart>
           </ResponsiveContainer>
         </>
@@ -642,7 +684,16 @@ export default function Portefeuille() {
 
           // État courant des parts détenues par position, mis à jour au fil du temps
           const sharesByPos = {};
-          allBets.forEach((b) => { sharesByPos[posKey(b)] = 0; });
+          const costByPos = {};
+          const marketIdByPos = {};
+          const sideOrOptionByPos = {};
+          allBets.forEach((b) => {
+            const key = posKey(b);
+            sharesByPos[key] = 0;
+            costByPos[key] = 0;
+            marketIdByPos[key] = b.marketId;
+            sideOrOptionByPos[key] = b.type === "multi" ? b.optionId : b.side;
+          });
 
           // Fusionne tous les points de prix de tous les marchés concernés en une
           // seule timeline, avec le marketId associé à chaque point
@@ -667,6 +718,7 @@ export default function Portefeuille() {
               const b = allBets[betIdx];
               const key = posKey(b);
               sharesByPos[key] = (sharesByPos[key] || 0) + b.shares;
+              costByPos[key] = (costByPos[key] || 0) + b.amount;
               betIdx++;
             }
 
@@ -687,20 +739,34 @@ export default function Portefeuille() {
             }
 
             // Calcule la valeur totale du portefeuille à cet instant : somme sur
-            // toutes les positions connues de (parts détenues × dernier prix connu)
+            // toutes les positions connues de (parts détenues × dernier prix connu),
+            // et le coût total investi à ce même instant, pour tracer le gain/perte net.
+            // Pour un marché déjà résolu, le prix est figé au résultat réel (1 ou 0)
+            // plutôt qu'au dernier % de marché, qui ne reflète pas l'issue finale.
             let totalValue = 0;
+            let totalCostAtPoint = 0;
             Object.keys(sharesByPos).forEach((key) => {
               const shares = sharesByPos[key];
               if (shares > 0.001) {
-                const price = lastPriceByPos[key] ?? 0;
+                const posMarket = marketsData[marketIdByPos[key]];
+                const sideOrOption = sideOrOptionByPos[key];
+                let price;
+                if (posMarket?.status === "resolved") {
+                  const won = posMarket.outcome === sideOrOption;
+                  price = won ? 1 : 0;
+                } else {
+                  price = lastPriceByPos[key] ?? 0;
+                }
                 totalValue += shares * price;
+                totalCostAtPoint += costByPos[key] || 0;
               }
             });
 
             const d = new Date(pricePoint.ts);
             points.push({
               time: d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" }),
-              valeur: Math.max(0, totalValue),
+              valeur: totalValue,
+              cout: totalCostAtPoint,
             });
           }
 
@@ -709,6 +775,7 @@ export default function Portefeuille() {
             const b = allBets[betIdx];
             const key = posKey(b);
             sharesByPos[key] = (sharesByPos[key] || 0) + b.shares;
+            costByPos[key] = (costByPos[key] || 0) + b.amount;
             betIdx++;
           }
 
@@ -777,16 +844,21 @@ export default function Portefeuille() {
 
       {valueHistory.length > 1 && (
         <div style={S.chartWrap}>
-          <p style={S.chartLabel}>Évolution de la valeur du portefeuille</p>
+          <p style={{ ...S.chartLabel, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            Évolution de la valeur du portefeuille
+            <InfoTooltip text="La courbe pleine montre la valeur actuelle de toutes tes positions. La courbe pointillée montre combien tu as misé au total. Si la pleine est sous la pointillée, ton portefeuille est en perte." />
+          </p>
           <ResponsiveContainer width="100%" height={140}>
             <LineChart data={valueHistory}>
               <XAxis dataKey="time" tick={{ fontSize: 11, fill: "#6b6b8a" }} />
               <YAxis tick={{ fontSize: 11, fill: "#6b6b8a" }} width={40} />
               <Tooltip
-                formatter={(v) => [`${v.toFixed(2)} pts`, "Valeur du portefeuille"]}
+                formatter={(v, name) => [`${v.toFixed(2)} pts`, name === "valeur" ? "Valeur" : "Coût investi"]}
                 contentStyle={{ background: "#12121a", border: "1px solid #2a2a3e", borderRadius: "8px", fontSize: "12px" }}
               />
+              <Legend wrapperStyle={{ fontSize: "12px" }} formatter={(v) => (v === "valeur" ? "Valeur" : "Coût investi")} />
               <Line type="monotone" dataKey="valeur" stroke="#7c3aed" strokeWidth={2} dot={false} />
+              <Line type="monotone" dataKey="cout" stroke="#6b6b8a" strokeWidth={1.5} strokeDasharray="4 3" dot={false} />
             </LineChart>
           </ResponsiveContainer>
         </div>
