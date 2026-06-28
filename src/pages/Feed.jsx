@@ -405,9 +405,19 @@ export default function Feed() {
     <>
     <style>{`
       .kassandre-feed-layout { display: flex; }
+      .kassandre-feed-sidebar::-webkit-scrollbar { display: none; }
+      .kassandre-feed-sidebar { scrollbar-width: none; }
       @media (max-width: 720px) {
         .kassandre-feed-layout { flex-direction: column; }
-        .kassandre-feed-sidebar { position: static !important; flex: none !important; width: 100%; }
+        .kassandre-feed-sidebar { position: static !important; flex: none !important; width: 100%; max-height: none !important; overflow-y: visible !important; }
+        .kassandre-tags-collapse-sticky {
+          position: sticky;
+          bottom: 12px;
+          z-index: 10;
+          background: #15151f !important;
+          border: 0.5px solid rgba(124,58,237,0.3) !important;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+        }
       }
     `}</style>
     <div className="kassandre-feed-layout" style={{
@@ -421,6 +431,9 @@ export default function Feed() {
         flex: "0 0 200px",
         position: "sticky",
         top: "76px",
+        maxHeight: "calc(100vh - 96px)",
+        overflowY: "auto",
+        paddingRight: "4px",
       }}>
         <button
           onClick={() => {
@@ -482,6 +495,7 @@ export default function Feed() {
         {tagsInCategory.length > 12 && (
           <button
             onClick={() => setTagsExpanded((v) => !v)}
+            className={tagsExpanded ? "kassandre-tags-collapse-sticky" : ""}
             style={{
               width: "100%", padding: "8px 12px", marginTop: "4px",
               borderRadius: "8px", cursor: "pointer", textAlign: "left",
@@ -489,7 +503,7 @@ export default function Feed() {
               color: "#7c3aed", fontWeight: "600", fontSize: "13px",
             }}
           >
-            {tagsExpanded ? "Voir moins" : `Voir plus (+${tagsInCategory.length - 12})`}
+            {tagsExpanded ? "▲ Voir moins" : `Voir plus (+${tagsInCategory.length - 12})`}
           </button>
         )}
         {tagsInCategory.length === 0 && (
