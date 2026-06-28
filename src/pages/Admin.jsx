@@ -606,6 +606,7 @@ export default function Admin() {
   const [queueProgress, setQueueProgress] = useState(null);
   const [marketSearch, setMarketSearch] = useState("");
   const [marketCatFilter, setMarketCatFilter] = useState("Toutes");
+  const [marketSort, setMarketSort] = useState("pinned"); // "pinned" | "resolutionAsc"
 
   // Certains docs Firestore plus anciens stockent `categories` comme une
   // string unique au lieu d'un array — on normalise toujours en array ici.
@@ -623,14 +624,25 @@ export default function Admin() {
 
   const filteredMarkets = useMemo(() => {
     const q = marketSearch.trim().toLowerCase();
-    return markets
-      .filter((m) => {
-        const matchesSearch = !q || m.question?.toLowerCase().includes(q);
-        const matchesCat = marketCatFilter === "Toutes" || toCatArray(m.categories).includes(marketCatFilter);
-        return matchesSearch && matchesCat;
-      })
-      .sort((a, b) => (b.pinnedFeatured ? 1 : 0) - (a.pinnedFeatured ? 1 : 0));
-  }, [markets, marketSearch, marketCatFilter]);
+    const result = markets.filter((m) => {
+      const matchesSearch = !q || m.question?.toLowerCase().includes(q);
+      const matchesCat = marketCatFilter === "Toutes" || toCatArray(m.categories).includes(marketCatFilter);
+      return matchesSearch && matchesCat;
+    });
+
+    if (marketSort === "resolutionAsc") {
+      // Tri par date de résolution la plus proche en premier. Les dates
+      // manquantes ou invalides sont reléguées en fin de liste plutôt que
+      // de casser le tri ou remonter en tête par erreur.
+      return result.sort((a, b) => {
+        const da = a.resolutionDate ? new Date(a.resolutionDate).getTime() : Infinity;
+        const db = b.resolutionDate ? new Date(b.resolutionDate).getTime() : Infinity;
+        return da - db;
+      });
+    }
+
+    return result.sort((a, b) => (b.pinnedFeatured ? 1 : 0) - (a.pinnedFeatured ? 1 : 0));
+  }, [markets, marketSearch, marketCatFilter, marketSort]);
 
   useEffect(() => {
     if (!user?.isAdmin) return;
@@ -1074,9 +1086,20 @@ export default function Admin() {
             <option key={cat} value={cat}>{cat}</option>
           ))}
         </select>
-        {(marketSearch || marketCatFilter !== "Toutes") && (
+        <select
+          value={marketSort}
+          onChange={(e) => setMarketSort(e.target.value)}
+          style={{
+            padding: "10px 14px", background: "#1a1a2e", border: "1px solid #2a2a3e",
+            borderRadius: "8px", color: "#e8e8f0", fontSize: "13px", cursor: "pointer",
+          }}
+        >
+          <option value="pinned">Épinglés en premier</option>
+          <option value="resolutionAsc">Résolution la plus proche</option>
+        </select>
+        {(marketSearch || marketCatFilter !== "Toutes" || marketSort !== "pinned") && (
           <button
-            onClick={() => { setMarketSearch(""); setMarketCatFilter("Toutes"); }}
+            onClick={() => { setMarketSearch(""); setMarketCatFilter("Toutes"); setMarketSort("pinned"); }}
             style={{
               padding: "10px 14px", background: "transparent", color: "#8888a0",
               border: "1px solid #2a2a3e", borderRadius: "8px", cursor: "pointer", fontSize: "13px",
