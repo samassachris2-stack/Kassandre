@@ -423,7 +423,13 @@ export default function Feed() {
         top: "76px",
       }}>
         <button
-          onClick={() => setSelectedTag(null)}
+          onClick={() => {
+            if (tagFromRoute && catFromRoute) {
+              navigate(`/${encodeURIComponent(catFromRoute)}`);
+            } else {
+              setSelectedTag(null);
+            }
+          }}
           style={{
             display: "flex", alignItems: "center", justifyContent: "space-between",
             width: "100%", padding: "10px 12px", marginBottom: "4px",
@@ -442,7 +448,20 @@ export default function Feed() {
           <button
             key={tag}
             onClick={() => {
-              setSelectedTag(selectedTag === tag ? null : tag);
+              if (selectedTag === tag) {
+                // Désélection : retour à la catégorie seule si on est sur une route avec tag
+                if (catFromRoute) {
+                  navigate(`/${encodeURIComponent(catFromRoute)}`);
+                } else {
+                  setSelectedTag(null);
+                }
+              } else if (catFromRoute) {
+                // Navigation vers la vraie route /:cat/:tag
+                navigate(`/${encodeURIComponent(catFromRoute)}/${encodeURIComponent(tag)}`);
+              } else {
+                // Pas de catégorie dans l'URL (Feed général) : filtre en state uniquement
+                setSelectedTag(tag);
+              }
               window.scrollTo({ top: 0, behavior: "instant" });
             }}
             style={{
