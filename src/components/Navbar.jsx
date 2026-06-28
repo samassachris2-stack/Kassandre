@@ -101,8 +101,8 @@ const S = {
     lineHeight: 1,
   },
   mobileMenu: {
-    position: "absolute",
-    top: "104px",
+    position: "fixed",
+    top: "108px",
     left: 0,
     right: 0,
     background: "#0f0f17",
@@ -112,6 +112,8 @@ const S = {
     padding: "8px 16px 16px",
     gap: "4px",
     zIndex: 48,
+    maxHeight: "calc(100vh - 108px)",
+    overflowY: "auto",
   },
   mobileLink: (active) => ({
     textDecoration: "none",
