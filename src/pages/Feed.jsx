@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { collection, query, where, orderBy, onSnapshot, getDocs } from "firebase/firestore";
 import { db } from "../lib/firebase";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { placeBet, calcShares } from "../lib/amm.js";
 
@@ -303,7 +303,8 @@ function QuickBetModal({ market, side, onClose }) {
 
 export default function Feed() {
   const { user, login } = useAuth();
-  const { cat: catFromRoute } = useParams();
+  const navigate = useNavigate();
+  const { cat: catFromRoute, tag: tagFromRoute } = useParams();
   const [quickBet, setQuickBet] = useState(null);
   const [markets, setMarkets] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -312,19 +313,22 @@ export default function Feed() {
   const [selectedTag, setSelectedTag] = useState(null);
   const [tagsExpanded, setTagsExpanded] = useState(false);
 
-  // Pré-filtrage depuis la route (ex: lien "Sport" du footer →
-  // /categorie/Sport). Réagit à catFromRoute pour gérer la navigation
-  // directe d'une page catégorie à une autre (même composant Feed réutilisé
-  // par React Router, donc pas de remontage entre les deux).
+  // Pré-filtrage depuis la route (ex: lien "Sport" du footer → /Sport,
+  // ou badge tag sur une card → /Politique/Trump). Réagit à catFromRoute
+  // et tagFromRoute pour gérer la navigation directe d'une page à une
+  // autre (même composant Feed réutilisé par React Router, donc pas de
+  // remontage entre les deux).
   useEffect(() => {
     if (catFromRoute && CATEGORIES.includes(catFromRoute) && catFromRoute !== "Tous") {
       setActiveCategories([catFromRoute]);
     } else if (!catFromRoute) {
       setActiveCategories([]);
     }
-    setSelectedTag(null); // changement de catégorie → on repart sans tag actif
+    // tagFromRoute scope toujours à l'intérieur de catFromRoute (URL /:cat/:tag)
+    setSelectedTag(tagFromRoute || null);
     setTagsExpanded(false);
-  }, [catFromRoute]);
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, [catFromRoute, tagFromRoute]);
 
   useEffect(() => {
     const q = query(
@@ -390,10 +394,12 @@ export default function Feed() {
   }, [marketsInCategory, selectedTag, searchTerm, sortBy]);
 
   useEffect(() => {
-    document.title = catFromRoute
+    document.title = tagFromRoute
+      ? `${catFromRoute} — #${tagFromRoute} — Kassandre`
+      : catFromRoute
       ? `${catFromRoute} — Kassandre`
       : "Kassandre — Marchés ouverts";
-  }, [catFromRoute]);
+  }, [catFromRoute, tagFromRoute]);
 
   return (
     <>
@@ -435,7 +441,10 @@ export default function Feed() {
         {(tagsExpanded ? tagsInCategory : tagsInCategory.slice(0, 12)).map(({ tag, count }) => (
           <button
             key={tag}
-            onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
+            onClick={() => {
+              setSelectedTag(selectedTag === tag ? null : tag);
+              window.scrollTo({ top: 0, behavior: "instant" });
+            }}
             style={{
               display: "flex", alignItems: "center", justifyContent: "space-between",
               width: "100%", padding: "10px 12px", marginBottom: "4px",
@@ -466,17 +475,25 @@ export default function Feed() {
         )}
         {tagsInCategory.length === 0 && (
           <p style={{ fontSize: "12px", color: "#6b6b8a", padding: "10px 12px" }}>
-            {catFromRoute ? "Aucun tag pour cette catégorie." : "Aucun tag pour l'instant."}
+            {tagFromRoute
+              ? "Aucun autre tag pour cette sélection."
+              : catFromRoute
+              ? "Aucun tag pour cette catégorie."
+              : "Aucun tag pour l'instant."}
           </p>
         )}
       </aside>
 
       <div style={{ flex: 1, minWidth: 0 }}>
       <h1 style={{ fontSize: "24px", marginBottom: "20px", color: "#e8e8f0" }}>
-        {catFromRoute ? `Marchés — ${catFromRoute}` : "Marchés ouverts"}
+        {tagFromRoute
+          ? `Marchés — ${catFromRoute} — #${tagFromRoute}`
+          : activeCategories.length > 0
+          ? `Marchés — ${activeCategories.join(", ")}`
+          : "Marchés ouverts"}
       </h1>
 
-      {!catFromRoute && <FeaturedCarousel markets={markets} />}
+      {!catFromRoute && !tagFromRoute && <FeaturedCarousel markets={markets} />}
 
       {/* ── Barre de recherche ── */}
       <input
@@ -615,6 +632,35 @@ export default function Feed() {
                   })()}
                   {isMulti && <MultiLeaderGauge marketId={market.id} />}
                 </div>
+
+                {/* Badges tags cliquables */}
+                {(market.tags || []).length > 0 && (
+                  <div style={{ display: "flex", gap: "5px", flexWrap: "wrap", marginBottom: "10px" }}>
+                    {market.tags.slice(0, 3).map((tag) => {
+                      const cats = Array.isArray(market.categories)
+                        ? market.categories
+                        : (market.category ? [market.category] : []);
+                      const cat = cats[0] || "Autre";
+                      return (
+                        <button
+                          key={tag}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            navigate(`/${encodeURIComponent(cat)}/${encodeURIComponent(tag)}`);
+                          }}
+                          style={{
+                            fontSize: "11px", fontWeight: "500", color: "#a78bfa",
+                            background: "rgba(124,58,237,0.12)", border: "0.5px solid rgba(124,58,237,0.25)",
+                            borderRadius: "6px", padding: "2px 8px", cursor: "pointer",
+                          }}
+                        >
+                          #{tag}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
 
                 {/* Boutons OUI / NON compacts */}
                 {!isMulti && (

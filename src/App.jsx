@@ -21,7 +21,8 @@ export default function App() {
         <div style={{ flex: 1 }}>
           <Routes>
             <Route path="/" element={<Feed />} />
-            <Route path="/categorie/:cat" element={<Feed />} />
+            <Route path="/:cat" element={<Feed />} />
+            <Route path="/:cat/:tag" element={<Feed />} />
             <Route path="/market/:id" element={<Market />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/portefeuille" element={<Portefeuille />} />

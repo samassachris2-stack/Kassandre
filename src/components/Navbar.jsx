@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
+const CATEGORIES = ["Sport", "Politique", "Crypto", "Tech", "Économie", "International", "Culture", "Climat", "Autre"];
+
 const S = {
   nav: {
     display: "flex",
@@ -100,7 +102,7 @@ const S = {
   },
   mobileMenu: {
     position: "absolute",
-    top: "60px",
+    top: "104px",
     left: 0,
     right: 0,
     background: "#0f0f17",
@@ -109,6 +111,7 @@ const S = {
     flexDirection: "column",
     padding: "8px 16px 16px",
     gap: "4px",
+    zIndex: 48,
   },
   mobileLink: (active) => ({
     textDecoration: "none",
@@ -118,6 +121,31 @@ const S = {
     borderRadius: "8px",
     color: active ? "#a78bfa" : "#e8e8f0",
     background: active ? "rgba(124,58,237,0.1)" : "transparent",
+  }),
+  catBar: {
+    display: "flex",
+    gap: "6px",
+    alignItems: "center",
+    padding: "10px 24px",
+    background: "#0a0a0f",
+    borderBottom: "0.5px solid rgba(124,58,237,0.1)",
+    position: "sticky",
+    top: "60px",
+    zIndex: 49,
+    overflowX: "auto",
+    whiteSpace: "nowrap",
+  },
+  catPill: (active) => ({
+    textDecoration: "none",
+    fontSize: "13px",
+    fontWeight: "500",
+    padding: "6px 13px",
+    borderRadius: "20px",
+    flexShrink: 0,
+    border: active ? "0.5px solid rgba(124,58,237,0.5)" : "0.5px solid rgba(124,58,237,0.15)",
+    background: active ? "rgba(124,58,237,0.18)" : "transparent",
+    color: active ? "#a78bfa" : "#8888a0",
+    transition: "all 0.15s",
   }),
 };
 
@@ -140,6 +168,8 @@ export default function Navbar() {
         @media (max-width: 480px) {
           .kassandre-nav-logo-text { display: none; }
         }
+        .kassandre-cat-bar::-webkit-scrollbar { display: none; }
+        .kassandre-cat-bar { scrollbar-width: none; }
       `}</style>
 
       <nav style={S.nav}>
@@ -210,6 +240,23 @@ export default function Navbar() {
           <button onClick={login} style={S.loginBtn}>Connexion Google</button>
         )}
       </nav>
+
+      <div className="kassandre-cat-bar" style={S.catBar}>
+        {CATEGORIES.map((cat) => {
+          const active = decodeURIComponent(location.pathname.split("/")[1] || "") === cat;
+          return (
+            <Link
+              key={cat}
+              to={`/${encodeURIComponent(cat)}`}
+              style={S.catPill(active)}
+              onMouseEnter={(e) => { if (!active) e.currentTarget.style.color = "#e8e8f0"; }}
+              onMouseLeave={(e) => { if (!active) e.currentTarget.style.color = "#8888a0"; }}
+            >
+              {cat}
+            </Link>
+          );
+        })}
+      </div>
 
       {menuOpen && user && (
         <div style={S.mobileMenu}>
