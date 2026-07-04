@@ -159,10 +159,6 @@ export default function Footer() {
               onMouseEnter={(e) => { e.currentTarget.style.color = "#e8e8f0"; }}
               onMouseLeave={(e) => { e.currentTarget.style.color = "#a8a8b8"; }}
             >Proposer un marché</Link>
-            <Link to="/leaderboard" style={S.link}
-              onMouseEnter={(e) => { e.currentTarget.style.color = "#e8e8f0"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = "#a8a8b8"; }}
-            >Classement</Link>
           </div>
 
           <div style={S.col}>

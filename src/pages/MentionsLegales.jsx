@@ -1,70 +1,35 @@
 const S = {
-  page: {
-    maxWidth: "700px",
-    margin: "40px auto",
-    padding: "0 16px 80px",
-  },
-  title: {
-    fontSize: "26px",
-    fontWeight: "600",
-    color: "#e8e8f0",
-    marginBottom: "8px",
-  },
-  updated: {
-    fontSize: "13px",
-    color: "#8888a0",
-    marginBottom: "32px",
-  },
-  section: {
-    marginBottom: "28px",
-  },
-  sectionTitle: {
-    fontSize: "16px",
-    fontWeight: "600",
-    color: "#e8e8f0",
-    marginBottom: "10px",
-  },
-  text: {
-    fontSize: "14px",
-    color: "#a8a8b8",
-    lineHeight: "1.7",
-  },
-  notice: {
-    background: "rgba(124,58,237,0.08)",
-    border: "0.5px solid rgba(124,58,237,0.2)",
-    borderRadius: "10px",
-    padding: "14px 16px",
-    fontSize: "13px",
-    color: "#a78bfa",
-    marginBottom: "32px",
-  },
+  page: { maxWidth: "700px", margin: "40px auto", padding: "0 16px 80px" },
+  title: { fontSize: "26px", fontWeight: "600", color: "#e8e8f0", marginBottom: "8px" },
+  updated: { fontSize: "13px", color: "#8888a0", marginBottom: "32px" },
+  section: { marginBottom: "28px" },
+  sectionTitle: { fontSize: "16px", fontWeight: "600", color: "#e8e8f0", marginBottom: "10px" },
+  text: { fontSize: "14px", color: "#a8a8b8", lineHeight: "1.7" },
 };
 
 export default function MentionsLegales() {
   return (
     <div style={S.page}>
       <h1 style={S.title}>Mentions légales</h1>
-      <p style={S.updated}>Dernière mise à jour : à compléter</p>
-
-      <div style={S.notice}>
-        Cette page est un contenu provisoire. Les mentions légales définitives (identité
-        de l'éditeur, hébergeur, immatriculation) seront complétées avant le lancement
-        public de Kassandre.
-      </div>
+      <p style={S.updated}>Dernière mise à jour : 4 juillet 2026</p>
 
       <div style={S.section}>
         <h2 style={S.sectionTitle}>Éditeur du site</h2>
         <p style={S.text}>
-          Kassandre est édité à titre personnel par Chris, basé en Île-de-France, France.
-          Coordonnées de contact à compléter.
+          Le site kassandre.app est édité par Kassandre, plateforme de marchés de prédiction
+          francophone.<br />
+          Localisation : Île-de-France, France.<br />
+          Contact : contact@kassandre.app
         </p>
       </div>
 
       <div style={S.section}>
         <h2 style={S.sectionTitle}>Hébergement</h2>
         <p style={S.text}>
-          Le site est hébergé par Vercel Inc. L'infrastructure de données est gérée par
-          Google Firebase.
+          Le site est hébergé par Vercel Inc., 340 Pine Street, Suite 900, San Francisco,
+          CA 94104, États-Unis (vercel.com).<br />
+          L'infrastructure de données est gérée par Google Firebase (Google LLC,
+          1600 Amphitheatre Parkway, Mountain View, CA 94043, États-Unis).
         </p>
       </div>
 
@@ -72,10 +37,27 @@ export default function MentionsLegales() {
         <h2 style={S.sectionTitle}>Nature du service</h2>
         <p style={S.text}>
           Kassandre est une plateforme de marchés de prédiction fonctionnant exclusivement
-          en monnaie virtuelle, sans valeur monétaire réelle, sans agrément ni licence de
-          jeux d'argent, et n'entrant pas dans le champ de la réglementation française des
-          jeux d'argent et de hasard tant qu'aucune contrepartie financière réelle n'est
-          proposée.
+          en monnaie virtuelle ("points"), sans valeur monétaire réelle. Aucune somme
+          d'argent réelle ne peut être misée, gagnée ou perdue sur la plateforme.
+          Le service n'entre pas dans le champ de la réglementation française des jeux
+          d'argent et de hasard (loi n° 2010-476 du 12 mai 2010) dès lors qu'aucune
+          contrepartie financière réelle n'est proposée.
+        </p>
+      </div>
+
+      <div style={S.section}>
+        <h2 style={S.sectionTitle}>Propriété intellectuelle</h2>
+        <p style={S.text}>
+          L'ensemble des éléments constituant le site kassandre.app (design, code, textes,
+          logo) est la propriété exclusive de Kassandre. Toute reproduction, même partielle,
+          est interdite sans autorisation préalable.
+        </p>
+      </div>
+
+      <div style={S.section}>
+        <h2 style={S.sectionTitle}>Contact</h2>
+        <p style={S.text}>
+          Pour toute question ou signalement : contact@kassandre.app
         </p>
       </div>
     </div>

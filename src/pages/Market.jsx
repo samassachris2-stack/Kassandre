@@ -504,7 +504,9 @@ export default function Market() {
       : (side === "yes" ? "OUI" : "NON");
     const pct = isMulti
       ? Math.round((options.find((o) => o.id === selectedOption)?.price ?? 0) * 100)
-      : Math.round((market.poolYes / (market.poolYes + market.poolNo)) * 100);
+      : side === "yes"
+        ? Math.round((market.poolNo / (market.poolYes + market.poolNo)) * 100)
+        : Math.round((market.poolYes / (market.poolYes + market.poolNo)) * 100);
     const sideColor = isMulti ? "#7c3aed" : (side === "yes" ? "#22c55e" : "#ef4444");
 
     const blob = await generateBetCardImage({
@@ -515,6 +517,26 @@ export default function Market() {
       category: Array.isArray(market.categories) ? market.categories[0] : market.category,
     });
     shareToInstagramStories(blob, { linkUrl: `https://kassandre.app/market/${id}` });
+  }
+
+  async function shareMarket() {
+    const url = `https://kassandre.app/market/${id}`;
+    const text = `"${market.question}" — Viens parier sur Kassandre !`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: market.question, text, url });
+        return;
+      } catch (e) {
+        if (e.name === "AbortError") return;
+      }
+    }
+    // Fallback : copier le lien
+    try {
+      await navigator.clipboard.writeText(url);
+      alert("Lien copié dans le presse-papier !");
+    } catch {
+      prompt("Copie ce lien :", url);
+    }
   }
 
   if (!market) return <p style={{ padding: "40px", color: "#8888a0" }}>Chargement...</p>;
@@ -546,6 +568,22 @@ export default function Market() {
       <div style={S.tagRow}>
         {market.category && <span style={S.tag}>{market.category}</span>}
         <span style={S.statusDot}>· {statusLabel}</span>
+        <button
+          onClick={shareMarket}
+          style={{
+            marginLeft: "auto", display: "flex", alignItems: "center", gap: "6px",
+            background: "rgba(124,58,237,0.1)", border: "0.5px solid rgba(124,58,237,0.3)",
+            color: "#a78bfa", borderRadius: "8px", padding: "6px 12px",
+            fontSize: "13px", fontWeight: "500", cursor: "pointer",
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+          </svg>
+          Partager
+        </button>
       </div>
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "16px", marginBottom: "20px" }}>
         <h1 style={S.title}>{market.question}</h1>

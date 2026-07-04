@@ -101,8 +101,8 @@ const S = {
     lineHeight: 1,
   },
   mobileMenu: {
-    position: "fixed",
-    top: "108px",
+    position: "absolute",
+    top: "104px",
     left: 0,
     right: 0,
     background: "#0f0f17",
@@ -111,9 +111,7 @@ const S = {
     flexDirection: "column",
     padding: "8px 16px 16px",
     gap: "4px",
-    zIndex: 52,
-    maxHeight: "calc(100vh - 108px)",
-    overflowY: "auto",
+    zIndex: 48,
   },
   mobileLink: (active) => ({
     textDecoration: "none",
@@ -193,14 +191,6 @@ export default function Navbar() {
           >
             Portefeuille
           </Link>
-          <Link
-            to="/leaderboard"
-            style={S.navLink(location.pathname === "/leaderboard")}
-            onMouseEnter={(e) => { if (location.pathname !== "/leaderboard") e.currentTarget.style.color = "#e8e8f0"; }}
-            onMouseLeave={(e) => { if (location.pathname !== "/leaderboard") e.currentTarget.style.color = "#a8a8b8"; }}
-          >
-            Classement
-          </Link>
         </div>
 
         <div className="kassandre-nav-divider" style={S.divider} />
@@ -268,13 +258,6 @@ export default function Navbar() {
             onClick={() => setMenuOpen(false)}
           >
             Portefeuille
-          </Link>
-          <Link
-            to="/leaderboard"
-            style={S.mobileLink(location.pathname === "/leaderboard")}
-            onClick={() => setMenuOpen(false)}
-          >
-            Classement
           </Link>
           <button
             onClick={() => { setMenuOpen(false); logout(); }}
