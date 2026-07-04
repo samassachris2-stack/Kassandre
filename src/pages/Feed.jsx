@@ -26,7 +26,7 @@ function FeaturedCarousel({ markets }) {
       .filter((m) => !m.pinnedFeatured)
       .map((m) => ({
         ...m,
-        _volume: m.type === "multi" ? 0 : (m.poolYes || 0) + (m.poolNo || 0),
+        _volume: m.totalVolume || 0,
       }))
       .sort((a, b) => b._volume - a._volume)
       .slice(0, 5);
@@ -406,11 +406,7 @@ export default function Feed() {
     if (sortBy === "closing") {
       sorted.sort((a, b) => new Date(a.resolutionDate) - new Date(b.resolutionDate));
     } else if (sortBy === "volume") {
-      sorted.sort((a, b) => {
-        const volA = a.type === "multi" ? 0 : (a.poolYes || 0) + (a.poolNo || 0);
-        const volB = b.type === "multi" ? 0 : (b.poolYes || 0) + (b.poolNo || 0);
-        return volB - volA;
-      });
+      sorted.sort((a, b) => (b.totalVolume || 0) - (a.totalVolume || 0));
     }
     // "recent" garde l'ordre déjà fourni par la requête Firestore (createdAt desc)
 
@@ -639,7 +635,7 @@ export default function Feed() {
           const total = isMulti ? 0 : market.poolYes + market.poolNo;
           const pctYes = isMulti ? null : Math.round((market.poolNo / total) * 100);
           const pctNo = isMulti ? null : 100 - pctYes;
-          const volume = isMulti ? 0 : Math.round(total);
+          const volume = Math.round(market.totalVolume || 0);
 
           return (
             <Link
@@ -774,7 +770,7 @@ export default function Feed() {
 
                 {/* Footer meta : volume + résolution */}
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: "11px", color: "#8888a0" }}>
-                  <span>{!isMulti ? `${volume} pts Vol.` : "—"}</span>
+                  <span>{volume} pts Vol.</span>
                   <span>Résolution : {market.resolutionDate}</span>
                 </div>
               </div>

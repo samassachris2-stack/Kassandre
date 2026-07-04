@@ -1,9 +1,10 @@
-// Script one-shot : recalcule totalVolume pour tous les marchés multi existants
-// à partir de la collection "bets". À exécuter une seule fois après le déploiement
-// du tracking totalVolume, pour que les marchés créés avant ce déploiement aient
-// un volume correct sans attendre un nouveau trade.
+// Script one-shot : recalcule totalVolume pour tous les marchés existants
+// (binaires et multi) à partir de la collection "bets". À exécuter une seule
+// fois après le déploiement du tracking totalVolume, pour que les marchés
+// créés avant ce déploiement aient un volume correct sans attendre un nouveau
+// trade.
 //
-// Usage : node backfillMultiVolume.js
+// Usage : node backfillVolume.js
 //
 // Prérequis :
 //   npm install firebase-admin --save-dev
@@ -25,8 +26,8 @@ initializeApp({
 const db = getFirestore();
 
 async function backfill() {
-  const marketsSnap = await db.collection("markets").where("type", "==", "multi").get();
-  console.log(`${marketsSnap.size} marché(s) multi trouvé(s).`);
+  const marketsSnap = await db.collection("markets").get();
+  console.log(`${marketsSnap.size} marché(s) trouvé(s) au total.`);
 
   let updated = 0;
 

@@ -628,7 +628,7 @@ export default function Market() {
               <span style={S.statLabel}>Paris</span>
             </div>
             <div style={S.statCard}>
-              <span style={S.statValue}>{Math.round(total)} pts</span>
+              <span style={S.statValue}>{Math.round(market.totalVolume || 0)} pts</span>
               <span style={S.statLabel}>Volume</span>
             </div>
             <div style={S.statCard}>
@@ -664,7 +664,7 @@ export default function Market() {
         const sorted = [...options].sort((a, b) => (b.price ?? 1 / numOptions) - (a.price ?? 1 / numOptions));
         const leader = sorted[0];
         const leaderPct = Math.round((leader.price ?? 1 / numOptions) * 100);
-        const totalVolume = options.reduce((acc, o) => acc + (o.q || 0), 0);
+        const totalVolume = market.totalVolume || 0;
         const totalBetsMulti = market.totalBets ?? 0;
         const { bid: leaderBid, ask: leaderAsk } = getBidAsk(leader.price ?? 1 / numOptions);
 

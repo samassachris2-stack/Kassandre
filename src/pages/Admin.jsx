@@ -700,6 +700,7 @@ export default function Admin() {
         type: "binary",
         status: "open", outcome: null,
         poolYes: 100, poolNo: 100,
+        totalVolume: 0,
         createdBy: user.uid,
         createdAt: serverTimestamp(),
       });
@@ -715,6 +716,7 @@ export default function Admin() {
         type: "multi",
         status: "open", outcome: null,
         liquidityB,
+        totalVolume: 0,
         createdBy: user.uid,
         createdAt: serverTimestamp(),
       });
@@ -815,6 +817,7 @@ export default function Admin() {
       type: "binary",
       status: "open", outcome: null,
       poolYes: 100, poolNo: 100,
+      totalVolume: 0,
       createdBy: sub.proposedBy,
       createdAt: serverTimestamp(),
     });
