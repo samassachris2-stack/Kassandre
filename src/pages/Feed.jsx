@@ -309,7 +309,7 @@ export default function Feed() {
   const [markets, setMarkets] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategories, setActiveCategories] = useState([]);
-  const [sortBy, setSortBy] = useState("recent");
+  const [sortBy, setSortBy] = useState("volume");
   const [selectedTag, setSelectedTag] = useState(null);
   const [tagsExpanded, setTagsExpanded] = useState(false);
   const contentColRef = useRef(null);
