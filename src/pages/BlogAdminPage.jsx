@@ -261,6 +261,7 @@ export default function BlogAdminPage() {
                 .blog-preview-body code { background: #0a0a0f; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
                 .blog-preview-body hr { border: none; border-top: 1px solid #2a2a35; margin: 28px 0; }
                 .blog-preview-body img { max-width: 100%; border-radius: 8px; }
+                .blog-preview-body img:not([width]) { width: min(640px, 100%); }
                 .blog-preview-body img[data-align="left"] { float: left; margin: 4px 20px 12px 0; }
                 .blog-preview-body img[data-align="right"] { float: right; margin: 4px 0 12px 20px; }
                 .blog-preview-body img[data-align="center"] { display: block; margin: 20px auto; }

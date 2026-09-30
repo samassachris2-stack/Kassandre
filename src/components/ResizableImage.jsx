@@ -37,15 +37,30 @@ function ResizableImageView({ node, updateAttributes, selected }) {
     [width, updateAttributes]
   );
 
+  // Le centrage se fait avec text-align sur le wrapper (bloc pleine largeur)
+  // autour d'un enfant inline-block : un margin:auto ne centrerait rien ici
+  // puisque le wrapper span-devenu-bloc occupe déjà toute la largeur.
+  // Gauche/droite utilisent float, qui se redimensionne toujours au contenu
+  // (pas besoin de largeur explicite pour que ça marche).
   const wrapperStyle = {
-    display: "inline-block",
     position: "relative",
-    maxWidth: "100%",
     lineHeight: 0,
-    ...(align === "left" && { float: "left", margin: "4px 20px 12px 0" }),
-    ...(align === "right" && { float: "right", margin: "4px 0 12px 20px" }),
-    ...(align === "center" && { display: "block", margin: "16px auto", float: "none" }),
-    ...(!align && { display: "block", margin: "16px 0", float: "none" }),
+    ...(align === "left" && {
+      display: "block",
+      float: "left",
+      margin: "4px 20px 12px 0",
+    }),
+    ...(align === "right" && {
+      display: "block",
+      float: "right",
+      margin: "4px 0 12px 20px",
+    }),
+    ...((align === "center" || !align) && {
+      display: "block",
+      textAlign: "center",
+      margin: "16px 0",
+      float: "none",
+    }),
   };
 
   return (
@@ -64,7 +79,11 @@ function ResizableImageView({ node, updateAttributes, selected }) {
           alt={alt || ""}
           style={{
             display: "block",
-            width: width ? `${width}px` : "100%",
+            // Par défaut (avant tout redimensionnement manuel), l'image
+            // garde une taille raisonnable au lieu de forcer 100% de la
+            // largeur : forcer 100% rendait le centrage invisible, l'image
+            // remplissant déjà tout l'espace disponible.
+            width: width ? `${width}px` : "min(640px, 100%)",
             maxWidth: "100%",
             borderRadius: "8px",
             userSelect: "none",

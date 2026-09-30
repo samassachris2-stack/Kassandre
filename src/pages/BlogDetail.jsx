@@ -113,6 +113,9 @@ export default function BlogDetail() {
           max-width: 100%;
           border-radius: 8px;
         }
+        .blog-article-body img:not([width]) {
+          width: min(640px, 100%);
+        }
         .blog-article-body img[data-align="left"] {
           float: left;
           margin: 4px 20px 12px 0;
