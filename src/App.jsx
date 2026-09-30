@@ -12,6 +12,8 @@ import Settings from "./pages/Settings";
 import CGU from "./pages/CGU";
 import Confidentialite from "./pages/Confidentialite";
 import MentionsLegales from "./pages/MentionsLegales";
+import BlogList from "./pages/BlogList";
+import BlogDetail from "./pages/BlogDetail";
 
 export default function App() {
   return (
@@ -24,6 +26,8 @@ export default function App() {
             <Route path="/:cat" element={<Feed />} />
             <Route path="/:cat/:tag" element={<Feed />} />
             <Route path="/market/:id" element={<Market />} />
+            <Route path="/blog" element={<BlogList />} />
+            <Route path="/blog/:slug" element={<BlogDetail />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/portefeuille" element={<Portefeuille />} />
             <Route path="/profil/:uid" element={<Profil />} />

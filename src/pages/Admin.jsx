@@ -4,6 +4,7 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../lib/firebase";
 import { useAuth } from "../context/AuthContext";
 import { resolveMarket, deleteMarket } from "../lib/amm.js";
+import BlogAdmin from "../components/BlogAdmin";
 
 function MultiResolveButtons({ marketId }) {
   const [options, setOptions] = useState([]);
@@ -1213,6 +1214,8 @@ export default function Admin() {
           </div>
         </div>
       ))}
+
+      <BlogAdmin />
     </div>
   );
 }
