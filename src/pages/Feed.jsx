@@ -4,6 +4,7 @@ import { db } from "../lib/firebase";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { placeBet, calcShares } from "../lib/amm.js";
+import { getLatestArticles } from "../lib/articles";
 
 const MULTI_COLORS = ["#7c3aed", "#22c55e", "#ef4444", "#f59e0b", "#06b6d4"];
 
@@ -119,6 +120,119 @@ function FeaturedCarousel({ markets }) {
               }}
               aria-label={`Marché à la une ${i + 1}`}
             />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function BlogPreviewSection() {
+  const [articles, setArticles] = useState(null);
+
+  useEffect(() => {
+    getLatestArticles(3).then(setArticles);
+  }, []);
+
+  const formatDate = (timestamp) => {
+    if (!timestamp) return "";
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    return date.toLocaleDateString("fr-FR", { day: "numeric", month: "long" });
+  };
+
+  // Tant qu'on n'a pas la réponse ou qu'il n'y a aucun article publié,
+  // pas de section vide qui casse la mise en page de l'accueil.
+  if (articles !== null && articles.length === 0) return null;
+
+  return (
+    <div style={{ marginBottom: "32px" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "14px" }}>
+        <h2 style={{ fontSize: "18px", fontWeight: "700", color: "#e8e8f0", margin: 0 }}>
+          Analyses et actualités
+        </h2>
+        <Link
+          to="/blog"
+          style={{
+            fontSize: "13px", fontWeight: "600", color: "#a78bfa",
+            textDecoration: "none", whiteSpace: "nowrap",
+          }}
+        >
+          Voir tous les articles →
+        </Link>
+      </div>
+
+      {articles === null ? (
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
+          gap: "14px",
+        }}>
+          {[0, 1, 2].map((i) => (
+            <div key={i} style={{
+              height: "160px", borderRadius: "14px",
+              background: "#13131a", border: "0.5px solid rgba(124,58,237,0.1)",
+            }} />
+          ))}
+        </div>
+      ) : (
+        <div className="kassandre-blog-preview-grid" style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
+          gap: "14px",
+        }}>
+          {articles.map((article) => (
+            <Link
+              key={article.id}
+              to={`/blog/${article.slug}`}
+              style={{ textDecoration: "none", color: "inherit" }}
+            >
+              <div
+                className="kassandre-market-card"
+                style={{
+                  border: "0.5px solid rgba(124,58,237,0.15)",
+                  borderRadius: "14px",
+                  overflow: "hidden",
+                  cursor: "pointer",
+                  background: "#13131a",
+                  transition: "border-color 0.15s, filter 0.15s",
+                  height: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(124,58,237,0.35)";
+                  e.currentTarget.style.filter = "brightness(1.08)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(124,58,237,0.15)";
+                  e.currentTarget.style.filter = "brightness(1)";
+                }}
+              >
+                {article.coverImageUrl ? (
+                  <div style={{
+                    height: "110px",
+                    background: `url(${article.coverImageUrl}) center / cover no-repeat`,
+                  }} />
+                ) : (
+                  <div style={{
+                    height: "110px",
+                    background: "linear-gradient(135deg, #1a1a2e, #13131a)",
+                  }} />
+                )}
+                <div style={{ padding: "14px", display: "flex", flexDirection: "column", flex: 1 }}>
+                  <span style={{ fontSize: "11px", color: "#7c3aed", fontWeight: "600", marginBottom: "6px" }}>
+                    {formatDate(article.publishedAt)}
+                  </span>
+                  <p style={{
+                    fontSize: "14px", fontWeight: "600", color: "#e8e8f0", lineHeight: "1.35",
+                    margin: 0,
+                    display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden",
+                  }}>
+                    {article.title}
+                  </p>
+                </div>
+              </div>
+            </Link>
           ))}
         </div>
       )}
@@ -546,6 +660,7 @@ export default function Feed() {
       </h1>
 
       {!catFromRoute && !tagFromRoute && <FeaturedCarousel markets={markets} />}
+      {!catFromRoute && !tagFromRoute && <BlogPreviewSection />}
 
       {/* ── Barre de recherche ── */}
       <div ref={searchSentinelRef} style={{ height: "1px" }} />

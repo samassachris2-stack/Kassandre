@@ -29,8 +29,15 @@ export default function BlogList() {
 
   return (
     <div style={styles.container}>
+      <style>{`
+        @media (max-width: 640px) {
+          .blog-list-title { font-size: 1.9rem !important; }
+          .blog-list-card { flex-direction: column !important; }
+          .blog-list-cover { width: 100% !important; height: 180px !important; }
+        }
+      `}</style>
       <div style={styles.header}>
-        <h1 style={styles.title}>Analyses et actualités</h1>
+        <h1 className="blog-list-title" style={styles.title}>Analyses et actualités</h1>
         <p style={styles.subtitle}>
           Explorez nos analyses sur les prediction markets, l'actualité et les
           tendances
@@ -50,27 +57,37 @@ export default function BlogList() {
             to={`/blog/${article.slug}`}
             style={{ textDecoration: "none" }}
           >
-            <article style={styles.articleCard}>
-              <div style={styles.articleMeta}>
-                <span style={styles.date}>
-                  {formatDate(article.publishedAt)}
-                </span>
-                {article.tags && article.tags.length > 0 && (
-                  <div style={styles.tags}>
-                    {article.tags.slice(0, 2).map((tag) => (
-                      <span key={tag} style={styles.tag}>
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
+            <article className="blog-list-card" style={styles.articleCard}>
+              {article.coverImageUrl && (
+                <img
+                  className="blog-list-cover"
+                  src={article.coverImageUrl}
+                  alt=""
+                  style={styles.cover}
+                />
+              )}
+              <div style={styles.cardBody}>
+                <div style={styles.articleMeta}>
+                  <span style={styles.date}>
+                    {formatDate(article.publishedAt)}
+                  </span>
+                  {article.tags && article.tags.length > 0 && (
+                    <div style={styles.tags}>
+                      {article.tags.slice(0, 2).map((tag) => (
+                        <span key={tag} style={styles.tag}>
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <h2 style={styles.articleTitle}>{article.title}</h2>
+
+                <p style={styles.excerpt}>{article.excerpt}</p>
+
+                <div style={styles.readMore}>Lire l'article →</div>
               </div>
-
-              <h2 style={styles.articleTitle}>{article.title}</h2>
-
-              <p style={styles.excerpt}>{article.excerpt}</p>
-
-              <div style={styles.readMore}>Lire l'article →</div>
             </article>
           </Link>
         ))}
@@ -117,10 +134,12 @@ const styles = {
     gap: "32px",
   },
   articleCard: {
-    padding: "28px",
+    display: "flex",
+    gap: "24px",
     backgroundColor: "#1a1a22",
     border: "1px solid #2a2a35",
     borderRadius: "12px",
+    overflow: "hidden",
     transition: "all 0.3s ease",
     cursor: "pointer",
   },
@@ -128,6 +147,17 @@ const styles = {
     backgroundColor: "#242430",
     borderColor: "#7c3aed",
     transform: "translateY(-2px)",
+  },
+  cover: {
+    width: "220px",
+    height: "auto",
+    objectFit: "cover",
+    flexShrink: 0,
+  },
+  cardBody: {
+    padding: "28px",
+    flex: 1,
+    minWidth: 0,
   },
   articleMeta: {
     display: "flex",

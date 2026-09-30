@@ -1,6 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 import BlogEditor from "../components/BlogEditor";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { storage } from "../lib/firebase";
 import {
   getAllArticles,
   createArticle,
@@ -16,6 +18,8 @@ export default function BlogAdminPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [previewMode, setPreviewMode] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const coverInputRef = useRef(null);
   const [formData, setFormData] = useState({
     title: "",
     slug: "",
@@ -24,6 +28,7 @@ export default function BlogAdminPage() {
     tags: "",
     linkedMarkets: "",
     status: "draft",
+    coverImageUrl: "",
   });
 
   useEffect(() => {
@@ -61,6 +66,7 @@ export default function BlogAdminPage() {
         .map((id) => id.trim())
         .filter((id) => id),
       status: formData.status,
+      coverImageUrl: formData.coverImageUrl || null,
     };
 
     try {
@@ -87,10 +93,31 @@ export default function BlogAdminPage() {
       tags: article.tags ? article.tags.join(", ") : "",
       linkedMarkets: article.linkedMarkets ? article.linkedMarkets.join(", ") : "",
       status: article.status,
+      coverImageUrl: article.coverImageUrl || "",
     });
     setEditingId(article.id);
     setShowForm(true);
     setPreviewMode(false);
+  };
+
+  const handleCoverUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingCover(true);
+    try {
+      const path = `blog-covers/${Date.now()}_${file.name}`;
+      const storageRef = ref(storage, path);
+      await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(storageRef);
+      setFormData((prev) => ({ ...prev, coverImageUrl: url }));
+    } catch (error) {
+      console.error("Error uploading cover:", error);
+      alert("Erreur lors de l'upload de l'image de couverture");
+    } finally {
+      setUploadingCover(false);
+      if (coverInputRef.current) coverInputRef.current.value = "";
+    }
   };
 
   const handleDelete = async (id) => {
@@ -113,6 +140,7 @@ export default function BlogAdminPage() {
       tags: "",
       linkedMarkets: "",
       status: "draft",
+      coverImageUrl: "",
     });
     setEditingId(null);
     setShowForm(false);
@@ -125,6 +153,11 @@ export default function BlogAdminPage() {
 
   return (
     <div style={styles.container}>
+      <style>{`
+        @media (max-width: 640px) {
+          .blog-admin-row { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
       <div style={styles.header}>
         <h1 style={styles.title}>Gestion du Blog</h1>
         <button type="button" onClick={() => (showForm ? resetForm() : setShowForm(true))} style={styles.newButton}>
@@ -159,7 +192,7 @@ export default function BlogAdminPage() {
 
           {!previewMode ? (
             <form onSubmit={handleSubmit} style={styles.form}>
-              <div style={styles.row}>
+              <div className="blog-admin-row" style={styles.row}>
                 <div style={styles.formGroup}>
                   <label style={styles.label}>Titre</label>
                   <input
@@ -195,6 +228,52 @@ export default function BlogAdminPage() {
               </div>
 
               <div style={styles.formGroup}>
+                <label style={styles.label}>Image de couverture</label>
+                {formData.coverImageUrl ? (
+                  <div style={styles.coverPreviewWrap}>
+                    <img
+                      src={formData.coverImageUrl}
+                      alt="Couverture"
+                      style={styles.coverPreviewImg}
+                    />
+                    <div style={styles.coverPreviewActions}>
+                      <button
+                        type="button"
+                        onClick={() => coverInputRef.current?.click()}
+                        style={styles.coverChangeButton}
+                        disabled={uploadingCover}
+                      >
+                        {uploadingCover ? "Envoi..." : "Changer"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, coverImageUrl: "" })}
+                        style={styles.coverRemoveButton}
+                      >
+                        Retirer
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => coverInputRef.current?.click()}
+                    style={styles.coverUploadButton}
+                    disabled={uploadingCover}
+                  >
+                    {uploadingCover ? "Envoi en cours..." : "+ Ajouter une image de couverture"}
+                  </button>
+                )}
+                <input
+                  ref={coverInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleCoverUpload}
+                  style={{ display: "none" }}
+                />
+              </div>
+
+              <div style={styles.formGroup}>
                 <label style={styles.label}>Contenu</label>
                 <BlogEditor
                   content={formData.content}
@@ -202,7 +281,7 @@ export default function BlogAdminPage() {
                 />
               </div>
 
-              <div style={styles.row}>
+              <div className="blog-admin-row" style={styles.row}>
                 <div style={styles.formGroup}>
                   <label style={styles.label}>Tags</label>
                   <input
@@ -268,6 +347,13 @@ export default function BlogAdminPage() {
                 .blog-preview-body img:not([data-align]) { display: block; margin: 20px 0; }
                 .blog-preview-body::after { content: ''; display: table; clear: both; }
               `}</style>
+              {formData.coverImageUrl && (
+                <img
+                  src={formData.coverImageUrl}
+                  alt=""
+                  style={styles.previewCover}
+                />
+              )}
               <h2 style={styles.previewTitle}>{formData.title}</h2>
               <p style={styles.previewExcerpt}>{formData.excerpt}</p>
               <div
@@ -361,6 +447,8 @@ const styles = {
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: "40px",
+    flexWrap: "wrap",
+    gap: "12px",
   },
   title: {
     fontSize: "2rem",
@@ -428,6 +516,63 @@ const styles = {
     borderRadius: "6px",
     fontSize: "1rem",
     fontFamily: "inherit",
+  },
+  coverUploadButton: {
+    padding: "14px",
+    backgroundColor: "#0a0a0f",
+    color: "#a0a0b0",
+    border: "1px dashed #3a3a45",
+    borderRadius: "8px",
+    cursor: "pointer",
+    fontSize: "0.95rem",
+    fontWeight: "500",
+    textAlign: "center",
+  },
+  coverPreviewWrap: {
+    position: "relative",
+    borderRadius: "8px",
+    overflow: "hidden",
+    border: "1px solid #2a2a35",
+  },
+  coverPreviewImg: {
+    display: "block",
+    width: "100%",
+    maxHeight: "260px",
+    objectFit: "cover",
+  },
+  coverPreviewActions: {
+    display: "flex",
+    gap: "8px",
+    padding: "10px",
+    backgroundColor: "#0a0a0f",
+  },
+  coverChangeButton: {
+    padding: "8px 16px",
+    backgroundColor: "#7c3aed",
+    color: "#e8e8f0",
+    border: "none",
+    borderRadius: "6px",
+    cursor: "pointer",
+    fontWeight: "500",
+    fontSize: "0.9rem",
+  },
+  coverRemoveButton: {
+    padding: "8px 16px",
+    backgroundColor: "transparent",
+    color: "#ff8080",
+    border: "1px solid #5a2a3a",
+    borderRadius: "6px",
+    cursor: "pointer",
+    fontWeight: "500",
+    fontSize: "0.9rem",
+  },
+  previewCover: {
+    display: "block",
+    width: "100%",
+    maxHeight: "320px",
+    objectFit: "cover",
+    borderRadius: "8px",
+    marginBottom: "20px",
   },
   formActions: {
     display: "flex",

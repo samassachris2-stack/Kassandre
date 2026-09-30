@@ -137,13 +137,28 @@ export default function BlogDetail() {
           display: table;
           clear: both;
         }
+        @media (max-width: 640px) {
+          .blog-article-wrap { padding: 24px 18px !important; }
+          .blog-article-title { font-size: 1.7rem !important; }
+          /* Une image "flottante" avec du texte qui s'enroule autour marche
+             bien sur un large écran, mais sur un téléphone étroit elle
+             écraserait le texte en une colonne minuscule. On repasse toutes
+             les images en pleine largeur, empilées avec le texte. */
+          .blog-article-body img[data-align="left"],
+          .blog-article-body img[data-align="right"] {
+            float: none;
+            display: block;
+            width: 100% !important;
+            margin: 16px 0;
+          }
+        }
       `}</style>
 
       <Link to="/blog" style={styles.backLink}>
         ← Retour aux articles
       </Link>
 
-      <article style={styles.article}>
+      <article className="blog-article-wrap" style={styles.article}>
         <header style={styles.header}>
           <div style={styles.meta}>
             <span style={styles.date}>
@@ -160,12 +175,20 @@ export default function BlogDetail() {
             )}
           </div>
 
-          <h1 style={styles.title}>{article.title}</h1>
+          <h1 className="blog-article-title" style={styles.title}>{article.title}</h1>
 
           {article.excerpt && (
             <p style={styles.excerpt}>{article.excerpt}</p>
           )}
         </header>
+
+        {article.coverImageUrl && (
+          <img
+            src={article.coverImageUrl}
+            alt=""
+            style={styles.coverImage}
+          />
+        )}
 
         <div
           className="blog-article-body"
@@ -226,6 +249,14 @@ const styles = {
     padding: "40px",
     borderRadius: "12px",
     border: "1px solid #2a2a35",
+  },
+  coverImage: {
+    display: "block",
+    width: "100%",
+    maxHeight: "420px",
+    objectFit: "cover",
+    borderRadius: "10px",
+    margin: "0 0 32px 0",
   },
   header: {
     marginBottom: "40px",

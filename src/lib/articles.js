@@ -4,6 +4,7 @@ import {
   query,
   where,
   orderBy,
+  limit,
   getDocs,
   getDoc,
   doc,
@@ -30,6 +31,26 @@ export const getPublishedArticles = async () => {
     }));
   } catch (error) {
     console.error("Error fetching published articles:", error);
+    return [];
+  }
+};
+
+// Get the N most recent published articles (homepage preview)
+export const getLatestArticles = async (count = 3) => {
+  try {
+    const q = query(
+      articlesCollection,
+      where("status", "==", "published"),
+      orderBy("publishedAt", "desc"),
+      limit(count)
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+  } catch (error) {
+    console.error("Error fetching latest articles:", error);
     return [];
   }
 };
@@ -69,13 +90,23 @@ export const getAllArticles = async () => {
 // Create new article
 export const createArticle = async (articleData) => {
   try {
-    const docRef = await addDoc(articlesCollection, {
+    // Le statut choisi dans le formulaire (brouillon/publié) doit être
+    // respecté : il était auparavant écrasé en "draft" systématiquement,
+    // ce qui republiait n'importe quel nouvel article en brouillon même
+    // si "Publié" était sélectionné dès la création.
+    const status = articleData.status || "draft";
+    const payload = {
       ...articleData,
       createdAt: serverTimestamp(),
-      status: "draft",
+      status,
       linkedMarkets: articleData.linkedMarkets || [],
       tags: articleData.tags || [],
-    });
+      coverImageUrl: articleData.coverImageUrl || null,
+    };
+    if (status === "published") {
+      payload.publishedAt = serverTimestamp();
+    }
+    const docRef = await addDoc(articlesCollection, payload);
     return docRef.id;
   } catch (error) {
     console.error("Error creating article:", error);
