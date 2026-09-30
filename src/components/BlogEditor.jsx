@@ -1,11 +1,13 @@
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
+import TextAlign from "@tiptap/extension-text-align";
+import Underline from "@tiptap/extension-underline";
 import { useState, useRef, useCallback } from "react";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "../lib/firebase";
+import ResizableImage from "./ResizableImage";
 
 // Tous les boutons de cette toolbar vivent dans le <form> de l'admin blog.
 // Sans type="button" explicite, un <button> vaut type="submit" par défaut :
@@ -42,13 +44,17 @@ export default function BlogEditor({ content, onChange }) {
   const editor = useEditor({
     extensions: [
       StarterKit,
-      Image.configure({
+      Underline,
+      ResizableImage.configure({
         allowBase64: true,
-        HTMLAttributes: { style: "max-width: 100%; border-radius: 8px;" },
       }),
       Link.configure({
         openOnClick: false,
         HTMLAttributes: { style: "color: #a78bfa; text-decoration: underline;" },
+      }),
+      TextAlign.configure({
+        types: ["heading", "paragraph"],
+        alignments: ["left", "center", "right", "justify"],
       }),
       Placeholder.configure({
         placeholder: "Écris ton article ici...",
@@ -155,9 +161,18 @@ export default function BlogEditor({ content, onChange }) {
           border-radius: 4px;
           font-size: 0.9em;
         }
-        .blog-editor-content .ProseMirror img {
-          display: block;
-          margin: 16px 0;
+        .blog-editor-content .ProseMirror hr {
+          border: none;
+          border-top: 1px solid #2a2a35;
+          margin: 24px 0;
+        }
+        .blog-editor-content .ProseMirror::after {
+          content: '';
+          display: table;
+          clear: both;
+        }
+        .blog-editor-content .ProseMirror u {
+          text-decoration: underline;
         }
         .blog-editor-content .ProseMirror p.is-editor-empty:first-child::before {
           content: 'Écris ton article ici...';
@@ -217,6 +232,44 @@ export default function BlogEditor({ content, onChange }) {
         >
           <em>I</em>
         </ToolButton>
+        <ToolButton
+          onClick={() => editor.chain().focus().toggleUnderline().run()}
+          active={editor.isActive("underline")}
+          title="Souligné"
+        >
+          <u>S</u>
+        </ToolButton>
+
+        <div style={styles.separator} />
+
+        <ToolButton
+          onClick={() => editor.chain().focus().setTextAlign("left").run()}
+          active={editor.isActive({ textAlign: "left" })}
+          title="Aligner le texte à gauche"
+        >
+          ⬅
+        </ToolButton>
+        <ToolButton
+          onClick={() => editor.chain().focus().setTextAlign("center").run()}
+          active={editor.isActive({ textAlign: "center" })}
+          title="Centrer le texte"
+        >
+          ⬛
+        </ToolButton>
+        <ToolButton
+          onClick={() => editor.chain().focus().setTextAlign("right").run()}
+          active={editor.isActive({ textAlign: "right" })}
+          title="Aligner le texte à droite"
+        >
+          ➡
+        </ToolButton>
+        <ToolButton
+          onClick={() => editor.chain().focus().setTextAlign("justify").run()}
+          active={editor.isActive({ textAlign: "justify" })}
+          title="Justifier"
+        >
+          ☰
+        </ToolButton>
 
         <div style={styles.separator} />
 
@@ -247,6 +300,12 @@ export default function BlogEditor({ content, onChange }) {
           title="Bloc de code"
         >
           Code
+        </ToolButton>
+        <ToolButton
+          onClick={() => editor.chain().focus().setHorizontalRule().run()}
+          title="Ligne de séparation"
+        >
+          ―
         </ToolButton>
 
         <div style={styles.separator} />

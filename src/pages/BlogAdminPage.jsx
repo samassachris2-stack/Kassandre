@@ -248,9 +248,29 @@ export default function BlogAdminPage() {
             </form>
           ) : (
             <div style={styles.preview}>
+              <style>{`
+                .blog-preview-body h2 { font-size: 1.6rem; font-weight: 700; color: #e8e8f0; margin: 28px 0 14px 0; }
+                .blog-preview-body h3 { font-size: 1.3rem; font-weight: 700; color: #e8e8f0; margin: 24px 0 12px 0; }
+                .blog-preview-body p { margin: 0 0 16px 0; }
+                .blog-preview-body ul, .blog-preview-body ol { padding-left: 24px; margin: 0 0 16px 0; }
+                .blog-preview-body strong { color: #e8e8f0; font-weight: 700; }
+                .blog-preview-body u { text-decoration: underline; }
+                .blog-preview-body a { color: #a78bfa; text-decoration: underline; }
+                .blog-preview-body blockquote { border-left: 3px solid #7c3aed; margin: 20px 0; padding: 4px 20px; color: #a0a0b0; font-style: italic; }
+                .blog-preview-body pre { background: #0a0a0f; border: 1px solid #2a2a35; border-radius: 6px; padding: 14px 18px; overflow-x: auto; margin: 20px 0; }
+                .blog-preview-body code { background: #0a0a0f; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+                .blog-preview-body hr { border: none; border-top: 1px solid #2a2a35; margin: 28px 0; }
+                .blog-preview-body img { max-width: 100%; border-radius: 8px; }
+                .blog-preview-body img[data-align="left"] { float: left; margin: 4px 20px 12px 0; }
+                .blog-preview-body img[data-align="right"] { float: right; margin: 4px 0 12px 20px; }
+                .blog-preview-body img[data-align="center"] { display: block; margin: 20px auto; }
+                .blog-preview-body img:not([data-align]) { display: block; margin: 20px 0; }
+                .blog-preview-body::after { content: ''; display: table; clear: both; }
+              `}</style>
               <h2 style={styles.previewTitle}>{formData.title}</h2>
               <p style={styles.previewExcerpt}>{formData.excerpt}</p>
               <div
+                className="blog-preview-body"
                 style={styles.previewContent}
                 dangerouslySetInnerHTML={{ __html: formData.content }}
               />

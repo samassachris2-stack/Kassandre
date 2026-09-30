@@ -33,28 +33,6 @@ export default function BlogDetail() {
     });
   };
 
-  const renderMarkdown = (content) => {
-    if (!content) return "";
-
-    // Simple markdown parsing
-    let html = content
-      // Headers
-      .replace(/^### (.*?)$/gm, "<h3>$1</h3>")
-      .replace(/^## (.*?)$/gm, "<h2>$1</h2>")
-      .replace(/^# (.*?)$/gm, "<h1>$1</h1>")
-      // Bold
-      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-      // Italic
-      .replace(/\*(.*?)\*/g, "<em>$1</em>")
-      // Links
-      .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
-      // Line breaks
-      .replace(/\n\n/g, "</p><p>")
-      .replace(/\n/g, "<br />");
-
-    return html;
-  };
-
   if (loading) {
     return (
       <div style={styles.container}>
@@ -80,6 +58,84 @@ export default function BlogDetail() {
 
   return (
     <div style={styles.container}>
+      <style>{`
+        .blog-article-body h2 {
+          font-size: 1.6rem;
+          font-weight: 700;
+          color: #e8e8f0;
+          margin: 28px 0 14px 0;
+        }
+        .blog-article-body h3 {
+          font-size: 1.3rem;
+          font-weight: 700;
+          color: #e8e8f0;
+          margin: 24px 0 12px 0;
+        }
+        .blog-article-body p {
+          margin: 0 0 16px 0;
+        }
+        .blog-article-body ul,
+        .blog-article-body ol {
+          padding-left: 24px;
+          margin: 0 0 16px 0;
+        }
+        .blog-article-body strong { color: #e8e8f0; font-weight: 700; }
+        .blog-article-body em { font-style: italic; }
+        .blog-article-body u { text-decoration: underline; }
+        .blog-article-body a { color: #a78bfa; text-decoration: underline; }
+        .blog-article-body blockquote {
+          border-left: 3px solid #7c3aed;
+          margin: 20px 0;
+          padding: 4px 20px;
+          color: #a0a0b0;
+          font-style: italic;
+        }
+        .blog-article-body pre {
+          background: #0a0a0f;
+          border: 1px solid #2a2a35;
+          border-radius: 6px;
+          padding: 14px 18px;
+          overflow-x: auto;
+          margin: 20px 0;
+        }
+        .blog-article-body code {
+          background: #0a0a0f;
+          padding: 2px 6px;
+          border-radius: 4px;
+          font-size: 0.9em;
+        }
+        .blog-article-body hr {
+          border: none;
+          border-top: 1px solid #2a2a35;
+          margin: 28px 0;
+        }
+        .blog-article-body img {
+          max-width: 100%;
+          border-radius: 8px;
+        }
+        .blog-article-body img[data-align="left"] {
+          float: left;
+          margin: 4px 20px 12px 0;
+        }
+        .blog-article-body img[data-align="right"] {
+          float: right;
+          margin: 4px 0 12px 20px;
+        }
+        .blog-article-body img[data-align="center"] {
+          display: block;
+          margin: 20px auto;
+        }
+        .blog-article-body img:not([data-align]) {
+          display: block;
+          margin: 20px 0;
+        }
+        .blog-article-body::after {
+          content: '';
+          display: table;
+          clear: both;
+        }
+      `}</style>
+
       <Link to="/blog" style={styles.backLink}>
         ← Retour aux articles
       </Link>
@@ -109,9 +165,10 @@ export default function BlogDetail() {
         </header>
 
         <div
+          className="blog-article-body"
           style={styles.content}
           dangerouslySetInnerHTML={{
-            __html: renderMarkdown(article.content),
+            __html: article.content,
           }}
         />
 
@@ -216,42 +273,6 @@ const styles = {
     lineHeight: "1.8",
     color: "#d0d0e0",
     marginBottom: "40px",
-
-    "& h1": {
-      fontSize: "2rem",
-      fontWeight: "bold",
-      marginTop: "32px",
-      marginBottom: "16px",
-      color: "#e8e8f0",
-    },
-    "& h2": {
-      fontSize: "1.6rem",
-      fontWeight: "bold",
-      marginTop: "28px",
-      marginBottom: "14px",
-      color: "#e8e8f0",
-    },
-    "& h3": {
-      fontSize: "1.3rem",
-      fontWeight: "bold",
-      marginTop: "24px",
-      marginBottom: "12px",
-      color: "#e8e8f0",
-    },
-    "& p": {
-      marginBottom: "16px",
-    },
-    "& strong": {
-      fontWeight: "bold",
-      color: "#e8e8f0",
-    },
-    "& a": {
-      color: "#7c3aed",
-      textDecoration: "underline",
-    },
-    "& em": {
-      fontStyle: "italic",
-    },
   },
   marketsSection: {
     borderTop: "1px solid #2a2a35",
