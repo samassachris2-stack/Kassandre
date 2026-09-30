@@ -127,7 +127,7 @@ export default function BlogAdminPage() {
     <div style={styles.container}>
       <div style={styles.header}>
         <h1 style={styles.title}>Gestion du Blog</h1>
-        <button onClick={() => (showForm ? resetForm() : setShowForm(true))} style={styles.newButton}>
+        <button type="button" onClick={() => (showForm ? resetForm() : setShowForm(true))} style={styles.newButton}>
           {showForm ? "Annuler" : "Nouvel article"}
         </button>
       </div>
@@ -136,6 +136,7 @@ export default function BlogAdminPage() {
         <div style={styles.formContainer}>
           <div style={styles.formTabs}>
             <button
+              type="button"
               onClick={() => setPreviewMode(false)}
               style={{
                 ...styles.tabButton,
@@ -145,6 +146,7 @@ export default function BlogAdminPage() {
               Édition
             </button>
             <button
+              type="button"
               onClick={() => setPreviewMode(true)}
               style={{
                 ...styles.tabButton,
@@ -300,12 +302,14 @@ export default function BlogAdminPage() {
                     <td style={styles.td}>
                       <div style={styles.actions}>
                         <button
+                          type="button"
                           onClick={() => handleEdit(article)}
                           style={styles.actionButton}
                         >
                           Éditer
                         </button>
                         <button
+                          type="button"
                           onClick={() => handleDelete(article.id)}
                           style={styles.deleteButton}
                         >
