@@ -184,6 +184,14 @@ export default function Navbar() {
 
         <div className="kassandre-nav-desktop-links">
           <Link
+            to="/blog"
+            style={S.navLink(location.pathname.startsWith("/blog"))}
+            onMouseEnter={(e) => { if (!location.pathname.startsWith("/blog")) e.currentTarget.style.color = "#e8e8f0"; }}
+            onMouseLeave={(e) => { if (!location.pathname.startsWith("/blog")) e.currentTarget.style.color = "#a8a8b8"; }}
+          >
+            Blog
+          </Link>
+          <Link
             to="/portefeuille"
             style={S.navLink(location.pathname === "/portefeuille")}
             onMouseEnter={(e) => { if (location.pathname !== "/portefeuille") e.currentTarget.style.color = "#e8e8f0"; }}
@@ -253,12 +261,28 @@ export default function Navbar() {
       {menuOpen && user && (
         <div style={S.mobileMenu}>
           <Link
+            to="/blog"
+            style={S.mobileLink(location.pathname.startsWith("/blog"))}
+            onClick={() => setMenuOpen(false)}
+          >
+            Blog
+          </Link>
+          <Link
             to="/portefeuille"
             style={S.mobileLink(location.pathname === "/portefeuille")}
             onClick={() => setMenuOpen(false)}
           >
             Portefeuille
           </Link>
+          {user.isAdmin && (
+            <Link
+              to="/admin/blog"
+              style={S.mobileLink(location.pathname === "/admin/blog")}
+              onClick={() => setMenuOpen(false)}
+            >
+              Gérer le blog
+            </Link>
+          )}
           <button
             onClick={() => { setMenuOpen(false); logout(); }}
             style={{ ...S.mobileLink(false), textAlign: "left", border: "none", background: "transparent", cursor: "pointer", color: "#ef4444" }}

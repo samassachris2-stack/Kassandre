@@ -6,6 +6,7 @@ import Portefeuille from "./pages/Portefeuille";
 import Profil from "./pages/Profil";
 import Soumettre from "./pages/Soumettre";
 import Admin from "./pages/Admin";
+import BlogAdminPage from "./pages/BlogAdminPage";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Settings from "./pages/Settings";
@@ -33,6 +34,7 @@ export default function App() {
             <Route path="/profil/:uid" element={<Profil />} />
             <Route path="/soumettre" element={<Soumettre />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/admin/blog" element={<BlogAdminPage />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/cgu" element={<CGU />} />
             <Route path="/confidentialite" element={<Confidentialite />} />
