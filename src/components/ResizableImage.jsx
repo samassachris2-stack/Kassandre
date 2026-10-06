@@ -190,12 +190,22 @@ const ResizableImage = Image.extend({
       ...this.parent?.(),
       width: {
         default: null,
-        renderHTML: (attrs) => (attrs.width ? { width: attrs.width } : {}),
+        parseHTML: (element) => {
+          const width = element.getAttribute("data-width");
+          return width ? parseInt(width, 10) : null;
+        },
+        renderHTML: (attrs) => {
+          if (!attrs.width) return {};
+          return { "data-width": String(attrs.width) };
+        },
       },
       align: {
         default: null,
-        renderHTML: (attrs) => (attrs.align ? { "data-align": attrs.align } : {}),
-        parseHTML: (el) => el.getAttribute("data-align"),
+        parseHTML: (element) => element.getAttribute("data-align") || null,
+        renderHTML: (attrs) => {
+          if (!attrs.align) return {};
+          return { "data-align": attrs.align };
+        },
       },
     };
   },

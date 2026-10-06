@@ -72,6 +72,20 @@ export default function BlogDetail() {
     structuredData: generateArticleStructuredData(article),
   });
 
+  // Apply data-width styles to images (for custom image widths)
+  useEffect(() => {
+    const contentDiv = document.querySelector('.blog-article-body');
+    if (!contentDiv) return;
+
+    const images = contentDiv.querySelectorAll('img[data-width]');
+    images.forEach((img) => {
+      const width = img.getAttribute('data-width');
+      if (width) {
+        img.style.width = `${width}px`;
+      }
+    });
+  }, [article.id]);
+
   return (
     <div style={styles.container}>
       <style>{`
@@ -129,8 +143,14 @@ export default function BlogDetail() {
           max-width: 100%;
           border-radius: 8px;
         }
-        .blog-article-body img:not([width]) {
+        .blog-article-body img {
+          border-radius: 8px;
+        }
+        .blog-article-body img:not([data-width]) {
           width: min(640px, 100%);
+        }
+        .blog-article-body img[data-width] {
+          max-width: 100%;
         }
         .blog-article-body img[data-align="left"] {
           float: left;
