@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getArticleBySlug } from "../lib/articles";
+import { useSEO } from "../hooks/useSEO";
+import { generateArticleStructuredData } from "../lib/structuredData";
 
 export default function BlogDetail() {
   const { slug } = useParams();
@@ -55,6 +57,20 @@ export default function BlogDetail() {
   if (!article) {
     return null;
   }
+
+  // SEO
+  useSEO({
+    title: article.title,
+    description: article.excerpt,
+    image: article.coverImageUrl,
+    url: `/blog/${article.slug}`,
+    type: 'article',
+    publishedDate: article.publishedAt?.toDate?.().toISOString() || article.publishedAt,
+    updatedDate: article.updatedAt?.toDate?.().toISOString(),
+    tags: article.tags || [],
+    author: 'Kassandre',
+    structuredData: generateArticleStructuredData(article),
+  });
 
   return (
     <div style={styles.container}>

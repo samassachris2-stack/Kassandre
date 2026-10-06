@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+Allow: /blog
+Allow: /market
+
+Disallow: /admin
+Disallow: /auth
+Disallow: /profile/*edit
+Disallow: /*.json$
+
+Sitemap: https://kassandre.app/sitemap.xml
+Sitemap: https://kassandre.app/sitemap-blog.xml
+Sitemap: https://kassandre.app/sitemap-markets.xml
+
+# Respect crawl-delay for respectful crawling
+Crawl-delay: 1
