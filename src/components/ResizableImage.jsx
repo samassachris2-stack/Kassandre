@@ -69,6 +69,9 @@ function ResizableImageView({ node, updateAttributes, selected }) {
         style={{
           position: "relative",
           display: "inline-block",
+          border: selected ? "2px solid #7c3aed" : "2px solid transparent",
+          borderRadius: "8px",
+          padding: 0,
         }}
       >
         <img
@@ -79,9 +82,8 @@ function ResizableImageView({ node, updateAttributes, selected }) {
             display: "block",
             width: width ? `${width}px` : "min(640px, 100%)",
             maxWidth: "100%",
-            borderRadius: "8px",
+            borderRadius: "6px",
             userSelect: "none",
-            boxShadow: selected ? "0 0 0 2px #7c3aed" : "none",
           }}
           draggable={false}
         />
