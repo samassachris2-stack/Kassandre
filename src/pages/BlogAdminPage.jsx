@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 import BlogEditor from "../components/BlogEditor";
+import BlogCSVImport from "../components/BlogCSVImport";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "../lib/firebase";
 import {
@@ -164,6 +165,8 @@ export default function BlogAdminPage() {
           {showForm ? "Annuler" : "Nouvel article"}
         </button>
       </div>
+
+      <BlogCSVImport onImportComplete={loadArticles} />
 
       {showForm && (
         <div style={styles.formContainer}>
