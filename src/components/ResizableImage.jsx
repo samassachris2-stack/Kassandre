@@ -212,6 +212,10 @@ const ResizableImage = Image.extend({
   addNodeView() {
     return ReactNodeViewRenderer(ResizableImageView);
   },
+  renderHTML({ HTMLAttributes }) {
+    // Rendre l'image avec data-align et data-width pour que le CSS public les applique
+    return ['img', HTMLAttributes];
+  },
 });
 
 export default ResizableImage;
