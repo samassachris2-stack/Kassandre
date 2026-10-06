@@ -69,8 +69,6 @@ function ResizableImageView({ node, updateAttributes, selected }) {
         style={{
           position: "relative",
           display: "inline-block",
-          outline: selected ? "2px solid #7c3aed" : "none",
-          borderRadius: "8px",
         }}
       >
         <img
@@ -79,14 +77,11 @@ function ResizableImageView({ node, updateAttributes, selected }) {
           alt={alt || ""}
           style={{
             display: "block",
-            // Par défaut (avant tout redimensionnement manuel), l'image
-            // garde une taille raisonnable au lieu de forcer 100% de la
-            // largeur : forcer 100% rendait le centrage invisible, l'image
-            // remplissant déjà tout l'espace disponible.
             width: width ? `${width}px` : "min(640px, 100%)",
             maxWidth: "100%",
             borderRadius: "8px",
             userSelect: "none",
+            boxShadow: selected ? "0 0 0 2px #7c3aed" : "none",
           }}
           draggable={false}
         />
