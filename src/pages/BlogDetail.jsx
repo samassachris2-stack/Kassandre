@@ -36,6 +36,23 @@ export default function BlogDetail() {
     });
   };
 
+  // Apply data-width styles to images (for custom image widths).
+  // Doit rester AVANT les return conditionnels : un hook appelé après un
+  // return provoque l'erreur React #310 dès que l'article est chargé.
+  useEffect(() => {
+    if (!article) return;
+    const contentDiv = document.querySelector('.blog-article-body');
+    if (!contentDiv) return;
+
+    const images = contentDiv.querySelectorAll('img[data-width]');
+    images.forEach((img) => {
+      const width = img.getAttribute('data-width');
+      if (width) {
+        img.style.width = `${width}px`;
+      }
+    });
+  }, [article]);
+
   if (loading) {
     return (
       <div style={styles.container}>
@@ -59,8 +76,8 @@ export default function BlogDetail() {
     return null;
   }
 
-  // SEO
-  useSEO({
+  // SEO (useSEO renvoie un élément <Helmet>, il doit être rendu dans le JSX)
+  const seo = useSEO({
     title: article.title,
     description: article.excerpt,
     image: article.coverImageUrl,
@@ -73,22 +90,9 @@ export default function BlogDetail() {
     structuredData: generateArticleStructuredData(article),
   });
 
-  // Apply data-width styles to images (for custom image widths)
-  useEffect(() => {
-    const contentDiv = document.querySelector('.blog-article-body');
-    if (!contentDiv) return;
-
-    const images = contentDiv.querySelectorAll('img[data-width]');
-    images.forEach((img) => {
-      const width = img.getAttribute('data-width');
-      if (width) {
-        img.style.width = `${width}px`;
-      }
-    });
-  }, [article.id]);
-
   return (
     <div style={styles.container}>
+      {seo}
       <style>{`
         .blog-article-body h2 {
           font-size: 1.6rem;
