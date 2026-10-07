@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { getArticleBySlug } from "../lib/articles";
 import { useSEO } from "../hooks/useSEO";
 import { generateArticleStructuredData } from "../lib/structuredData";
+import ShareButtons from "../components/ShareButtons";
 
 export default function BlogDetail() {
   const { slug } = useParams();
@@ -232,6 +233,12 @@ export default function BlogDetail() {
           dangerouslySetInnerHTML={{
             __html: article.content,
           }}
+        />
+
+        <ShareButtons
+          title={article.title}
+          url={`/blog/${article.slug}`}
+          excerpt={article.excerpt}
         />
 
         {article.linkedMarkets && article.linkedMarkets.length > 0 && (
