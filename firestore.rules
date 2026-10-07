@@ -59,6 +59,16 @@ service cloud.firestore {
         positionId.split('_')[0] == request.auth.uid;
     }
 
+    // ── Articles du blog ─────────────────────────────────────────────────────
+    // Lecture publique des articles publiés.
+    // Admins peuvent lire tous les articles (brouillons inclus).
+    // Création, modification et suppression réservées aux admins.
+    match /articles/{articleId} {
+      allow read: if resource.data.status == "published" ||
+                     (request.auth != null && isAdmin());
+      allow create, update, delete: if request.auth != null && isAdmin();
+    }
+
     // ── Utilisateurs ─────────────────────────────────────────────────────────
     // Lecture publique (leaderboard, profils).
     // Écriture uniquement sur son propre document.
