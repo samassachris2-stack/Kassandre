@@ -58,7 +58,11 @@ export const getLatestArticles = async (count = 3) => {
 // Get article by slug
 export const getArticleBySlug = async (slug) => {
   try {
-    const q = query(articlesCollection, where("slug", "==", slug));
+    const q = query(
+      articlesCollection,
+      where("slug", "==", slug),
+      where("status", "==", "published")
+    );
     const snapshot = await getDocs(q);
     if (snapshot.empty) return null;
     const doc = snapshot.docs[0];
