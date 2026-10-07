@@ -68,13 +68,16 @@ export default function ShareButtons({ title, url, excerpt }) {
 const styles = {
   container: {
     display: "flex",
+    flexWrap: "wrap",
     alignItems: "center",
-    gap: "16px",
-    padding: "20px",
+    gap: "12px 16px",
+    padding: "16px",
     backgroundColor: "#1a1a22",
     border: "1px solid #2a2a35",
     borderRadius: "8px",
     marginBottom: "40px",
+    boxSizing: "border-box",
+    maxWidth: "100%",
   },
   label: {
     color: "#e8e8f0",
@@ -83,10 +86,12 @@ const styles = {
   },
   buttons: {
     display: "flex",
+    flexWrap: "wrap",
     gap: "8px",
+    minWidth: 0,
   },
   button: {
-    padding: "10px 14px",
+    padding: "10px 12px",
     backgroundColor: "#0a0a0f",
     color: "#e8e8f0",
     border: "1px solid #2a2a35",
@@ -100,9 +105,5 @@ const styles = {
     justifyContent: "center",
     minWidth: "44px",
     transition: "all 0.2s",
-    "&:hover": {
-      backgroundColor: "#7c3aed",
-      borderColor: "#7c3aed",
-    },
   },
 };
