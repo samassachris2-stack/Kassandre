@@ -1,7 +1,8 @@
 import { initializeApp } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
-import { onCall, HttpsError } from "firebase-functions/v2/https";
+import { onCall, onRequest, HttpsError } from "firebase-functions/v2/https";
 import { onSchedule } from "firebase-functions/v2/scheduler";
+import { buildOgPayload, ID_RE } from "./og-data.js";
 import {
   calcShares, calcSellShares, calcSharesLMSR, calcSellSharesLMSR,
   getPricesLMSR, defaultLiquidityB,
@@ -558,3 +559,29 @@ export const snapshotMonthlyBalances = onSchedule(
     console.log(`Snapshot mensuel effectué pour ${count} utilisateur(s).`);
   }
 );
+
+// ── ogData : données publiques pour les aperçus de liens ─────────────────
+// Appelée côté serveur par api/og.js (Vercel) quand Facebook, X, LinkedIn,
+// WhatsApp... demandent une page d'article ou de marché. Les robots n'ont pas
+// de jeton App Check, donc cette route est volontairement hors App Check et ne
+// renvoie que des données déjà publiques (voir og-data.js).
+export const ogData = onRequest({ cors: false, maxInstances: 5 }, async (req, res) => {
+  const kind = String(req.query.kind || "");
+  const id = String(req.query.id || "");
+  if (!["article", "market"].includes(kind) || !ID_RE.test(id)) {
+    res.status(400).json({ error: "bad request" });
+    return;
+  }
+  try {
+    const payload = await buildOgPayload(db, kind, id);
+    if (!payload) {
+      res.status(404).json({ error: "not found" });
+      return;
+    }
+    res.set("Cache-Control", "public, max-age=60, s-maxage=300");
+    res.json(payload);
+  } catch (e) {
+    console.error("ogData failed", kind, id, e);
+    res.status(500).json({ error: "internal" });
+  }
+});

@@ -12,8 +12,10 @@
 // doit jamais empêcher un robot d'accéder à la page.
 
 const SITE = "https://kassandre.app";
-const PROJECT_ID = "kassandre-f868e";
-const FIRESTORE = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
+// Cloud Function publique et en lecture seule (functions/index.js : ogData).
+// Elle lit Firestore avec l'Admin SDK : un appel REST direct est refusé (403)
+// car il n'a pas de jeton App Check.
+const OG_DATA_URL = "https://us-central1-kassandre-f868e.cloudfunctions.net/ogData";
 const DEFAULT_IMAGE = `${SITE}/og-image.png`;
 const DEFAULT_TITLE = "Kassandre | Marchés de prédiction francophone";
 const DEFAULT_DESC =
@@ -37,53 +39,15 @@ const stripHtml = (html) =>
 
 const truncate = (s, n = 200) => (s.length > n ? s.slice(0, n - 1).trimEnd() + "…" : s);
 
-// Décode un champ au format REST de Firestore ({ stringValue: "..." }, etc.)
-function field(v) {
-  if (!v) return undefined;
-  if ("stringValue" in v) return v.stringValue;
-  if ("integerValue" in v) return Number(v.integerValue);
-  if ("doubleValue" in v) return v.doubleValue;
-  if ("booleanValue" in v) return v.booleanValue;
-  if ("timestampValue" in v) return v.timestampValue;
-  if ("arrayValue" in v) return (v.arrayValue.values || []).map(field);
-  return undefined;
-}
-
-const decode = (doc) =>
-  Object.fromEntries(Object.entries(doc?.fields || {}).map(([k, v]) => [k, field(v)]));
-
-async function fetchArticle(slug, fetchFn) {
-  const res = await fetchFn(`${FIRESTORE}:runQuery`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({
-      structuredQuery: {
-        from: [{ collectionId: "articles" }],
-        where: {
-          compositeFilter: {
-            op: "AND",
-            filters: [
-              { fieldFilter: { field: { fieldPath: "slug" }, op: "EQUAL", value: { stringValue: slug } } },
-              { fieldFilter: { field: { fieldPath: "status" }, op: "EQUAL", value: { stringValue: "published" } } },
-            ],
-          },
-        },
-        limit: 1,
-      },
-    }),
-  });
-  if (!res.ok) throw new Error(`articles ${res.status} ${(await res.text()).slice(0, 300)}`);
-  const rows = await res.json();
-  const doc = rows.find((r) => r.document)?.document;
-  return doc ? decode(doc) : null;
-}
-
-async function fetchMarket(id, fetchFn) {
-  const res = await fetchFn(`${FIRESTORE}/markets/${encodeURIComponent(id)}`);
+async function fetchOgData(kind, id, fetchFn) {
+  const res = await fetchFn(`${OG_DATA_URL}?kind=${kind}&id=${encodeURIComponent(id)}`);
   if (res.status === 404) return null;
-  if (!res.ok) throw new Error(`markets ${res.status} ${(await res.text()).slice(0, 300)}`);
-  return decode(await res.json());
+  if (!res.ok) throw new Error(`ogData ${res.status} ${(await res.text()).slice(0, 300)}`);
+  return res.json();
 }
+
+const fetchArticle = (slug, fetchFn) => fetchOgData("article", slug, fetchFn);
+const fetchMarket = (id, fetchFn) => fetchOgData("market", id, fetchFn);
 
 // ── Construction des métadonnées par type de page ─────────────────────────
 
