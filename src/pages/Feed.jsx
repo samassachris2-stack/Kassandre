@@ -6,10 +6,25 @@ import { useAuth } from "../context/AuthContext";
 import { placeBet, calcShares } from "../lib/amm.js";
 import { getLatestArticles } from "../lib/articles";
 import { useSEO } from "../hooks/useSEO";
+import { generateOrganizationStructuredData } from "../lib/structuredData";
 
 // Nombre de cartes affichées par "page" (les filtres, tris et compteurs de tags
 // restent calculés sur tous les marchés ouverts, seul le rendu est paginé).
 const PAGE_SIZE = 24;
+
+// Texte d'introduction des pages de catégorie : du contenu éditorial à indexer
+// (sans lui, une page de catégorie n'est qu'une liste de cartes).
+const CATEGORY_INTROS = {
+  Sport: "Qui gagnera la Coupe du monde, le Tour de France ou la Ligue des champions ? Sur Kassandre, les membres pronostiquent les grands rendez-vous sportifs avec des points virtuels, sans mise réelle. La probabilité affichée sur chaque marché évolue au fil des paris et des nouvelles.",
+  Politique: "Élections, réformes, remaniements, mouvements sociaux : les marchés politiques de Kassandre transforment l'actualité française en probabilités. Chaque pourcentage reflète l'avis collectif des membres et bouge en temps réel. Pronostiquez gratuitement, avec des points virtuels.",
+  Crypto: "Le Bitcoin passera-t-il un seuil de prix d'ici la fin de l'année ? Un ETF sera-t-il approuvé ? Les marchés crypto de Kassandre permettent de se positionner sur ces questions en points virtuels, sans risque pour votre argent.",
+  Tech: "Lancements de produits, régulation de l'intelligence artificielle, résultats des géants du numérique : pronostiquez l'actualité technologique sur Kassandre, avec des points virtuels et une probabilité mise à jour par la communauté.",
+  "Économie": "Inflation, taux d'intérêt, croissance, budget de l'État : les marchés économiques de Kassandre mesurent ce que la communauté anticipe. Donnez votre pronostic gratuitement et comparez-le aux autres membres.",
+  International: "Conflits, négociations, élections à l'étranger, sommets : les marchés internationaux de Kassandre rassemblent les pronostics francophones sur l'actualité mondiale, en points virtuels et sans mise réelle.",
+  Culture: "Cinéma, musique, séries, prix et festivals : pronostiquez les grands événements culturels sur Kassandre. Chaque marché affiche la probabilité estimée par les membres et évolue jusqu'à la résolution.",
+  Climat: "Records de température, accords internationaux, décisions énergétiques : les marchés climat de Kassandre permettent de pronostiquer ces enjeux avec des points virtuels et de suivre l'opinion collective.",
+  Autre: "Des questions d'actualité qui ne rentrent dans aucune case : retrouvez ici les marchés de prédiction variés de Kassandre, à pronostiquer gratuitement avec des points virtuels.",
+};
 
 const MULTI_COLORS = ["#7c3aed", "#22c55e", "#ef4444", "#f59e0b", "#06b6d4"];
 
@@ -551,6 +566,7 @@ export default function Feed() {
           description:
             "Prédisez l'actualité avec des points virtuels : politique, économie, crypto, sport. Le marché de prédictions francophone, gratuit et sans risque.",
           url: "/",
+          structuredData: generateOrganizationStructuredData(),
         }
   );
 
@@ -678,6 +694,12 @@ export default function Feed() {
           ? `Marchés — ${activeCategories.join(", ")}`
           : "Marchés ouverts"}
       </h1>
+
+      {seoCat && !tagFromRoute && CATEGORY_INTROS[seoCat] && (
+        <p style={{ color: "#a0a0b8", lineHeight: 1.6, maxWidth: "720px", margin: "0 auto 24px", textAlign: "center", fontSize: "0.95rem" }}>
+          {CATEGORY_INTROS[seoCat]}
+        </p>
+      )}
 
       {!catFromRoute && !tagFromRoute && <FeaturedCarousel markets={markets} />}
       {!catFromRoute && !tagFromRoute && <BlogPreviewSection />}

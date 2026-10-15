@@ -57,7 +57,14 @@ export async function buildIndexPayload(db, kind) {
     const items = snap.docs
       .map((d) => d.data())
       .filter((a) => a.slug)
-      .map((a) => ({ slug: a.slug, lastmod: day(a.updatedAt) || day(a.publishedAt) || day(a.createdAt) }))
+      .map((a) => ({
+        slug: a.slug,
+        lastmod: day(a.updatedAt) || day(a.publishedAt) || day(a.createdAt),
+        // champs supplémentaires pour le flux RSS (api/rss.js)
+        title: a.title ?? "",
+        excerpt: a.excerpt ?? "",
+        publishedAt: iso(a.publishedAt) || iso(a.createdAt),
+      }))
       .sort(newestFirst);
     return { items };
   }

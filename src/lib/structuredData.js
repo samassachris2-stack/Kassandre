@@ -14,7 +14,7 @@ export const generateArticleStructuredData = (article) => {
 
   return {
     '@context': 'https://schema.org',
-    '@type': 'NewsArticle',
+    '@type': 'Article',
     headline: article.title,
     description: article.excerpt,
     image: article.coverImageUrl || `${baseUrl}/og-image.png`,
@@ -23,21 +23,16 @@ export const generateArticleStructuredData = (article) => {
     author: {
       '@type': 'Organization',
       name: 'Kassandre',
-      logo: {
-        '@type': 'ImageObject',
-        url: `${baseUrl}/logo.png`,
-        width: 250,
-        height: 250,
-      },
+      url: baseUrl,
     },
     publisher: {
       '@type': 'Organization',
       name: 'Kassandre',
       logo: {
         '@type': 'ImageObject',
-        url: `${baseUrl}/logo.png`,
-        width: 250,
-        height: 250,
+        url: `${baseUrl}/og-image.png`,
+        width: 1200,
+        height: 630,
       },
     },
     mainEntityOfPage: {
@@ -45,7 +40,8 @@ export const generateArticleStructuredData = (article) => {
       '@id': `${baseUrl}/blog/${article.slug}`,
     },
     keywords: article.tags ? article.tags.join(', ') : 'prediction, market, actualité',
-    articleBody: article.content,
+    inLanguage: 'fr-FR',
+    articleBody: String(article.content || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim(),
   };
 };
 
@@ -82,22 +78,28 @@ export const generateBlogListStructuredData = (articles) => {
 export const generateOrganizationStructuredData = () => {
   const baseUrl = 'https://kassandre.app';
 
+  // Uniquement des informations vérifiables : pas de réseaux sociaux ni de
+  // contact inventés (Google traite le balisage inexact comme trompeur).
   return {
     '@context': 'https://schema.org',
-    '@type': 'Organization',
-    name: 'Kassandre',
-    description: 'Marché de prédictions francophone en play money',
-    url: baseUrl,
-    logo: `${baseUrl}/logo.png`,
-    sameAs: [
-      'https://twitter.com/kassandre',
-      'https://github.com/samassachris2-stack/Kassandre',
+    '@graph': [
+      {
+        '@type': 'Organization',
+        '@id': `${baseUrl}/#organization`,
+        name: 'Kassandre',
+        description: 'Marché de prédictions francophone en play money',
+        url: baseUrl,
+        logo: `${baseUrl}/og-image.png`,
+      },
+      {
+        '@type': 'WebSite',
+        '@id': `${baseUrl}/#website`,
+        name: 'Kassandre',
+        url: baseUrl,
+        inLanguage: 'fr-FR',
+        publisher: { '@id': `${baseUrl}/#organization` },
+      },
     ],
-    contactPoint: {
-      '@type': 'ContactPoint',
-      telephone: '',
-      contactType: 'Customer Service',
-    },
   };
 };
 

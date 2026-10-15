@@ -61,6 +61,10 @@
       "destination": "/api/sitemap?type=markets"
     },
     {
+      "source": "/rss.xml",
+      "destination": "/api/rss"
+    },
+    {
       "source": "/(.*)",
       "destination": "/"
     }

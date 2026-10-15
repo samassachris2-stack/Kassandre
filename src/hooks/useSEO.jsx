@@ -62,7 +62,7 @@ export const useSEO = ({
       )}
 
       {/* Additional SEO */}
-      <meta name="robots" content="index, follow" />
+      <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
       <meta name="language" content="French" />
       <meta name="author" content="Kassandre" />
 
