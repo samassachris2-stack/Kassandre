@@ -95,17 +95,27 @@ async function buildMeta(kind, id, fetchFn) {
     const m = await fetchMarket(id, fetchFn);
     if (!m) return { ...base, path: `/market/${encodeURIComponent(id)}`, debug: "not-found" };
     let desc = stripHtml(m.description);
+    const options = Array.isArray(m.options) ? m.options.filter((o) => o.label && typeof o.price === "number") : [];
+    let probaHtml = "";
     if (m.type === "binary" && m.poolYes > 0 && m.poolNo > 0) {
       const pct = Math.round((m.poolNo / (m.poolYes + m.poolNo)) * 100);
       desc = `${pct}% de probabilité selon les membres de Kassandre.${desc ? " " + desc : ""}`;
+      probaHtml = `<p>Probabilité actuelle : Oui ${pct} %, Non ${100 - pct} %.</p>`;
+    } else if (options.length > 0) {
+      const lead = options[0];
+      const leadPct = Math.round(lead.price * 100);
+      desc = `Favori actuel : ${lead.label} (${leadPct}%) selon les membres de Kassandre.${desc ? " " + desc : ""}`;
+      probaHtml = `<ul>${options.map((o) => `<li>${esc(o.label)} : ${Math.round(o.price * 100)} %</li>`).join("")}</ul>`;
     }
+    const statusHtml = m.status && m.status !== "open" ? `<p>Ce marché est ${m.status === "resolved" ? "résolu" : "fermé"}.</p>` : "";
+    const dateHtml = m.resolutionDate ? `<p>Date de résolution : ${esc(m.resolutionDate)}.</p>` : "";
     return {
       ...base,
       title: `${m.question} | Kassandre`,
       description: truncate(desc || "Marché de prédiction sur Kassandre : donnez votre pronostic."),
       path: `/market/${encodeURIComponent(id)}`,
       debug: "ok",
-      body: `<article><h1>${esc(m.question)}</h1>${m.description ? `<p>${esc(m.description)}</p>` : ""}</article>`,
+      body: `<article><h1>${esc(m.question)}</h1>${m.description ? `<p>${esc(stripHtml(m.description))}</p>` : ""}${probaHtml}${statusHtml}${dateHtml}</article>`,
     };
   }
 

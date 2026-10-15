@@ -33,12 +33,26 @@ export async function buildOgPayload(db, kind, id) {
     const snap = await db.collection("markets").doc(id).get();
     if (!snap.exists) return null;
     const m = snap.data();
+    let options = [];
+    if (m.type === "multi") {
+      // Options publiques d'un marché à choix multiples, triées par probabilité
+      const optSnap = await db.collection("markets").doc(id).collection("options").get();
+      options = optSnap.docs
+        .map((d) => d.data())
+        .filter((o) => o.label)
+        .map((o) => ({ label: String(o.label), price: typeof o.price === "number" ? o.price : null }))
+        .sort((a, b) => (b.price ?? 0) - (a.price ?? 0))
+        .slice(0, 10);
+    }
     return {
       question: m.question ?? "",
       description: m.description ?? "",
       type: m.type ?? null,
+      status: m.status ?? null,
+      resolutionDate: typeof m.resolutionDate === "string" ? m.resolutionDate : iso(m.resolutionDate)?.slice(0, 10) ?? null,
       poolYes: typeof m.poolYes === "number" ? m.poolYes : null,
       poolNo: typeof m.poolNo === "number" ? m.poolNo : null,
+      options,
     };
   }
 
