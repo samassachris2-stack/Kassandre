@@ -1,0 +1,219 @@
+// Rend un HTML avec les bonnes balises (title, description, Open Graph, Twitter,
+// canonical) pour les robots qui n'exécutent pas JavaScript : Facebook, X,
+// LinkedIn, WhatsApp, Telegram, Slack, Discord, iMessage... (voir vercel.json,
+// qui n'envoie ici que les requêtes dont le User-Agent est un robot connu).
+//
+// Principe : on part du vrai index.html du site (donc rien ne casse si le robot
+// exécute le JS, comme Googlebot), on y injecte les balises <head> et, pour les
+// articles et marchés, un aperçu du contenu dans #root.
+//
+// Sécurité du rendu : en cas d'échec (Firestore injoignable, document absent...),
+// on renvoie simplement le shell avec les balises par défaut. Cette fonction ne
+// doit jamais empêcher un robot d'accéder à la page.
+
+const SITE = "https://kassandre.app";
+const PROJECT_ID = "kassandre-f868e";
+const FIRESTORE = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
+const DEFAULT_IMAGE = `${SITE}/og-image.png`;
+const DEFAULT_TITLE = "Kassandre | Marchés de prédiction francophone";
+const DEFAULT_DESC =
+  "Prédisez l'actualité avec des points virtuels : politique, économie, crypto, sport. Le marché de prédictions francophone, gratuit et sans risque.";
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+
+const esc = (s) =>
+  String(s ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+
+const stripHtml = (html) =>
+  String(html ?? "")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const truncate = (s, n = 200) => (s.length > n ? s.slice(0, n - 1).trimEnd() + "…" : s);
+
+// Décode un champ au format REST de Firestore ({ stringValue: "..." }, etc.)
+function field(v) {
+  if (!v) return undefined;
+  if ("stringValue" in v) return v.stringValue;
+  if ("integerValue" in v) return Number(v.integerValue);
+  if ("doubleValue" in v) return v.doubleValue;
+  if ("booleanValue" in v) return v.booleanValue;
+  if ("timestampValue" in v) return v.timestampValue;
+  if ("arrayValue" in v) return (v.arrayValue.values || []).map(field);
+  return undefined;
+}
+
+const decode = (doc) =>
+  Object.fromEntries(Object.entries(doc?.fields || {}).map(([k, v]) => [k, field(v)]));
+
+async function fetchArticle(slug, fetchFn) {
+  const res = await fetchFn(`${FIRESTORE}:runQuery`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      structuredQuery: {
+        from: [{ collectionId: "articles" }],
+        where: {
+          compositeFilter: {
+            op: "AND",
+            filters: [
+              { fieldFilter: { field: { fieldPath: "slug" }, op: "EQUAL", value: { stringValue: slug } } },
+              { fieldFilter: { field: { fieldPath: "status" }, op: "EQUAL", value: { stringValue: "published" } } },
+            ],
+          },
+        },
+        limit: 1,
+      },
+    }),
+  });
+  if (!res.ok) throw new Error(`articles ${res.status}`);
+  const rows = await res.json();
+  const doc = rows.find((r) => r.document)?.document;
+  return doc ? decode(doc) : null;
+}
+
+async function fetchMarket(id, fetchFn) {
+  const res = await fetchFn(`${FIRESTORE}/markets/${encodeURIComponent(id)}`);
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`markets ${res.status}`);
+  return decode(await res.json());
+}
+
+// ── Construction des métadonnées par type de page ─────────────────────────
+
+async function buildMeta(kind, id, fetchFn) {
+  const base = { title: DEFAULT_TITLE, description: DEFAULT_DESC, image: DEFAULT_IMAGE, path: "/", type: "website", body: "" };
+
+  if (kind === "blog") {
+    return {
+      ...base,
+      title: "Analyses et actualités | Kassandre",
+      description: "Nos analyses sur les prediction markets, l'actualité et les tendances.",
+      path: "/blog",
+    };
+  }
+
+  if (kind === "article" && id) {
+    const a = await fetchArticle(id, fetchFn);
+    if (!a) return { ...base, path: `/blog/${encodeURIComponent(id)}` };
+    const text = stripHtml(a.content);
+    return {
+      title: `${a.title} | Kassandre`,
+      description: truncate(stripHtml(a.excerpt) || text || DEFAULT_DESC),
+      image: a.coverImageUrl || DEFAULT_IMAGE,
+      path: `/blog/${encodeURIComponent(a.slug || id)}`,
+      type: "article",
+      published: a.publishedAt,
+      tags: Array.isArray(a.tags) ? a.tags : [],
+      // Contenu complet des articles (écrit par l'admin, même HTML que sur le site)
+      body: `<article><h1>${esc(a.title)}</h1>${a.excerpt ? `<p>${esc(a.excerpt)}</p>` : ""}${a.content || ""}</article>`,
+    };
+  }
+
+  if (kind === "market" && id) {
+    const m = await fetchMarket(id, fetchFn);
+    if (!m) return { ...base, path: `/market/${encodeURIComponent(id)}` };
+    let desc = stripHtml(m.description);
+    if (m.type === "binary" && m.poolYes > 0 && m.poolNo > 0) {
+      const pct = Math.round((m.poolNo / (m.poolYes + m.poolNo)) * 100);
+      desc = `${pct}% de probabilité selon les membres de Kassandre.${desc ? " " + desc : ""}`;
+    }
+    return {
+      ...base,
+      title: `${m.question} | Kassandre`,
+      description: truncate(desc || "Marché de prédiction sur Kassandre : donnez votre pronostic."),
+      path: `/market/${encodeURIComponent(id)}`,
+      body: `<article><h1>${esc(m.question)}</h1>${m.description ? `<p>${esc(m.description)}</p>` : ""}</article>`,
+    };
+  }
+
+  return base;
+}
+
+// ── Injection dans le shell ───────────────────────────────────────────────
+
+function render(shell, meta) {
+  const url = `${SITE}${meta.path === "/" ? "" : meta.path}`;
+  const isDefaultImage = meta.image === DEFAULT_IMAGE;
+  const tags = [
+    `<title>${esc(meta.title)}</title>`,
+    `<meta name="description" content="${esc(meta.description)}" />`,
+    `<link rel="canonical" href="${esc(url)}" />`,
+    `<meta property="og:type" content="${meta.type}" />`,
+    `<meta property="og:site_name" content="Kassandre" />`,
+    `<meta property="og:locale" content="fr_FR" />`,
+    `<meta property="og:url" content="${esc(url)}" />`,
+    `<meta property="og:title" content="${esc(meta.title)}" />`,
+    `<meta property="og:description" content="${esc(meta.description)}" />`,
+    `<meta property="og:image" content="${esc(meta.image)}" />`,
+    isDefaultImage ? `<meta property="og:image:width" content="1200" />` : "",
+    isDefaultImage ? `<meta property="og:image:height" content="630" />` : "",
+    `<meta name="twitter:card" content="summary_large_image" />`,
+    `<meta name="twitter:title" content="${esc(meta.title)}" />`,
+    `<meta name="twitter:description" content="${esc(meta.description)}" />`,
+    `<meta name="twitter:image" content="${esc(meta.image)}" />`,
+    meta.published ? `<meta property="article:published_time" content="${esc(meta.published)}" />` : "",
+    ...(meta.tags || []).map((t) => `<meta property="article:tag" content="${esc(t)}" />`),
+  ]
+    .filter(Boolean)
+    .join("\n    ");
+
+  let html = shell
+    // retire les balises qu'on va remplacer
+    .replace(/<title>[\s\S]*?<\/title>/i, "")
+    .replace(/<meta\s+(name|property)=["'](description|og:[^"']*|twitter:[^"']*|article:[^"']*)["'][^>]*>\s*/gi, "")
+    .replace(/<link\s+rel=["']canonical["'][^>]*>\s*/gi, "")
+    .replace(/<html[^>]*>/i, '<html lang="fr">')
+    .replace(/<\/head>/i, `    ${tags}\n  </head>`);
+
+  if (meta.body) {
+    html = html.replace(/<div id="root">\s*<\/div>/i, `<div id="root">${meta.body}</div>`);
+  }
+  return html;
+}
+
+// ── Handler Vercel ────────────────────────────────────────────────────────
+
+export default async function handler(req, res) {
+  const url = new URL(req.url, SITE);
+  const kind = url.searchParams.get("kind") || "home";
+  const id = url.searchParams.get("id") || "";
+
+  let shell;
+  try {
+    const r = await fetch(`${SITE}/index.html`);
+    if (!r.ok) throw new Error(`shell ${r.status}`);
+    shell = await r.text();
+  } catch {
+    // Impossible de récupérer le shell : on laisse le site répondre normalement.
+    res.statusCode = 302;
+    res.setHeader("Location", `${SITE}/index.html`);
+    return res.end();
+  }
+
+  let meta;
+  try {
+    meta = await buildMeta(kind, id, fetch);
+  } catch (e) {
+    console.error("og: lookup failed", kind, id, e.message);
+    // Balises par défaut, mais on garde l'URL demandée comme canonique
+    const requested = kind === "article" ? `/blog/${encodeURIComponent(id)}`
+      : kind === "market" ? `/market/${encodeURIComponent(id)}`
+      : kind === "blog" ? "/blog" : "/";
+    meta = { ...(await buildMeta("home", "", fetch)), path: requested };
+  }
+
+  res.statusCode = 200;
+  res.setHeader("Content-Type", "text/html; charset=utf-8");
+  // Les robots de partage rappellent souvent : on met en cache côté CDN.
+  res.setHeader("Cache-Control", "public, s-maxage=300, stale-while-revalidate=86400");
+  res.end(render(shell, meta));
+}
+
+export { buildMeta, render };

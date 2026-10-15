@@ -1,3 +1,25 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/" }]
+  "rewrites": [
+    {
+      "source": "/",
+      "has": [{ "type": "header", "key": "user-agent", "value": ".*(facebookexternalhit|Facebot|Twitterbot|LinkedInBot|WhatsApp|TelegramBot|Slackbot|Discordbot|Googlebot|bingbot|Pinterest|SkypeUriPreview|Applebot|Mastodon|redditbot|Embedly).*" }],
+      "destination": "/api/og?kind=home"
+    },
+    {
+      "source": "/blog",
+      "has": [{ "type": "header", "key": "user-agent", "value": ".*(facebookexternalhit|Facebot|Twitterbot|LinkedInBot|WhatsApp|TelegramBot|Slackbot|Discordbot|Googlebot|bingbot|Pinterest|SkypeUriPreview|Applebot|Mastodon|redditbot|Embedly).*" }],
+      "destination": "/api/og?kind=blog"
+    },
+    {
+      "source": "/blog/:slug",
+      "has": [{ "type": "header", "key": "user-agent", "value": ".*(facebookexternalhit|Facebot|Twitterbot|LinkedInBot|WhatsApp|TelegramBot|Slackbot|Discordbot|Googlebot|bingbot|Pinterest|SkypeUriPreview|Applebot|Mastodon|redditbot|Embedly).*" }],
+      "destination": "/api/og?kind=article&id=:slug"
+    },
+    {
+      "source": "/market/:id",
+      "has": [{ "type": "header", "key": "user-agent", "value": ".*(facebookexternalhit|Facebot|Twitterbot|LinkedInBot|WhatsApp|TelegramBot|Slackbot|Discordbot|Googlebot|bingbot|Pinterest|SkypeUriPreview|Applebot|Mastodon|redditbot|Embedly).*" }],
+      "destination": "/api/og?kind=market&id=:id"
+    },
+    { "source": "/(.*)", "destination": "/" }
+  ]
 }
