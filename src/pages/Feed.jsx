@@ -528,19 +528,11 @@ export default function Feed() {
     return sorted;
   }, [marketsInCategory, selectedTag, searchTerm, sortBy]);
 
-  useEffect(() => {
-    document.title = tagFromRoute
-      ? `${catFromRoute} — #${tagFromRoute} — Kassandre`
-      : catFromRoute
-      ? `${catFromRoute} — Kassandre`
-      : "Kassandre — Marchés ouverts";
-  }, [catFromRoute, tagFromRoute]);
-
   const seoCat = CATEGORIES.includes(catFromRoute) && catFromRoute !== "Tous" ? catFromRoute : null;
   const seo = useSEO(
     seoCat
       ? {
-          title: `Paris ${seoCat} : marchés de prédiction`,
+          title: tagFromRoute ? `Paris ${seoCat} #${tagFromRoute} : marchés de prédiction` : `Paris ${seoCat} : marchés de prédiction`,
           description: `Pronostiquez sur l'actualité ${seoCat.toLowerCase()} avec des points virtuels. Les marchés de prédiction francophones de Kassandre, gratuits et sans risque.`,
           url: `/${encodeURIComponent(seoCat)}`,
         }
