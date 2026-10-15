@@ -15,10 +15,10 @@ service cloud.firestore {
 
       match /priceHistory/{entryId} {
         allow read: if true;
-        // Seul le backend (via amm.js dans une transaction) écrit l'historique —
-        // on l'autorise pour tout user connecté car c'est toujours déclenché
-        // par une transaction atomique (placeBet / sellShares) qui valide tout.
-        allow write: if request.auth != null;
+        // Écrit uniquement par les Cloud Functions (Admin SDK, qui ignore ces
+        // règles). Jamais depuis le client : sinon n'importe qui pourrait
+        // falsifier les courbes de prix.
+        allow write: if false;
       }
     }
 
@@ -35,28 +35,26 @@ service cloud.firestore {
 
     // ── Paris ────────────────────────────────────────────────────────────────
     // Lecture : chaque user voit seulement ses propres paris.
-    // Création : uniquement avec son propre userId (jamais usurper quelqu'un d'autre).
-    // Pas de modification ni suppression côté client.
+    // Écriture : jamais depuis le client. Les paris sont créés uniquement par
+    // les Cloud Functions (placeBet, sellShares...). resolveMarket s'appuie sur
+    // cette collection pour distribuer les gains : un pari forgé côté client
+    // permettrait de toucher des gains indus.
     match /bets/{betId} {
       allow read: if request.auth != null &&
         resource.data.userId == request.auth.uid;
-      allow create: if request.auth != null &&
-        request.resource.data.userId == request.auth.uid;
-      allow update, delete: if false;
+      allow write: if false;
     }
 
     // ── Positions (compteur de parts détenues) ───────────────────────────────
-    // Lecture/écriture uniquement par le propriétaire de la position.
-    // L'ID du document est {userId}_{marketId}_{side|optionId}.
-    // On extrait le userId directement depuis l'ID du document plutôt que
-    // depuis resource.data, car resource est null si le document n'existe
-    // pas encore (cas normal : l'utilisateur n'a jamais eu de position ici).
+    // Lecture par le propriétaire uniquement, écriture jamais depuis le client :
+    // les Cloud Functions de vente se fient au nombre de parts stocké ici, un
+    // client qui pourrait l'éditer pourrait revendre des parts qu'il n'a pas.
+    // L'ID du document est {userId}_{marketId}_{side|optionId}, on en extrait
+    // le userId (resource peut être null si le document n'existe pas encore).
     match /positions/{positionId} {
       allow read: if request.auth != null &&
         positionId.split('_')[0] == request.auth.uid;
-      allow write: if request.auth != null &&
-        request.resource.data.userId == request.auth.uid &&
-        positionId.split('_')[0] == request.auth.uid;
+      allow write: if false;
     }
 
     // ── Articles du blog ─────────────────────────────────────────────────────
@@ -71,17 +69,33 @@ service cloud.firestore {
 
     // ── Utilisateurs ─────────────────────────────────────────────────────────
     // Lecture publique (leaderboard, profils).
-    // Écriture uniquement sur son propre document.
+    // Le client ne peut jamais toucher balance, isAdmin, totalBets, etc. :
+    //  - création : uniquement son propre document, avec exactement les champs
+    //    initiaux posés par AuthContext (balance 1000, totalBets 0, pas d'isAdmin)
+    //  - modification : uniquement pseudo, bio et avatarUrl
+    // Les Cloud Functions (Admin SDK) gèrent tout le reste.
     match /users/{userId} {
       allow read: if true;
-      allow write: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.keys().hasOnly(
+             ['uid', 'displayName', 'avatarUrl', 'balance', 'totalBets', 'createdAt'])
+        && request.resource.data.uid == userId
+        && request.resource.data.balance == 1000
+        && request.resource.data.totalBets == 0;
+      allow update: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['pseudo', 'bio', 'avatarUrl']);
+      allow delete: if false;
     }
 
     // ── Notifications ────────────────────────────────────────────────────────
-    // Lecture/écriture uniquement par le destinataire.
+    // Lecture par le destinataire, écriture par les Cloud Functions uniquement.
     match /notifications/{notifId} {
-      allow read, write: if request.auth != null &&
+      allow read: if request.auth != null &&
         resource.data.userId == request.auth.uid;
+      allow write: if false;
     }
 
     // ── Fonction helper ──────────────────────────────────────────────────────
