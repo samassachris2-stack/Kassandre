@@ -11,6 +11,7 @@ import {
   deleteArticle,
   generateSlug,
 } from "../lib/articles";
+import { notify, askConfirm } from "../lib/notify";
 
 export default function BlogAdminPage() {
   const { user } = useAuth();
@@ -81,7 +82,7 @@ export default function BlogAdminPage() {
       await loadArticles();
     } catch (error) {
       console.error("Error saving article:", error);
-      alert("Erreur lors de l'enregistrement");
+      notify("Erreur lors de l'enregistrement", "error");
     }
   };
 
@@ -114,7 +115,7 @@ export default function BlogAdminPage() {
       setFormData((prev) => ({ ...prev, coverImageUrl: url }));
     } catch (error) {
       console.error("Error uploading cover:", error);
-      alert("Erreur lors de l'upload de l'image de couverture");
+      notify("Erreur lors de l'upload de l'image de couverture", "error");
     } finally {
       setUploadingCover(false);
       if (coverInputRef.current) coverInputRef.current.value = "";
@@ -122,13 +123,13 @@ export default function BlogAdminPage() {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Êtes-vous sûr?")) return;
+    if (!(await askConfirm("Êtes-vous sûr?", { confirmLabel: "Supprimer", danger: true }))) return;
     try {
       await deleteArticle(id);
       await loadArticles();
     } catch (error) {
       console.error("Error deleting:", error);
-      alert("Erreur");
+      notify("Erreur", "error");
     }
   };
 

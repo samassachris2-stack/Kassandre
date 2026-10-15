@@ -1,3 +1,5 @@
+import { notify } from "../lib/notify";
+
 export default function ShareButtons({ title, url, excerpt }) {
   const shareUrl = `https://kassandre.app${url}`;
   const encodedUrl = encodeURIComponent(shareUrl);
@@ -53,7 +55,7 @@ export default function ShareButtons({ title, url, excerpt }) {
           type="button"
           onClick={() => {
             navigator.clipboard.writeText(shareUrl);
-            alert('Lien copié dans le presse-papiers !');
+            notify('Lien copié dans le presse-papiers !', "success");
           }}
           style={styles.button}
           title="Copier le lien"

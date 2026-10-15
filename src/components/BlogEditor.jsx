@@ -8,6 +8,7 @@ import { useState, useRef, useCallback } from "react";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "../lib/firebase";
 import ResizableImage from "./ResizableImage";
+import { notify } from "../lib/notify";
 
 // Tous les boutons de cette toolbar vivent dans le <form> de l'admin blog.
 // Sans type="button" explicite, un <button> vaut type="submit" par défaut :
@@ -89,7 +90,7 @@ export default function BlogEditor({ content, onChange }) {
         setShowImageMenu(false);
       } catch (err) {
         console.error("Erreur upload image:", err);
-        alert("Erreur lors de l'upload de l'image");
+        notify("Erreur lors de l'upload de l'image", "error");
       } finally {
         setUploading(false);
         if (fileInputRef.current) fileInputRef.current.value = "";

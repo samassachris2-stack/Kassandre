@@ -6,6 +6,7 @@ import {
   deleteArticle,
   generateSlug,
 } from "../lib/articles";
+import { notify, askConfirm } from "../lib/notify";
 
 export default function BlogAdmin() {
   const [articles, setArticles] = useState([]);
@@ -87,7 +88,7 @@ export default function BlogAdmin() {
       await loadArticles();
     } catch (error) {
       console.error("Error saving article:", error);
-      alert("Erreur lors de l'enregistrement de l'article");
+      notify("Erreur lors de l'enregistrement de l'article", "error");
     }
   };
 
@@ -106,16 +107,14 @@ export default function BlogAdmin() {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Êtes-vous sûr de vouloir supprimer cet article?")) {
-      return;
-    }
+    if (!(await askConfirm("Êtes-vous sûr de vouloir supprimer cet article?", { confirmLabel: "Supprimer", danger: true }))) return;
 
     try {
       await deleteArticle(id);
       await loadArticles();
     } catch (error) {
       console.error("Error deleting article:", error);
-      alert("Erreur lors de la suppression de l'article");
+      notify("Erreur lors de la suppression de l'article", "error");
     }
   };
 

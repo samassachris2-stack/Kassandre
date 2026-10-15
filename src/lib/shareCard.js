@@ -4,6 +4,7 @@
 //
 // Usage :
 //   import { generateBetCardImage, shareToInstagramStories } from "../lib/shareCard.js";
+import { notify } from "./notify";
 //   const blob = await generateBetCardImage({ question, sideLabel, pct, sideColor });
 //   shareToInstagramStories(blob);
 
@@ -151,11 +152,11 @@ function isMobileDevice() {
 export function shareToInstagramStories(blob, { linkUrl } = {}) {
   if (!isMobileDevice()) {
     downloadImage(blob, "kassandre-pari.png");
-    alert(
+    notify(
       "L'image a été téléchargée. Le partage direct vers Instagram Stories " +
       "n'est disponible que depuis un téléphone — ouvre cette page sur mobile, " +
       "ou ajoute l'image téléchargée manuellement à ta story."
-    );
+    , "info");
     return;
   }
 
@@ -180,10 +181,10 @@ export function shareToInstagramStories(blob, { linkUrl } = {}) {
 
   // Fallback : téléchargement + instructions
   downloadImage(blob, "kassandre-pari.png");
-  alert(
+  notify(
     "L'image a été téléchargée dans tes fichiers. Ouvre Instagram, crée une " +
     "nouvelle story, et sélectionne cette image depuis ta galerie."
-  );
+  , "info");
 }
 
 function downloadImage(blob, filename) {

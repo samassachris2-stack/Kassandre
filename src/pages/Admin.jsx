@@ -4,6 +4,7 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../lib/firebase";
 import { useAuth } from "../context/AuthContext";
 import { resolveMarket, deleteMarket } from "../lib/amm.js";
+import { notify, askConfirm } from "../lib/notify";
 
 function MultiResolveButtons({ marketId }) {
   const [options, setOptions] = useState([]);
@@ -19,12 +20,12 @@ function MultiResolveButtons({ marketId }) {
   }, [marketId]);
 
   async function handleResolve(optionId, label) {
-    if (!confirm(`Résoudre avec "${label}" comme gagnant ?`)) return;
+    if (!(await askConfirm(`Résoudre avec "${label}" comme gagnant ?`))) return;
     try {
       await resolveMarket(marketId, optionId);
-      alert("Marché résolu et gains distribués.");
+      notify("Marché résolu et gains distribués.", "success");
     } catch (e) {
-      alert(e.message);
+      notify(e.message, "error");
     }
   }
 
@@ -224,11 +225,11 @@ function FeaturedSettings({ market }) {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 10 * 1024 * 1024) {
-      alert("L'image doit faire moins de 10 Mo.");
+      notify("L'image doit faire moins de 10 Mo.", "warning");
       return;
     }
     if (!file.type.startsWith("image/")) {
-      alert("Le fichier doit être une image.");
+      notify("Le fichier doit être une image.", "warning");
       return;
     }
     setPendingFile(file);
@@ -244,7 +245,7 @@ function FeaturedSettings({ market }) {
       const url = await getDownloadURL(imgRef);
       await updateDoc(doc(db, "markets", market.id), { coverImageUrl: url });
     } catch (err) {
-      alert("Erreur lors de l'upload : " + err.message);
+      notify("Erreur lors de l'upload : " + err.message, "error");
     }
     setUploading(false);
   }
@@ -253,7 +254,7 @@ function FeaturedSettings({ market }) {
     try {
       await updateDoc(doc(db, "markets", market.id), { pinnedFeatured: !market.pinnedFeatured });
     } catch (err) {
-      alert("Erreur : " + err.message);
+      notify("Erreur : " + err.message, "error");
     }
   }
 
@@ -266,7 +267,7 @@ function FeaturedSettings({ market }) {
       await updateDoc(doc(db, "markets", market.id), { tags: [...currentTags, tag] });
       setNewTag("");
     } catch (err) {
-      alert("Erreur : " + err.message);
+      notify("Erreur : " + err.message, "error");
     }
   }
 
@@ -274,7 +275,7 @@ function FeaturedSettings({ market }) {
     try {
       await updateDoc(doc(db, "markets", market.id), { tags: currentTags.filter((t) => t !== tag) });
     } catch (err) {
-      alert("Erreur : " + err.message);
+      notify("Erreur : " + err.message, "error");
     }
   }
 
@@ -406,7 +407,7 @@ function CsvImport({ onAddToQueue }) {
   function buildPreview() {
     const rows = parseCsv(rawText);
     if (rows.length === 0) {
-      alert("Le CSV est vide ou n'a pas pu être lu.");
+      notify("Le CSV est vide ou n'a pas pu être lu.", "warning");
       return;
     }
 
@@ -419,7 +420,7 @@ function CsvImport({ onAddToQueue }) {
 
     const missing = expectedCols.filter((c) => !header.includes(c));
     if (missing.length > 0) {
-      alert(`Colonnes manquantes dans l'en-tête : ${missing.join(", ")}`);
+      notify(`Colonnes manquantes dans l'en-tête : ${missing.join(", ")}`, "warning");
       return;
     }
 
@@ -752,11 +753,11 @@ export default function Admin() {
     const payload = buildMarketPayload();
     if (!payload) {
       if (marketType === "multi" && options.filter((o) => o.trim()).length < 2) {
-        alert("Ajoute au moins 2 options.");
+        notify("Ajoute au moins 2 options.", "warning");
       } else if (categories.length === 0) {
-        alert("Sélectionne au moins un thème.");
+        notify("Sélectionne au moins un thème.", "warning");
       } else {
-        alert("Remplis la question, la date et la source.");
+        notify("Remplis la question, la date et la source.", "warning");
       }
       return;
     }
@@ -772,11 +773,11 @@ export default function Admin() {
     const payload = buildMarketPayload();
     if (!payload) {
       if (marketType === "multi" && options.filter((o) => o.trim()).length < 2) {
-        alert("Ajoute au moins 2 options.");
+        notify("Ajoute au moins 2 options.", "warning");
       } else if (categories.length === 0) {
-        alert("Sélectionne au moins un thème.");
+        notify("Sélectionne au moins un thème.", "warning");
       } else {
-        alert("Remplis la question, la date et la source avant d'ajouter à la liste.");
+        notify("Remplis la question, la date et la source avant d'ajouter à la liste.", "warning");
       }
       return;
     }
@@ -796,7 +797,7 @@ export default function Admin() {
       try {
         await createOneMarket(queue[i]);
       } catch (e) {
-        alert(`Erreur sur "${queue[i].question}" : ${e.message}`);
+        notify(`Erreur sur "${queue[i].question}" : ${e.message}`, "error");
       }
     }
     setQueueProgress(null);
@@ -831,12 +832,12 @@ export default function Admin() {
   }
 
   async function handleResolve(marketId, outcome) {
-    if (!confirm(`Résoudre ce marché avec outcome : ${outcome} ?`)) return;
+    if (!(await askConfirm(`Résoudre ce marché avec outcome : ${outcome} ?`))) return;
     try {
       await resolveMarket(marketId, outcome);
-      alert("Marché résolu et gains distribués.");
+      notify("Marché résolu et gains distribués.", "success");
     } catch (e) {
-      alert(e.message);
+      notify(e.message, "error");
     }
   }
 
@@ -861,14 +862,14 @@ export default function Admin() {
     const confirmMsg = selectedToDelete.length === 1
       ? "Supprimer ce marché et toutes ses données associées (options, paris, positions) ? Action irréversible."
       : `Supprimer ces ${selectedToDelete.length} marchés et toutes leurs données associées ? Action irréversible.`;
-    if (!confirm(confirmMsg)) return;
+    if (!(await askConfirm(confirmMsg, { confirmLabel: "Supprimer", danger: true }))) return;
 
     setDeleting(true);
     for (const marketId of selectedToDelete) {
       try {
         await deleteOneMarket(marketId);
       } catch (e) {
-        alert(`Erreur lors de la suppression de ${marketId} : ${e.message}`);
+        notify(`Erreur lors de la suppression de ${marketId} : ${e.message}`, "error");
       }
     }
     setDeleting(false);

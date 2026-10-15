@@ -6,6 +6,7 @@ import { placeBet, calcShares, calcSellShares, sellShares, placeBetMulti, calcSh
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { useSEO } from "../hooks/useSEO";
 import { doc, onSnapshot, collection, getDocs, query, orderBy } from "firebase/firestore";
+import { notify } from "../lib/notify";
 
 const S = {
   layoutWrap: {
@@ -450,7 +451,7 @@ export default function Market() {
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (e) {
-      alert(e.message);
+      notify(e.message, "error");
     }
     setLoading(false);
   }
@@ -468,7 +469,7 @@ export default function Market() {
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (e) {
-      alert(e.message);
+      notify(e.message, "error");
     }
     setLoading(false);
   }
@@ -534,7 +535,7 @@ export default function Market() {
     // Fallback : copier le lien
     try {
       await navigator.clipboard.writeText(url);
-      alert("Lien copié dans le presse-papier !");
+      notify("Lien copié dans le presse-papier !", "success");
     } catch {
       prompt("Copie ce lien :", url);
     }

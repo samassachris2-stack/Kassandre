@@ -4,6 +4,7 @@ import { doc, getDoc, updateDoc, collection, query, where, getDocs, orderBy, lim
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../lib/firebase";
 import { useAuth } from "../context/AuthContext";
+import { notify } from "../lib/notify";
 
 const S = {
   page: {
@@ -272,7 +273,7 @@ export default function Profil() {
       setProfile((prev) => ({ ...prev, pseudo: pseudo.trim(), bio: bio.trim().slice(0, 160) }));
       setEditing(false);
     } catch (e) {
-      alert("Erreur lors de la sauvegarde : " + e.message);
+      notify("Erreur lors de la sauvegarde : " + e.message, "error");
     }
     setSaving(false);
   }
@@ -281,11 +282,11 @@ export default function Profil() {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) {
-      alert("L'image doit faire moins de 5 Mo.");
+      notify("L'image doit faire moins de 5 Mo.", "warning");
       return;
     }
     if (!file.type.startsWith("image/")) {
-      alert("Le fichier doit être une image.");
+      notify("Le fichier doit être une image.", "warning");
       return;
     }
     setUploadingAvatar(true);
@@ -296,7 +297,7 @@ export default function Profil() {
       await updateDoc(doc(db, "users", uid), { avatarUrl: url });
       setProfile((prev) => ({ ...prev, avatarUrl: url }));
     } catch (e) {
-      alert("Erreur lors de l'upload : " + e.message);
+      notify("Erreur lors de l'upload : " + e.message, "error");
     }
     setUploadingAvatar(false);
   }

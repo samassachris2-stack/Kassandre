@@ -10,6 +10,7 @@ const Admin = lazy(() => import("./pages/Admin"));
 const BlogAdminPage = lazy(() => import("./pages/BlogAdminPage"));
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import NotificationHost from "./components/NotificationHost";
 const Settings = lazy(() => import("./pages/Settings"));
 const CGU = lazy(() => import("./pages/CGU"));
 const Confidentialite = lazy(() => import("./pages/Confidentialite"));
@@ -45,6 +46,7 @@ export default function App() {
           </Suspense>
         </div>
         <Footer />
+        <NotificationHost />
       </div>
     </BrowserRouter>
   );
