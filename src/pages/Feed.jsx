@@ -730,7 +730,7 @@ export default function Feed({ hub }) {
         </p>
       )}
 
-      {!catFromRoute && !tagFromRoute && <FeaturedCarousel markets={markets} />}
+      {(hubDef || (!catFromRoute && !tagFromRoute)) && <FeaturedCarousel markets={hubDef ? marketsInCategory : markets} />}
       {!catFromRoute && !tagFromRoute && <BlogPreviewSection />}
 
       {/* ── Barre de recherche ── */}
