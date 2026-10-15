@@ -34,14 +34,14 @@ service cloud.firestore {
     }
 
     // ── Paris ────────────────────────────────────────────────────────────────
-    // Lecture : chaque user voit seulement ses propres paris.
+    // Lecture : publique, car l'historique de paris est affiché sur les profils
+    // publics (page Profil, accessible depuis le classement).
     // Écriture : jamais depuis le client. Les paris sont créés uniquement par
     // les Cloud Functions (placeBet, sellShares...). resolveMarket s'appuie sur
     // cette collection pour distribuer les gains : un pari forgé côté client
     // permettrait de toucher des gains indus.
     match /bets/{betId} {
-      allow read: if request.auth != null &&
-        resource.data.userId == request.auth.uid;
+      allow read: if true;
       allow write: if false;
     }
 
@@ -49,11 +49,12 @@ service cloud.firestore {
     // Lecture par le propriétaire uniquement, écriture jamais depuis le client :
     // les Cloud Functions de vente se fient au nombre de parts stocké ici, un
     // client qui pourrait l'éditer pourrait revendre des parts qu'il n'a pas.
-    // L'ID du document est {userId}_{marketId}_{side|optionId}, on en extrait
-    // le userId (resource peut être null si le document n'existe pas encore).
+    // On s'appuie sur le champ userId du document (et non sur l'ID) : une
+    // requête where("userId", "==", uid) n'est autorisée que si la règle porte
+    // sur ce même champ.
     match /positions/{positionId} {
       allow read: if request.auth != null &&
-        positionId.split('_')[0] == request.auth.uid;
+        resource.data.userId == request.auth.uid;
       allow write: if false;
     }
 
