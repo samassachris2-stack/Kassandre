@@ -169,6 +169,10 @@ export default function Footer() {
                 onMouseLeave={(e) => { e.currentTarget.style.color = "#a8a8b8"; }}
               >{cat}</Link>
             ))}
+            <Link to="/presidentielle-2027" style={S.link}
+              onMouseEnter={(e) => { e.currentTarget.style.color = "#e8e8f0"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = "#a8a8b8"; }}
+            >Présidentielle 2027</Link>
           </div>
 
           <div style={S.col}>

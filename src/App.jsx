@@ -27,6 +27,7 @@ export default function App() {
           <Suspense fallback={<p style={{ padding: "40px", color: "#8888a0" }}>Chargement...</p>}>
           <Routes>
             <Route path="/" element={<Feed />} />
+            <Route path="/presidentielle-2027" element={<Feed hub="presidentielle" />} />
             <Route path="/:cat" element={<Feed />} />
             <Route path="/:cat/:tag" element={<Feed />} />
             <Route path="/market/:id" element={<Market />} />

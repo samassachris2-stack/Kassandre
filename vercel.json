@@ -12,6 +12,17 @@
       "destination": "/api/og?kind=home"
     },
     {
+      "source": "/presidentielle-2027",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*([Bb]ot|[Cc]rawl|[Ss]pider|[Pp]review|[Ss]canner|[Ff]etcher|facebookexternalhit|WhatsApp|Pinterest|Mastodon|Embedly|Iframely|Slack|[Oo]pen[Gg]raph).*"
+        }
+      ],
+      "destination": "/api/og?kind=presidentielle"
+    },
+    {
       "source": "/blog",
       "has": [
         {

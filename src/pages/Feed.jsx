@@ -26,6 +26,23 @@ const CATEGORY_INTROS = {
   Autre: "Des questions d'actualité qui ne rentrent dans aucune case : retrouvez ici les marchés de prédiction variés de Kassandre, à pronostiquer gratuitement avec des points virtuels.",
 };
 
+// Pages "hub" thématiques (/presidentielle-2027) : mêmes cartes que le fil,
+// filtrées automatiquement, avec un texte éditorial. Un marché y entre si sa
+// question parle du sujet, donc les nouveaux marchés y arrivent tout seuls.
+const HUBS = {
+  presidentielle: {
+    path: "/presidentielle-2027",
+    h1: "Présidentielle 2027 : les marchés de prédiction",
+    seoTitle: "Présidentielle 2027 : probabilités et pronostics",
+    intro:
+      "Qui sera au second tour ? Qui entrera à l'Élysée en 2027 ? Retrouvez ici tous les marchés de Kassandre consacrés à l'élection présidentielle française. Chaque pourcentage reflète l'avis collectif des membres, mis à jour en temps réel, et s'affine à mesure que l'actualité politique avance. Pronostiquez gratuitement avec des points virtuels.",
+    empty: "Aucun marché ouvert sur la présidentielle pour l'instant. Revenez bientôt.",
+    match: (m) =>
+      /présidentiel|presidentiel|2027|élysée|elysee|bardella|le pen|mélenchon|melenchon|macron/i.test(m.question || "") ||
+      (m.tags || []).some((t) => /présidentiel|presidentiel|2027/i.test(t)),
+  },
+};
+
 const MULTI_COLORS = ["#7c3aed", "#22c55e", "#ef4444", "#f59e0b", "#06b6d4"];
 
 const CATEGORIES = [
@@ -435,7 +452,8 @@ function QuickBetModal({ market, side, onClose }) {
   );
 }
 
-export default function Feed() {
+export default function Feed({ hub }) {
+  const hubDef = hub ? HUBS[hub] : null;
   const { user, login } = useAuth();
   const navigate = useNavigate();
   const { cat: catFromRoute, tag: tagFromRoute } = useParams();
@@ -505,12 +523,13 @@ export default function Feed() {
   // Marchés de la catégorie active, AVANT filtre par tag — sert de base pour
   // calculer la liste de tags disponibles et leur compteur dans la sidebar.
   const marketsInCategory = useMemo(() => {
+    if (hubDef) return markets.filter(hubDef.match);
     if (activeCategories.length === 0) return markets;
     return markets.filter((m) => {
       const cats = Array.isArray(m.categories) ? m.categories : (m.category ? [m.category] : []);
       return cats.some((c) => activeCategories.includes(c));
     });
-  }, [markets, activeCategories]);
+  }, [markets, activeCategories, hubDef]);
 
   const tagsInCategory = useMemo(() => {
     const counts = {};
@@ -555,7 +574,9 @@ export default function Feed() {
 
   const seoCat = CATEGORIES.includes(catFromRoute) && catFromRoute !== "Tous" ? catFromRoute : null;
   const seo = useSEO(
-    seoCat
+    hubDef
+      ? { title: hubDef.seoTitle, description: hubDef.intro.slice(0, 200), url: hubDef.path }
+      : seoCat
       ? {
           title: tagFromRoute ? `Paris ${seoCat} #${tagFromRoute} : marchés de prédiction` : `Paris ${seoCat} : marchés de prédiction`,
           description: `Pronostiquez sur l'actualité ${seoCat.toLowerCase()} avec des points virtuels. Les marchés de prédiction francophones de Kassandre, gratuits et sans risque.`,
@@ -688,12 +709,20 @@ export default function Feed() {
 
       <div ref={contentColRef} style={{ flex: 1, minWidth: 0 }}>
       <h1 style={{ fontSize: "24px", marginBottom: "20px", color: "#e8e8f0" }}>
-        {tagFromRoute
+        {hubDef
+          ? hubDef.h1
+          : tagFromRoute
           ? `Marchés — ${catFromRoute} — #${tagFromRoute}`
           : activeCategories.length > 0
           ? `Marchés — ${activeCategories.join(", ")}`
           : "Marchés ouverts"}
       </h1>
+
+      {hubDef && (
+        <p style={{ color: "#a0a0b8", lineHeight: 1.6, maxWidth: "720px", margin: "0 auto 24px", textAlign: "center", fontSize: "0.95rem" }}>
+          {hubDef.intro}
+        </p>
+      )}
 
       {seoCat && !tagFromRoute && CATEGORY_INTROS[seoCat] && (
         <p style={{ color: "#a0a0b8", lineHeight: 1.6, maxWidth: "720px", margin: "0 auto 24px", textAlign: "center", fontSize: "0.95rem" }}>
@@ -779,7 +808,7 @@ export default function Feed() {
       </div>
 
       {visibleMarkets.length === 0 && (
-        <p style={{ color: "#6b6b8a" }}>Aucun marché ne correspond à ta recherche.</p>
+        <p style={{ color: "#6b6b8a" }}>{hubDef && markets.length > 0 && !searchTerm.trim() ? hubDef.empty : "Aucun marché ne correspond à ta recherche."}</p>
       )}
 
       <div style={{

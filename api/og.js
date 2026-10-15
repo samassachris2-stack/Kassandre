@@ -63,6 +63,16 @@ async function buildMeta(kind, id, fetchFn) {
     };
   }
 
+  if (kind === "presidentielle") {
+    return {
+      ...base,
+      title: "Présidentielle 2027 : probabilités et pronostics | Kassandre",
+      description:
+        "Qui sera au second tour ? Qui entrera à l'Élysée en 2027 ? Les probabilités des membres de Kassandre sur la présidentielle, mises à jour en temps réel.",
+      path: "/presidentielle-2027",
+    };
+  }
+
   if (kind === "article" && id) {
     const a = await fetchArticle(id, fetchFn);
     if (!a) return { ...base, path: `/blog/${encodeURIComponent(id)}`, debug: "not-found" };
@@ -176,7 +186,7 @@ export default async function handler(req, res) {
     // Balises par défaut, mais on garde l'URL demandée comme canonique
     const requested = kind === "article" ? `/blog/${encodeURIComponent(id)}`
       : kind === "market" ? `/market/${encodeURIComponent(id)}`
-      : kind === "blog" ? "/blog" : "/";
+      : kind === "blog" ? "/blog" : kind === "presidentielle" ? "/presidentielle-2027" : "/";
     meta = { ...(await buildMeta("home", "", fetch)), path: requested, debug: "fallback" };
   }
 
