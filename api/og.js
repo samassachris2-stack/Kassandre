@@ -65,7 +65,7 @@ async function buildMeta(kind, id, fetchFn) {
 
   if (kind === "article" && id) {
     const a = await fetchArticle(id, fetchFn);
-    if (!a) return { ...base, path: `/blog/${encodeURIComponent(id)}`, debug: "article introuvable (aucun article publie avec ce slug)" };
+    if (!a) return { ...base, path: `/blog/${encodeURIComponent(id)}`, debug: "not-found" };
     const text = stripHtml(a.content);
     return {
       title: `${a.title} | Kassandre`,
@@ -83,7 +83,7 @@ async function buildMeta(kind, id, fetchFn) {
 
   if (kind === "market" && id) {
     const m = await fetchMarket(id, fetchFn);
-    if (!m) return { ...base, path: `/market/${encodeURIComponent(id)}`, debug: "marche introuvable" };
+    if (!m) return { ...base, path: `/market/${encodeURIComponent(id)}`, debug: "not-found" };
     let desc = stripHtml(m.description);
     if (m.type === "binary" && m.poolYes > 0 && m.poolNo > 0) {
       const pct = Math.round((m.poolNo / (m.poolYes + m.poolNo)) * 100);
@@ -142,7 +142,8 @@ function render(shell, meta) {
     html = html.replace(/<div id="root">\s*<\/div>/i, `<div id="root">${meta.body}</div>`);
   }
   if (meta.debug) {
-    // Diagnostic temporaire visible via "afficher le code source"
+    // Statut du rendu (ok, not-found, fallback), visible via "afficher le code source".
+    // Le détail d'une erreur n'est jamais exposé ici : il est journalisé côté Vercel.
     html += `\n<!-- og: ${String(meta.debug).replace(/--+/g, "-").replace(/\s+/g, " ")} -->\n`;
   }
   return html;
@@ -176,7 +177,7 @@ export default async function handler(req, res) {
     const requested = kind === "article" ? `/blog/${encodeURIComponent(id)}`
       : kind === "market" ? `/market/${encodeURIComponent(id)}`
       : kind === "blog" ? "/blog" : "/";
-    meta = { ...(await buildMeta("home", "", fetch)), path: requested, debug: `erreur: ${e.message}` };
+    meta = { ...(await buildMeta("home", "", fetch)), path: requested, debug: "fallback" };
   }
 
   res.statusCode = 200;
