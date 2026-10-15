@@ -5,6 +5,7 @@ import { Link, useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { placeBet, calcShares } from "../lib/amm.js";
 import { getLatestArticles } from "../lib/articles";
+import { useSEO } from "../hooks/useSEO";
 
 const MULTI_COLORS = ["#7c3aed", "#22c55e", "#ef4444", "#f59e0b", "#06b6d4"];
 
@@ -535,8 +536,25 @@ export default function Feed() {
       : "Kassandre — Marchés ouverts";
   }, [catFromRoute, tagFromRoute]);
 
+  const seoCat = CATEGORIES.includes(catFromRoute) && catFromRoute !== "Tous" ? catFromRoute : null;
+  const seo = useSEO(
+    seoCat
+      ? {
+          title: `Paris ${seoCat} : marchés de prédiction`,
+          description: `Pronostiquez sur l'actualité ${seoCat.toLowerCase()} avec des points virtuels. Les marchés de prédiction francophones de Kassandre, gratuits et sans risque.`,
+          url: `/${encodeURIComponent(seoCat)}`,
+        }
+      : {
+          title: "Marchés de prédiction francophone",
+          description:
+            "Prédisez l'actualité avec des points virtuels : politique, économie, crypto, sport. Le marché de prédictions francophone, gratuit et sans risque.",
+          url: "/",
+        }
+  );
+
   return (
     <>
+    {seo}
     <style>{`
       .kassandre-feed-layout { display: flex; }
       .kassandre-feed-sidebar::-webkit-scrollbar { display: none; }

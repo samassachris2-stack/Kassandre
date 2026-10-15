@@ -4,6 +4,7 @@ import { db } from "../lib/firebase";
 import { useAuth } from "../context/AuthContext";
 import { placeBet, calcShares, calcSellShares, sellShares, placeBetMulti, calcSharesLMSR, calcSellSharesLMSR, sellSharesMulti, defaultLiquidityB, getBidAsk } from "../lib/amm.js";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { useSEO } from "../hooks/useSEO";
 import { doc, onSnapshot, collection, getDocs, query, orderBy } from "firebase/firestore";
 
 const S = {
@@ -539,7 +540,22 @@ export default function Market() {
     }
   }
 
-  if (!market) return <p style={{ padding: "40px", color: "#8888a0" }}>Chargement...</p>;
+  // SEO : même logique que api/og.js (aperçus de liens), pour que Google et
+  // les réseaux voient les mêmes titre et description.
+  const plainDesc = String(market?.description || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+  const hasPools = market && market.type !== "multi" && market.poolYes > 0 && market.poolNo > 0;
+  const seoPct = hasPools ? Math.round((market.poolNo / (market.poolYes + market.poolNo)) * 100) : null;
+  const seoDesc = (hasPools
+    ? `${seoPct}% de probabilité selon les membres de Kassandre.${plainDesc ? " " + plainDesc : ""}`
+    : plainDesc
+  ) || "Marché de prédiction sur Kassandre : donnez votre pronostic.";
+  const seo = useSEO({
+    title: market?.question,
+    description: seoDesc.length > 200 ? seoDesc.slice(0, 199).trimEnd() + "…" : seoDesc,
+    url: `/market/${id}`,
+  });
+
+  if (!market) return <>{seo}<p style={{ padding: "40px", color: "#8888a0" }}>Chargement...</p></>;
 
   const isMulti = market.type === "multi";
   const total = isMulti ? 0 : market.poolYes + market.poolNo;
@@ -550,6 +566,7 @@ export default function Market() {
 
   return (
     <>
+      {seo}
       <style>{`
         @media (max-width: 860px) {
           .kassandre-market-layout {
