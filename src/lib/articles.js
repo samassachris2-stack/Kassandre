@@ -122,9 +122,15 @@ export const createArticle = async (articleData) => {
 export const updateArticle = async (articleId, articleData) => {
   try {
     const articleRef = doc(articlesCollection, articleId);
-    const updateData = { ...articleData };
+    const updateData = { ...articleData, updatedAt: serverTimestamp() };
+    // La date de publication ne se fixe qu'au premier passage en "published" :
+    // la réécrire à chaque enregistrement fausse l'ordre du blog, le flux RSS
+    // et la date affichée aux moteurs de recherche.
     if (articleData.status === "published" && !articleData.publishedAt) {
-      updateData.publishedAt = serverTimestamp();
+      const existing = await getDoc(articleRef);
+      if (!existing.exists() || !existing.data().publishedAt) {
+        updateData.publishedAt = serverTimestamp();
+      }
     }
     await updateDoc(articleRef, updateData);
   } catch (error) {
