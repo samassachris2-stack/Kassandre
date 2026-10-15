@@ -72,7 +72,7 @@ async function fetchArticle(slug, fetchFn) {
       },
     }),
   });
-  if (!res.ok) throw new Error(`articles ${res.status}`);
+  if (!res.ok) throw new Error(`articles ${res.status} ${(await res.text()).slice(0, 300)}`);
   const rows = await res.json();
   const doc = rows.find((r) => r.document)?.document;
   return doc ? decode(doc) : null;
@@ -81,7 +81,7 @@ async function fetchArticle(slug, fetchFn) {
 async function fetchMarket(id, fetchFn) {
   const res = await fetchFn(`${FIRESTORE}/markets/${encodeURIComponent(id)}`);
   if (res.status === 404) return null;
-  if (!res.ok) throw new Error(`markets ${res.status}`);
+  if (!res.ok) throw new Error(`markets ${res.status} ${(await res.text()).slice(0, 300)}`);
   return decode(await res.json());
 }
 
@@ -101,7 +101,7 @@ async function buildMeta(kind, id, fetchFn) {
 
   if (kind === "article" && id) {
     const a = await fetchArticle(id, fetchFn);
-    if (!a) return { ...base, path: `/blog/${encodeURIComponent(id)}` };
+    if (!a) return { ...base, path: `/blog/${encodeURIComponent(id)}`, debug: "article introuvable (aucun article publie avec ce slug)" };
     const text = stripHtml(a.content);
     return {
       title: `${a.title} | Kassandre`,
@@ -109,6 +109,7 @@ async function buildMeta(kind, id, fetchFn) {
       image: a.coverImageUrl || DEFAULT_IMAGE,
       path: `/blog/${encodeURIComponent(a.slug || id)}`,
       type: "article",
+      debug: "ok",
       published: a.publishedAt,
       tags: Array.isArray(a.tags) ? a.tags : [],
       // Contenu complet des articles (écrit par l'admin, même HTML que sur le site)
@@ -118,7 +119,7 @@ async function buildMeta(kind, id, fetchFn) {
 
   if (kind === "market" && id) {
     const m = await fetchMarket(id, fetchFn);
-    if (!m) return { ...base, path: `/market/${encodeURIComponent(id)}` };
+    if (!m) return { ...base, path: `/market/${encodeURIComponent(id)}`, debug: "marche introuvable" };
     let desc = stripHtml(m.description);
     if (m.type === "binary" && m.poolYes > 0 && m.poolNo > 0) {
       const pct = Math.round((m.poolNo / (m.poolYes + m.poolNo)) * 100);
@@ -129,6 +130,7 @@ async function buildMeta(kind, id, fetchFn) {
       title: `${m.question} | Kassandre`,
       description: truncate(desc || "Marché de prédiction sur Kassandre : donnez votre pronostic."),
       path: `/market/${encodeURIComponent(id)}`,
+      debug: "ok",
       body: `<article><h1>${esc(m.question)}</h1>${m.description ? `<p>${esc(m.description)}</p>` : ""}</article>`,
     };
   }
@@ -175,6 +177,10 @@ function render(shell, meta) {
   if (meta.body) {
     html = html.replace(/<div id="root">\s*<\/div>/i, `<div id="root">${meta.body}</div>`);
   }
+  if (meta.debug) {
+    // Diagnostic temporaire visible via "afficher le code source"
+    html += `\n<!-- og: ${String(meta.debug).replace(/--+/g, "-").replace(/\s+/g, " ")} -->\n`;
+  }
   return html;
 }
 
@@ -206,7 +212,7 @@ export default async function handler(req, res) {
     const requested = kind === "article" ? `/blog/${encodeURIComponent(id)}`
       : kind === "market" ? `/market/${encodeURIComponent(id)}`
       : kind === "blog" ? "/blog" : "/";
-    meta = { ...(await buildMeta("home", "", fetch)), path: requested };
+    meta = { ...(await buildMeta("home", "", fetch)), path: requested, debug: `erreur: ${e.message}` };
   }
 
   res.statusCode = 200;
