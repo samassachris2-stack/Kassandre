@@ -1,20 +1,21 @@
+import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Feed from "./pages/Feed";
-import Market from "./pages/Market";
-import Leaderboard from "./pages/Leaderboard";
-import Portefeuille from "./pages/Portefeuille";
-import Profil from "./pages/Profil";
-import Soumettre from "./pages/Soumettre";
-import Admin from "./pages/Admin";
-import BlogAdminPage from "./pages/BlogAdminPage";
+const Market = lazy(() => import("./pages/Market"));
+const Leaderboard = lazy(() => import("./pages/Leaderboard"));
+const Portefeuille = lazy(() => import("./pages/Portefeuille"));
+const Profil = lazy(() => import("./pages/Profil"));
+const Soumettre = lazy(() => import("./pages/Soumettre"));
+const Admin = lazy(() => import("./pages/Admin"));
+const BlogAdminPage = lazy(() => import("./pages/BlogAdminPage"));
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
-import Settings from "./pages/Settings";
-import CGU from "./pages/CGU";
-import Confidentialite from "./pages/Confidentialite";
-import MentionsLegales from "./pages/MentionsLegales";
-import BlogList from "./pages/BlogList";
-import BlogDetail from "./pages/BlogDetail";
+const Settings = lazy(() => import("./pages/Settings"));
+const CGU = lazy(() => import("./pages/CGU"));
+const Confidentialite = lazy(() => import("./pages/Confidentialite"));
+const MentionsLegales = lazy(() => import("./pages/MentionsLegales"));
+const BlogList = lazy(() => import("./pages/BlogList"));
+const BlogDetail = lazy(() => import("./pages/BlogDetail"));
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
       <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
         <Navbar />
         <div style={{ flex: 1 }}>
+          <Suspense fallback={<p style={{ padding: "40px", color: "#8888a0" }}>Chargement...</p>}>
           <Routes>
             <Route path="/" element={<Feed />} />
             <Route path="/:cat" element={<Feed />} />
@@ -40,6 +42,7 @@ export default function App() {
             <Route path="/confidentialite" element={<Confidentialite />} />
             <Route path="/mentions-legales" element={<MentionsLegales />} />
           </Routes>
+          </Suspense>
         </div>
         <Footer />
       </div>

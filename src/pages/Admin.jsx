@@ -282,7 +282,7 @@ function FeaturedSettings({ market }) {
     <>
     <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "10px", paddingTop: "10px", borderTop: "1px solid #2a2a3e" }}>
       {market.coverImageUrl && (
-        <img src={market.coverImageUrl} alt="" style={{ width: "44px", height: "44px", borderRadius: "8px", objectFit: "cover" }} />
+        <img loading="lazy" decoding="async" src={market.coverImageUrl} alt="" style={{ width: "44px", height: "44px", borderRadius: "8px", objectFit: "cover" }} />
       )}
       <button
         onClick={() => fileInputRef.current?.click()}

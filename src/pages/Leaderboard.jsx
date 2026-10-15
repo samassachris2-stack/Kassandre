@@ -156,7 +156,7 @@ export default function Leaderboard() {
               }}>
                 {index + 1}
               </span>
-              <img
+              <img loading="lazy" decoding="async"
                 src={user.avatarUrl}
                 width={36}
                 height={36}

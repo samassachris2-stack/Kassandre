@@ -59,7 +59,7 @@ export default function BlogList() {
           >
             <article className="blog-list-card" style={styles.articleCard}>
               {article.coverImageUrl && (
-                <img
+                <img loading="lazy" decoding="async"
                   className="blog-list-cover"
                   src={article.coverImageUrl}
                   alt=""
