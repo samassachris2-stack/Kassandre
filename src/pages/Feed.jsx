@@ -7,6 +7,10 @@ import { placeBet, calcShares } from "../lib/amm.js";
 import { getLatestArticles } from "../lib/articles";
 import { useSEO } from "../hooks/useSEO";
 
+// Nombre de cartes affichées par "page" (les filtres, tris et compteurs de tags
+// restent calculés sur tous les marchés ouverts, seul le rendu est paginé).
+const PAGE_SIZE = 24;
+
 const MULTI_COLORS = ["#7c3aed", "#22c55e", "#ef4444", "#f59e0b", "#06b6d4"];
 
 const CATEGORIES = [
@@ -528,6 +532,12 @@ export default function Feed() {
     return sorted;
   }, [marketsInCategory, selectedTag, searchTerm, sortBy]);
 
+  // Pagination du rendu : repart à PAGE_SIZE dès qu'un filtre ou le tri change
+  const filterKey = [catFromRoute, tagFromRoute, selectedTag, searchTerm, sortBy, activeCategories.join(",")].join("|");
+  const [pageState, setPageState] = useState({ key: "", n: PAGE_SIZE });
+  const shownCount = pageState.key === filterKey ? pageState.n : PAGE_SIZE;
+  const pagedMarkets = visibleMarkets.slice(0, shownCount);
+
   const seoCat = CATEGORIES.includes(catFromRoute) && catFromRoute !== "Tous" ? catFromRoute : null;
   const seo = useSEO(
     seoCat
@@ -755,7 +765,7 @@ export default function Feed() {
         gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
         gap: "14px",
       }}>
-        {visibleMarkets.map((market) => {
+        {pagedMarkets.map((market) => {
           const isMulti = market.type === "multi";
           const total = isMulti ? 0 : market.poolYes + market.poolNo;
           const pctYes = isMulti ? null : Math.round((market.poolNo / total) * 100);
@@ -903,6 +913,21 @@ export default function Feed() {
           );
         })}
       </div>
+
+      {visibleMarkets.length > shownCount && (
+        <div style={{ textAlign: "center", marginTop: "22px" }}>
+          <button
+            onClick={() => setPageState({ key: filterKey, n: shownCount + PAGE_SIZE })}
+            style={{
+              padding: "11px 26px", borderRadius: "10px", cursor: "pointer",
+              border: "0.5px solid rgba(124,58,237,0.4)", background: "rgba(124,58,237,0.12)",
+              color: "#c4b5fd", fontSize: "14px", fontWeight: 600,
+            }}
+          >
+            Voir plus de marchés ({visibleMarkets.length - shownCount} restants)
+          </button>
+        </div>
+      )}
       </div>
     </div>
 
