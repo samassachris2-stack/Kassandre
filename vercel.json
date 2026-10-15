@@ -45,6 +45,22 @@
       "destination": "/api/og?kind=market&id=:id"
     },
     {
+      "source": "/sitemap.xml",
+      "destination": "/api/sitemap?type=index"
+    },
+    {
+      "source": "/sitemap-pages.xml",
+      "destination": "/api/sitemap?type=pages"
+    },
+    {
+      "source": "/sitemap-blog.xml",
+      "destination": "/api/sitemap?type=blog"
+    },
+    {
+      "source": "/sitemap-markets.xml",
+      "destination": "/api/sitemap?type=markets"
+    },
+    {
       "source": "/(.*)",
       "destination": "/"
     }

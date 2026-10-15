@@ -44,3 +44,31 @@ export async function buildOgPayload(db, kind, id) {
 
   return null;
 }
+
+// Listes pour les sitemaps (api/sitemap.js). Requêtes à un seul filtre
+// d'égalité, tri en JS : aucun index Firestore composite requis.
+const MAX_URLS = 1000;
+const day = (ts) => (iso(ts) || "").slice(0, 10) || null;
+const newestFirst = (a, b) => (b.lastmod || "").localeCompare(a.lastmod || "");
+
+export async function buildIndexPayload(db, kind) {
+  if (kind === "articles-index") {
+    const snap = await db.collection("articles").where("status", "==", "published").limit(MAX_URLS).get();
+    const items = snap.docs
+      .map((d) => d.data())
+      .filter((a) => a.slug)
+      .map((a) => ({ slug: a.slug, lastmod: day(a.updatedAt) || day(a.publishedAt) || day(a.createdAt) }))
+      .sort(newestFirst);
+    return { items };
+  }
+
+  if (kind === "markets-index") {
+    const snap = await db.collection("markets").where("status", "==", "open").limit(MAX_URLS).get();
+    const items = snap.docs
+      .map((d) => ({ id: d.id, lastmod: day(d.data().createdAt) }))
+      .sort(newestFirst);
+    return { items };
+  }
+
+  return null;
+}

@@ -1,16 +1,11 @@
 User-agent: *
 Allow: /
-Allow: /blog
-Allow: /market
 
+# Pages privées ou techniques
 Disallow: /admin
-Disallow: /auth
-Disallow: /profile/*edit
-Disallow: /*.json$
+Disallow: /portefeuille
+Disallow: /settings
+Disallow: /soumettre
+Disallow: /api/
 
 Sitemap: https://kassandre.app/sitemap.xml
-Sitemap: https://kassandre.app/sitemap-blog.xml
-Sitemap: https://kassandre.app/sitemap-markets.xml
-
-# Respect crawl-delay for respectful crawling
-Crawl-delay: 1

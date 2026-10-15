@@ -2,7 +2,7 @@ import { initializeApp } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { onCall, onRequest, HttpsError } from "firebase-functions/v2/https";
 import { onSchedule } from "firebase-functions/v2/scheduler";
-import { buildOgPayload, ID_RE } from "./og-data.js";
+import { buildOgPayload, buildIndexPayload, ID_RE } from "./og-data.js";
 import {
   calcShares, calcSellShares, calcSharesLMSR, calcSellSharesLMSR,
   getPricesLMSR, defaultLiquidityB,
@@ -565,15 +565,22 @@ export const snapshotMonthlyBalances = onSchedule(
 // WhatsApp... demandent une page d'article ou de marché. Les robots n'ont pas
 // de jeton App Check, donc cette route est volontairement hors App Check et ne
 // renvoie que des données déjà publiques (voir og-data.js).
+const INDEX_KINDS = ["articles-index", "markets-index"];
+
 export const ogData = onRequest({ cors: false, maxInstances: 5 }, async (req, res) => {
   const kind = String(req.query.kind || "");
   const id = String(req.query.id || "");
-  if (!["article", "market"].includes(kind) || !ID_RE.test(id)) {
+  const valid =
+    INDEX_KINDS.includes(kind) ||
+    (["article", "market"].includes(kind) && ID_RE.test(id));
+  if (!valid) {
     res.status(400).json({ error: "bad request" });
     return;
   }
   try {
-    const payload = await buildOgPayload(db, kind, id);
+    const payload = INDEX_KINDS.includes(kind)
+      ? await buildIndexPayload(db, kind)
+      : await buildOgPayload(db, kind, id);
     if (!payload) {
       res.status(404).json({ error: "not found" });
       return;

@@ -79,22 +79,17 @@ Exemple pour un article:
 
 **Avantage**: Google comprend mieux le contenu, meilleur classement SEO.
 
-### 4. Sitemap Automatique
+### 4. Sitemaps dynamiques
 
-Fichier: `/src/lib/sitemapGenerator.js`
+Fichier: `/api/sitemap.js` (fonction Vercel, branchée par les rewrites de `vercel.json`).
 
-Génère des sitemaps XML :
-- `sitemap-blog.xml` : tous les articles publiés avec lastmod
-- `sitemap-index.xml` : index des sitemaps
+- `/sitemap.xml` : index des trois fichiers ci-dessous
+- `/sitemap-pages.xml` : pages fixes et pages de catégories
+- `/sitemap-blog.xml` : articles publiés (avec lastmod)
+- `/sitemap-markets.xml` : marchés ouverts
 
-**Pour générer le sitemap statique:**
+Les listes viennent de la Cloud Function publique `ogData` (`kind=articles-index` et `kind=markets-index`). En cas d'échec, le sitemap répond 503 plutôt qu'un fichier vide.
 
-```bash
-# À faire manuellement ou via une Cloud Function Firebase
-# Les URLs doivent être accessibles à /sitemap-blog.xml
-```
-
-Voir section "Déploiement" ci-dessous.
 
 ### 5. Robots.txt
 
@@ -153,47 +148,14 @@ useSEO({
 ```
 
 ## Déploiement
+### Sitemaps
 
-### Sitemaps statiques (production)
+Rien à générer à la main : les sitemaps sont servis dynamiquement par `api/sitemap.js`. Après un changement de `functions/`, redéployer `ogData` :
 
-Les sitemaps doivent être disponibles à:
-- `https://kassandre.app/sitemap-blog.xml`
-- `https://kassandre.app/sitemap.xml`
-
-**Option 1: Firebase Cloud Functions** (recommandé)
-
-Créer une Cloud Function qui génère le sitemap dynamiquement:
-
-```javascript
-// functions/generateSitemap.js
-const functions = require('firebase-functions');
-const { generateBlogSitemap } = require('../src/lib/sitemapGenerator');
-
-exports.sitemap = functions.https.onRequest(async (req, res) => {
-  res.set('Content-Type', 'application/xml');
-  const sitemap = await generateBlogSitemap();
-  res.send(sitemap);
-});
-
-// functions/index.js
-exports.sitemapBlog = require('./generateSitemap').sitemap;
-```
-
-Puis déployer:
 ```bash
-firebase deploy --only functions
+firebase deploy --only functions:ogData --project kassandre-f868e
 ```
 
-**Option 2: Générer statiquement** (build time)
-
-Ajouter un script dans `package.json` qui génère les sitemaps avant le build:
-
-```json
-"scripts": {
-  "build": "npm run generate:sitemaps && vite build",
-  "generate:sitemaps": "node scripts/generateSitemaps.js"
-}
-```
 
 ### Vérification
 
