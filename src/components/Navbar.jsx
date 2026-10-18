@@ -5,6 +5,19 @@ import NotificationBell from "./NotificationBell";
 
 const CATEGORIES = ["Sport", "Politique", "Crypto", "Tech", "Économie", "International", "Culture", "Climat", "Autre"];
 
+// Pastille Blog : même style sur ordinateur (liens) et sur téléphone (barre du haut)
+const BLOG_PILL = {
+  textDecoration: "none",
+  fontSize: "14px",
+  fontWeight: 600,
+  padding: "7px 16px",
+  borderRadius: "999px",
+  border: "1px solid rgba(124,58,237,0.6)",
+  color: "#e8e8f0",
+  whiteSpace: "nowrap",
+  alignItems: "center",
+};
+
 const S = {
   nav: {
     display: "flex",
@@ -174,6 +187,10 @@ export default function Navbar() {
           .kassandre-nav-hamburger { display: flex !important; }
           .kassandre-nav-divider { display: none !important; }
         }
+        .kassandre-nav-mobile-blog { display: none; }
+        @media (max-width: 720px) {
+          .kassandre-nav-mobile-blog { display: inline-flex !important; }
+        }
         @media (max-width: 480px) {
           .kassandre-nav-logo-text { display: none; }
         }
@@ -222,6 +239,13 @@ export default function Navbar() {
 
         {user ? (
           <div style={S.rightGroup}>
+            <Link
+              to="/blog"
+              className="kassandre-nav-mobile-blog"
+              style={{ ...BLOG_PILL, background: location.pathname.startsWith("/blog") ? "#7c3aed" : "rgba(124,58,237,0.15)" }}
+            >
+              Blog
+            </Link>
             <NotificationBell />
             <span style={S.balance}>
               {Number(user.balance).toFixed(2)}<span className="kassandre-nav-balance-text"> pts</span>
@@ -255,7 +279,16 @@ export default function Navbar() {
             </button>
           </div>
         ) : (
-          <button onClick={login} style={S.loginBtn}>Connexion Google</button>
+          <div style={S.rightGroup}>
+            <Link
+              to="/blog"
+              className="kassandre-nav-mobile-blog"
+              style={{ ...BLOG_PILL, background: location.pathname.startsWith("/blog") ? "#7c3aed" : "rgba(124,58,237,0.15)" }}
+            >
+              Blog
+            </Link>
+            <button onClick={login} style={S.loginBtn}>Connexion Google</button>
+          </div>
         )}
       </nav>
 
@@ -312,13 +345,12 @@ export default function Navbar() {
             </div>
 
             {[
-              ["Blog", "/blog"],
               ["Mon profil", `/profil/${user.uid}`],
               ["Portefeuille", "/portefeuille"],
               ...(user.isAdmin ? [["Gérer le blog", "/admin/blog"]] : []),
               ["Paramètres", "/settings"],
             ].map(([label, to]) => {
-              const active = location.pathname === to || (to !== "/blog" && location.pathname.startsWith(to));
+              const active = location.pathname === to || location.pathname.startsWith(to);
               return (
                 <Link
                   key={to}
@@ -330,8 +362,8 @@ export default function Navbar() {
                     padding: "13px 10px", borderRadius: "8px", textDecoration: "none",
                     fontSize: "15px", fontWeight: 500,
                     color: active ? "#a78bfa" : "#e8e8f0",
-                    background: to === "/blog" ? "rgba(124,58,237,0.18)" : active ? "rgba(124,58,237,0.12)" : "transparent",
-                    border: to === "/blog" ? "1px solid rgba(124,58,237,0.5)" : "1px solid transparent",
+                    background: active ? "rgba(124,58,237,0.12)" : "transparent",
+                    border: "1px solid transparent",
                   }}
                 >
                   <span>{label}</span>
