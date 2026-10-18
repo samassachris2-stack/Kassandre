@@ -661,6 +661,23 @@ export default function Admin() {
     setSubmissions(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
   }
 
+  function exportMarketsCsv() {
+    const esc = (v) => `"${String(v ?? "").replace(/"/g, '""').replace(/\r?\n/g, " ")}"`;
+    const lines = ["question,type,categories,resolutionDate,id"];
+    [...markets]
+      .sort((a, b) => String(a.resolutionDate || "").localeCompare(String(b.resolutionDate || "")))
+      .forEach((m) => {
+        const cats = (m.categories || (m.category ? [m.category] : [])).join("|");
+        lines.push([m.question, m.marketType || "binary", cats, m.resolutionDate || "", m.id].map(esc).join(","));
+      });
+    const blob = new Blob(["\ufeff" + lines.join("\n")], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "marches_ouverts.csv";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
   function resetForm() {
     setQuestion("");
     setDescription("");
@@ -886,6 +903,13 @@ export default function Admin() {
       <CsvImport
         onAddToQueue={(item) => setQueue((prev) => [...prev, { ...item, _id: `${Date.now()}_${Math.random()}` }])}
       />
+
+      <button
+        onClick={exportMarketsCsv}
+        style={{ padding: "8px 16px", borderRadius: "8px", border: "1px solid #2a2a3e", background: "#1a1a2e", color: "#e8e8f0", cursor: "pointer", fontWeight: "600", marginBottom: "24px" }}
+      >
+        Télécharger la liste des marchés ouverts (CSV)
+      </button>
 
       <h2 style={{ fontSize: "18px", marginBottom: "16px" }}>Créer un marché</h2>
 
