@@ -483,7 +483,7 @@ const styles = {
     border: "1px solid #2a2a35",
     borderRadius: "12px",
     marginBottom: "40px",
-    overflow: "hidden",
+    overflow: "clip",
   },
   formTabs: {
     display: "flex",

@@ -429,9 +429,15 @@ const styles = {
     backgroundColor: "#1a1a22",
     borderRadius: "8px",
     border: "1px solid #2a2a35",
-    overflow: "hidden",
+    // "clip" arrondit les coins sans créer de conteneur de défilement,
+    // ce qui laisse la barre d'outils collante fonctionner.
+    overflow: "clip",
   },
   toolbar: {
+    position: "sticky",
+    // 60px = hauteur de la navbar collante de l'application
+    top: "60px",
+    zIndex: 10,
     display: "flex",
     gap: "6px",
     padding: "10px 12px",
