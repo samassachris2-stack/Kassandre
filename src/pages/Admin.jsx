@@ -602,6 +602,7 @@ export default function Admin() {
   const [markets, setMarkets] = useState([]);
   const [selectedToDelete, setSelectedToDelete] = useState([]);
   const [deleting, setDeleting] = useState(false);
+  const [idsText, setIdsText] = useState("");
   const [queue, setQueue] = useState([]);
   const [creatingQueue, setCreatingQueue] = useState(false);
   const [queueProgress, setQueueProgress] = useState(null);
@@ -676,22 +677,6 @@ export default function Admin() {
     a.download = "marches_ouverts.csv";
     a.click();
     URL.revokeObjectURL(a.href);
-  }
-
-  function selectByIds() {
-    const raw = window.prompt("Colle les identifiants de marchés à sélectionner (séparés par espaces, virgules ou retours à la ligne) :");
-    if (!raw) return;
-    const wanted = raw.split(/[\s,;]+/).map((x) => x.trim()).filter(Boolean);
-    const found = markets.filter((m) => wanted.includes(m.id));
-    const missing = wanted.filter((id) => !markets.some((m) => m.id === id));
-    const withBets = found.filter((m) => (m.totalVolume || 0) > 0 || (m.betCount || 0) > 0);
-    setSelectedToDelete(found.map((m) => m.id));
-    notify(
-      `${found.length} marché(s) sélectionné(s)` +
-        (missing.length ? `, ${missing.length} introuvable(s)` : "") +
-        (withBets.length ? `. Attention : ${withBets.length} ont déjà des paris (${withBets.map((m) => m.id).join(", ")})` : ""),
-      withBets.length ? "warning" : "success"
-    );
   }
 
   function resetForm() {
@@ -894,6 +879,34 @@ export default function Admin() {
     await deleteMarket(marketId);
   }
 
+  const idsWanted = useMemo(
+    () => [...new Set(idsText.split(/[\s,;]+/).map((x) => x.trim()).filter(Boolean))],
+    [idsText]
+  );
+  const idsFound = useMemo(() => markets.filter((m) => idsWanted.includes(m.id)), [markets, idsWanted]);
+  const idsMissing = useMemo(() => idsWanted.filter((id) => !markets.some((m) => m.id === id)), [markets, idsWanted]);
+
+  async function handleDeleteByIds() {
+    if (idsFound.length === 0) return;
+    const withBets = idsFound.filter((m) => (m.totalVolume || 0) > 0 || (m.betCount || 0) > 0);
+    const msg = `Supprimer définitivement ${idsFound.length} marché(s) et toutes leurs données (options, paris, positions) ?` +
+      (withBets.length ? ` ATTENTION : ${withBets.length} ont déjà des paris.` : "") + " Action irréversible.";
+    if (!(await askConfirm(msg, { confirmLabel: "Supprimer", danger: true }))) return;
+    setDeleting(true);
+    let ok = 0;
+    for (const m of idsFound) {
+      try {
+        await deleteOneMarket(m.id);
+        ok++;
+      } catch (e) {
+        notify(`Erreur lors de la suppression de ${m.id} : ${e.message}`, "error");
+      }
+    }
+    setDeleting(false);
+    setIdsText("");
+    notify(`${ok} marché(s) supprimé(s)`, "success");
+  }
+
   async function handleBulkDelete() {
     if (selectedToDelete.length === 0) return;
     const confirmMsg = selectedToDelete.length === 1
@@ -930,12 +943,38 @@ export default function Admin() {
       >
         Télécharger la liste des marchés ouverts (CSV)
       </button>
-      <button
-        onClick={selectByIds}
-        style={{ padding: "8px 16px", borderRadius: "8px", border: "1px solid #2a2a3e", background: "#1a1a2e", color: "#e8e8f0", cursor: "pointer", fontWeight: "600", marginBottom: "24px", marginLeft: "8px" }}
-      >
-        Sélectionner par identifiants
-      </button>
+      <details style={{ marginBottom: "24px", background: "#1a1a2e", border: "1px solid #2a2a3e", borderRadius: "8px", padding: "10px 14px" }}>
+        <summary style={{ cursor: "pointer", fontWeight: "600", color: "#e8e8f0" }}>Supprimer des marchés par identifiants</summary>
+        <textarea
+          value={idsText}
+          onChange={(e) => setIdsText(e.target.value)}
+          placeholder="Colle les identifiants (un par ligne, ou séparés par des espaces ou des virgules)"
+          rows={6}
+          style={{ width: "100%", marginTop: "10px", padding: "10px", borderRadius: "8px", border: "1px solid #2a2a3e", background: "#0f0f1a", color: "#e8e8f0", fontFamily: "monospace", fontSize: "12px" }}
+        />
+        {idsWanted.length > 0 && (
+          <div style={{ marginTop: "10px", fontSize: "13px", color: "#c8c8d8" }}>
+            <div>{idsFound.length} marché(s) trouvé(s){idsMissing.length > 0 && `, ${idsMissing.length} introuvable(s) : ${idsMissing.join(", ")}`}</div>
+            <ul style={{ margin: "8px 0", paddingLeft: "18px" }}>
+              {idsFound.map((m) => {
+                const hasBets = (m.totalVolume || 0) > 0 || (m.betCount || 0) > 0;
+                return (
+                  <li key={m.id} style={{ color: hasBets ? "#f59e0b" : "#c8c8d8" }}>
+                    {m.question}{hasBets ? " (a déjà des paris)" : ""}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
+        <button
+          onClick={handleDeleteByIds}
+          disabled={deleting || idsFound.length === 0}
+          style={{ marginTop: "8px", padding: "8px 16px", background: deleting || idsFound.length === 0 ? "#7a2a2a" : "#ef4444", color: "#fff", borderRadius: "6px", border: "none", cursor: deleting || idsFound.length === 0 ? "not-allowed" : "pointer", fontWeight: "600" }}
+        >
+          {deleting ? "Suppression..." : `Supprimer ${idsFound.length} marché(s)`}
+        </button>
+      </details>
 
       <h2 style={{ fontSize: "18px", marginBottom: "16px" }}>Créer un marché</h2>
 
