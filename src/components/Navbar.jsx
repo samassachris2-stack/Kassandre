@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import NotificationBell from "./NotificationBell";
+import { formatPointsShort } from "../lib/formatPoints";
 
 const CATEGORIES = ["Sport", "Politique", "Crypto", "Tech", "Économie", "International", "Culture", "Climat", "Autre"];
 
@@ -247,8 +248,8 @@ export default function Navbar() {
               Blog
             </Link>
             <NotificationBell />
-            <span style={S.balance}>
-              {Number(user.balance).toFixed(2)}<span className="kassandre-nav-balance-text"> pts</span>
+            <span style={S.balance} title={`${Number(user.balance).toFixed(2)} pts`}>
+              {formatPointsShort(user.balance)}<span className="kassandre-nav-balance-text"> pts</span>
             </span>
             <Link to="/settings">
               <img
