@@ -6,6 +6,8 @@ Disallow: /admin
 Disallow: /portefeuille
 Disallow: /settings
 Disallow: /soumettre
+# L'image de partage des marchés doit rester lisible par les robots de X, Facebook...
+Allow: /api/og-image
 Disallow: /api/
 
 Sitemap: https://kassandre.app/sitemap.xml
