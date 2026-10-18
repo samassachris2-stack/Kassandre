@@ -7,6 +7,7 @@ import Underline from "@tiptap/extension-underline";
 import { useState, useRef, useCallback } from "react";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "../lib/firebase";
+import { safeFileName } from "../lib/cssUrl";
 import ResizableImage from "./ResizableImage";
 import { notify } from "../lib/notify";
 
@@ -82,7 +83,7 @@ export default function BlogEditor({ content, onChange }) {
 
       setUploading(true);
       try {
-        const path = `blog-images/${Date.now()}_${file.name}`;
+        const path = `blog-images/${Date.now()}_${safeFileName(file.name)}`;
         const storageRef = ref(storage, path);
         await uploadBytes(storageRef, file);
         const url = await getDownloadURL(storageRef);

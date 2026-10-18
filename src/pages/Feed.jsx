@@ -8,6 +8,7 @@ import { getLatestArticles } from "../lib/articles";
 import { useSEO } from "../hooks/useSEO";
 import { generateOrganizationStructuredData } from "../lib/structuredData";
 import MoversSection from "../components/MoversSection";
+import { cssUrl } from "../lib/cssUrl";
 
 // Nombre de cartes affichées par "page" (les filtres, tris et compteurs de tags
 // restent calculés sur tous les marchés ouverts, seul le rendu est paginé).
@@ -101,7 +102,7 @@ function FeaturedCarousel({ markets }) {
           minHeight: "220px",
           border: "0.5px solid rgba(124,58,237,0.2)",
           background: market.coverImageUrl
-            ? `linear-gradient(to right, rgba(10,10,15,0.92), rgba(10,10,15,0.55)), url(${market.coverImageUrl}) center / cover no-repeat`
+            ? `linear-gradient(to right, rgba(10,10,15,0.92), rgba(10,10,15,0.55)), ${cssUrl(market.coverImageUrl)} center / cover no-repeat`
             : "linear-gradient(135deg, #1a1a2e, #13131a)",
           padding: "28px 32px",
           display: "flex",
@@ -249,7 +250,7 @@ function BlogPreviewSection() {
                 {article.coverImageUrl ? (
                   <div style={{
                     height: "110px",
-                    background: `url(${article.coverImageUrl}) center / cover no-repeat`,
+                    background: `${cssUrl(article.coverImageUrl)} center / cover no-repeat`,
                   }} />
                 ) : (
                   <div style={{
@@ -839,7 +840,7 @@ export default function Feed({ hub }) {
                   padding: "16px",
                   cursor: "pointer",
                   background: market.coverImageUrl
-                    ? `linear-gradient(160deg, rgba(10,10,15,0.78), rgba(10,10,15,0.94)), url(${market.coverImageUrl}) center / cover no-repeat`
+                    ? `linear-gradient(160deg, rgba(10,10,15,0.78), rgba(10,10,15,0.94)), ${cssUrl(market.coverImageUrl)} center / cover no-repeat`
                     : "#13131a",
                   transition: "border-color 0.15s, filter 0.15s",
                   display: "flex",

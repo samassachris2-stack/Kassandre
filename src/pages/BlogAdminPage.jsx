@@ -1,3 +1,4 @@
+import { safeFileName } from "../lib/cssUrl";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 import BlogEditor from "../components/BlogEditor";
@@ -108,7 +109,7 @@ export default function BlogAdminPage() {
 
     setUploadingCover(true);
     try {
-      const path = `blog-covers/${Date.now()}_${file.name}`;
+      const path = `blog-covers/${Date.now()}_${safeFileName(file.name)}`;
       const storageRef = ref(storage, path);
       await uploadBytes(storageRef, file);
       const url = await getDownloadURL(storageRef);
