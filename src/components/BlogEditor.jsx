@@ -435,8 +435,8 @@ const styles = {
   },
   toolbar: {
     position: "sticky",
-    // 60px = hauteur de la navbar collante de l'application
-    top: "60px",
+    // La navbar du site est masquée sur /admin/blog, la barre colle donc en haut
+    top: 0,
     zIndex: 10,
     display: "flex",
     gap: "6px",
