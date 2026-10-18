@@ -4,6 +4,7 @@ import { onCall, onRequest, HttpsError } from "firebase-functions/v2/https";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { buildOgPayload, buildIndexPayload, ID_RE } from "./og-data.js";
 import { detectMove, outcomeLabelFor } from "./follow-alerts.js";
+import { computeDaily } from "./daily-bonus.js";
 import {
   calcShares, calcSellShares, calcSharesLMSR, calcSellSharesLMSR,
   getPricesLMSR, defaultLiquidityB,
@@ -646,6 +647,29 @@ export const claimReferral = onCall({ enforceAppCheck: true }, async (request) =
       read: false, createdAt: FieldValue.serverTimestamp(),
     });
     return { success: true, bonus: REFERRAL_BONUS };
+  });
+});
+
+// ── Bonus quotidien ──────────────────────────────────────────────────────
+// Une fois par jour (heure de Paris) : 10 points, +5 par jour de série, plafonné
+// à 50. La série repart à 1 si un jour est manqué.
+export const claimDailyBonus = onCall({ enforceAppCheck: true }, async (request) => {
+  const userId = requireAuth(request);
+  const userRef = db.collection("users").doc(userId);
+
+  return db.runTransaction(async (tx) => {
+    const snap = await tx.get(userRef);
+    if (!snap.exists) throw new HttpsError("not-found", "Utilisateur introuvable.");
+
+    const r = computeDaily(snap.data());
+    if (!r.claimed) return { claimed: false, streak: r.streak };
+
+    tx.update(userRef, {
+      balance: FieldValue.increment(r.bonus),
+      lastDailyDate: r.today,
+      dailyStreak: r.streak,
+    });
+    return { claimed: true, bonus: r.bonus, streak: r.streak };
   });
 });
 

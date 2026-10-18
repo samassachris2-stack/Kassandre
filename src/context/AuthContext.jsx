@@ -62,6 +62,21 @@ export function AuthProvider({ children }) {
             console.warn("parrainage non appliqué", e.message);
           }
         }
+        // Bonus quotidien : sans effet s'il a déjà été pris aujourd'hui
+        try {
+          const daily = await callFunction("claimDailyBonus", {});
+          if (daily.claimed) {
+            data = (await getDoc(userRef)).data();
+            notify(
+              daily.streak > 1
+                ? `Bonus quotidien : +${daily.bonus} points (${daily.streak} jours de suite).`
+                : `Bonus quotidien : +${daily.bonus} points. Revenez demain pour en gagner plus.`,
+              "success"
+            );
+          }
+        } catch (e) {
+          console.warn("bonus quotidien indisponible", e.message);
+        }
         setUser({ ...firebaseUser, ...data });
       } else {
         setUser(null);
