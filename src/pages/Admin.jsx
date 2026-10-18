@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, serverTimestamp, query, where, onSnapshot, setDoc, writeBatch } from "firebase/firestore";
+import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, serverTimestamp, query, where, onSnapshot, writeBatch } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../lib/firebase";
 import { useAuth } from "../context/AuthContext";
@@ -724,7 +724,10 @@ export default function Admin() {
       });
     } else {
       const liquidityB = Math.round(75 * Math.log(payload.options.length + 1));
-      const marketRef = await addDoc(collection(db, "markets"), {
+      // Marché et options écrits dans un seul lot : pas de marché créé sans ses options
+      const marketRef = doc(collection(db, "markets"));
+      const batch = writeBatch(db);
+      batch.set(marketRef, {
         question: payload.question,
         description: payload.description,
         categories: payload.categories,
@@ -756,13 +759,14 @@ export default function Admin() {
         }
         usedIds.add(finalId);
 
-        await setDoc(doc(db, "markets", marketRef.id, "options", finalId), {
+        batch.set(doc(db, "markets", marketRef.id, "options", finalId), {
           label,
           q: 0,
           price: equalPrice,
           createdAt: serverTimestamp(),
         });
       }
+      await batch.commit();
     }
   }
 
