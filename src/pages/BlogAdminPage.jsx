@@ -1,3 +1,4 @@
+import { prepareImageForUpload } from "../lib/imageUtils";
 import { safeFileName } from "../lib/cssUrl";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
@@ -109,14 +110,21 @@ export default function BlogAdminPage() {
 
     setUploadingCover(true);
     try {
-      const path = `blog-covers/${Date.now()}_${safeFileName(file.name)}`;
+      const blob = await prepareImageForUpload(file);
+      const base = safeFileName(file.name).replace(/\.[^.]+$/, "");
+      const path = `blog-covers/${Date.now()}_${base}.jpg`;
       const storageRef = ref(storage, path);
-      await uploadBytes(storageRef, file);
+      await uploadBytes(storageRef, blob, { contentType: "image/jpeg" });
       const url = await getDownloadURL(storageRef);
       setFormData((prev) => ({ ...prev, coverImageUrl: url }));
     } catch (error) {
       console.error("Error uploading cover:", error);
-      notify("Erreur lors de l'upload de l'image de couverture", "error");
+      notify(
+        error.message === "IMAGE_UNREADABLE"
+          ? "Image illisible par le navigateur. Ouvre-la dans Paint ou Photos, enregistre-la en JPEG, puis réessaie."
+          : "Erreur lors de l'upload de l'image de couverture",
+        "error"
+      );
     } finally {
       setUploadingCover(false);
       if (coverInputRef.current) coverInputRef.current.value = "";
