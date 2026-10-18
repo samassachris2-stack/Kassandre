@@ -115,8 +115,10 @@ async function buildMeta(kind, id, fetchFn, opts = {}) {
       description: truncate(desc || "Marché de prédiction sur Kassandre : donnez votre pronostic."),
       path: `/market/${encodeURIComponent(id)}`,
       // Image générée pour ce marché (probabilités en direct, pari de la personne
-      // qui partage via ?pick=). Voir api/og-image.js.
-      image: `${SITE}/api/og-image?id=${encodeURIComponent(id)}${opts.pick ? `&pick=${encodeURIComponent(String(opts.pick).slice(0, 120))}` : ""}`,
+      // qui partage via ?pick=). Voir api/og-image.js. L'adresse n'est pas sous
+      // /api/ (interdit par robots.txt, que les robots de X et Facebook respectent
+      // aussi pour les images) : vercel.json la redirige vers la fonction.
+      image: `${SITE}/og/market/${encodeURIComponent(id)}.png${opts.pick ? `?pick=${encodeURIComponent(String(opts.pick).slice(0, 120))}` : ""}`,
       dynamicImage: true,
       debug: "ok",
       body: `<article><h1>${esc(m.question)}</h1>${m.description ? `<p>${esc(stripHtml(m.description))}</p>` : ""}${probaHtml}${statusHtml}${dateHtml}</article>`,

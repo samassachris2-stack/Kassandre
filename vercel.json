@@ -56,6 +56,10 @@
       "destination": "/api/og?kind=market&id=:id"
     },
     {
+      "source": "/og/market/:id.png",
+      "destination": "/api/og-image?id=:id"
+    },
+    {
       "source": "/sitemap.xml",
       "destination": "/api/sitemap?type=index"
     },

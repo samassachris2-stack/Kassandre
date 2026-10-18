@@ -1,4 +1,5 @@
-// Image de partage (1200x630) d'un marché : /api/og-image?id=MARKET_ID[&pick=yes|no|libellé]
+// Image de partage (1200x630) d'un marché. Adresse publique : /og/market/MARKET_ID.png[?pick=yes|no|libellé]
+// (vercel.json la redirige vers /api/og-image?id=MARKET_ID).
 // Les robots de X, Facebook, LinkedIn, WhatsApp... la chargent via la balise
 // og:image posée par api/og.js. En cas d'échec, on redirige vers l'image fixe
 // du site : un partage ne doit jamais se retrouver sans image.
