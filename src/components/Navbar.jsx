@@ -194,9 +194,17 @@ export default function Navbar() {
         <div className="kassandre-nav-desktop-links">
           <Link
             to="/blog"
-            style={S.navLink(location.pathname.startsWith("/blog"))}
-            onMouseEnter={(e) => { if (!location.pathname.startsWith("/blog")) e.currentTarget.style.color = "#e8e8f0"; }}
-            onMouseLeave={(e) => { if (!location.pathname.startsWith("/blog")) e.currentTarget.style.color = "#a8a8b8"; }}
+            style={{
+              ...S.navLink(location.pathname.startsWith("/blog")),
+              padding: "7px 16px",
+              borderRadius: "999px",
+              border: "1px solid rgba(124,58,237,0.6)",
+              background: location.pathname.startsWith("/blog") ? "#7c3aed" : "rgba(124,58,237,0.15)",
+              color: "#e8e8f0",
+              fontWeight: 600,
+            }}
+            onMouseEnter={(e) => { if (!location.pathname.startsWith("/blog")) e.currentTarget.style.background = "rgba(124,58,237,0.3)"; }}
+            onMouseLeave={(e) => { if (!location.pathname.startsWith("/blog")) e.currentTarget.style.background = "rgba(124,58,237,0.15)"; }}
           >
             Blog
           </Link>
@@ -303,9 +311,9 @@ export default function Navbar() {
             </div>
 
             {[
+              ["Blog", "/blog"],
               ["Mon profil", `/profil/${user.uid}`],
               ["Portefeuille", "/portefeuille"],
-              ["Blog", "/blog"],
               ...(user.isAdmin ? [["Gérer le blog", "/admin/blog"]] : []),
               ["Paramètres", "/settings"],
             ].map(([label, to]) => {
@@ -321,7 +329,8 @@ export default function Navbar() {
                     padding: "13px 10px", borderRadius: "8px", textDecoration: "none",
                     fontSize: "15px", fontWeight: 500,
                     color: active ? "#a78bfa" : "#e8e8f0",
-                    background: active ? "rgba(124,58,237,0.12)" : "transparent",
+                    background: to === "/blog" ? "rgba(124,58,237,0.18)" : active ? "rgba(124,58,237,0.12)" : "transparent",
+                    border: to === "/blog" ? "1px solid rgba(124,58,237,0.5)" : "1px solid transparent",
                   }}
                 >
                   <span>{label}</span>
