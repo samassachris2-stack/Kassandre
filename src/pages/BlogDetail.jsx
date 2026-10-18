@@ -6,6 +6,7 @@ import { generateArticleStructuredData } from "../lib/structuredData";
 import ShareButtons from "../components/ShareButtons";
 import RelatedArticles from "../components/RelatedArticles";
 import { readingMinutes } from "../lib/blogUtils";
+import { trackPageView } from "../lib/analytics";
 
 export default function BlogDetail() {
   const { slug } = useParams();
@@ -27,6 +28,13 @@ export default function BlogDetail() {
 
     fetchArticle();
   }, [slug]);
+
+  // Vue d'article envoyée une fois le titre chargé : sinon elle part avant l'article
+  // et apparaît dans les statistiques sous le titre générique du site.
+  useEffect(() => {
+    if (!article) return;
+    trackPageView(window.location.pathname, { force: true });
+  }, [article]);
 
   const formatDate = (timestamp) => {
     if (!timestamp) return "";

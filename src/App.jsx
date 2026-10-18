@@ -28,6 +28,8 @@ function Shell() {
 
   // Un page_view à chaque changement de page. Le délai laisse le temps au titre de se mettre à jour.
   useEffect(() => {
+    // Les articles envoient leur propre page_view une fois leur titre chargé (voir BlogDetail)
+    if (pathname.startsWith("/blog/")) return undefined;
     const timer = setTimeout(() => trackPageView(pathname), 300);
     return () => clearTimeout(timer);
   }, [pathname]);

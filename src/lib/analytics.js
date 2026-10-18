@@ -35,8 +35,8 @@ export async function startAnalytics() {
 
 // Firebase n'envoie un page_view qu'au chargement initial. Sur un site à
 // navigation interne (React Router), il faut le signaler à chaque changement de page.
-export function trackPageView(path) {
-  if (!analyticsInstance || path === lastPath) return;
+export function trackPageView(path, { force = false } = {}) {
+  if (!analyticsInstance || (!force && path === lastPath)) return;
   lastPath = path;
   logEvent(analyticsInstance, "page_view", {
     page_path: path,
