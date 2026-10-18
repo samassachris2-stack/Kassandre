@@ -678,6 +678,22 @@ export default function Admin() {
     URL.revokeObjectURL(a.href);
   }
 
+  function selectByIds() {
+    const raw = window.prompt("Colle les identifiants de marchés à sélectionner (séparés par espaces, virgules ou retours à la ligne) :");
+    if (!raw) return;
+    const wanted = raw.split(/[\s,;]+/).map((x) => x.trim()).filter(Boolean);
+    const found = markets.filter((m) => wanted.includes(m.id));
+    const missing = wanted.filter((id) => !markets.some((m) => m.id === id));
+    const withBets = found.filter((m) => (m.totalVolume || 0) > 0 || (m.betCount || 0) > 0);
+    setSelectedToDelete(found.map((m) => m.id));
+    notify(
+      `${found.length} marché(s) sélectionné(s)` +
+        (missing.length ? `, ${missing.length} introuvable(s)` : "") +
+        (withBets.length ? `. Attention : ${withBets.length} ont déjà des paris (${withBets.map((m) => m.id).join(", ")})` : ""),
+      withBets.length ? "warning" : "success"
+    );
+  }
+
   function resetForm() {
     setQuestion("");
     setDescription("");
@@ -913,6 +929,12 @@ export default function Admin() {
         style={{ padding: "8px 16px", borderRadius: "8px", border: "1px solid #2a2a3e", background: "#1a1a2e", color: "#e8e8f0", cursor: "pointer", fontWeight: "600", marginBottom: "24px" }}
       >
         Télécharger la liste des marchés ouverts (CSV)
+      </button>
+      <button
+        onClick={selectByIds}
+        style={{ padding: "8px 16px", borderRadius: "8px", border: "1px solid #2a2a3e", background: "#1a1a2e", color: "#e8e8f0", cursor: "pointer", fontWeight: "600", marginBottom: "24px", marginLeft: "8px" }}
+      >
+        Sélectionner par identifiants
       </button>
 
       <h2 style={{ fontSize: "18px", marginBottom: "16px" }}>Créer un marché</h2>
