@@ -42,7 +42,7 @@ export default function EmbedMarket() {
     : { bg: "#0f0f17", fg: "#e8e8f0", mute: "#8888a0", border: "rgba(124,58,237,0.3)", track: "#1d1d2b" };
 
   const link = `https://kassandre.app/market/${id}`;
-  const wrap = { boxSizing: "border-box", minHeight: "100vh", padding: "14px 16px", background: c.bg, color: c.fg, fontFamily: "system-ui, -apple-system, Segoe UI, sans-serif", border: `1px solid ${c.border}`, borderRadius: "12px", display: "flex", flexDirection: "column", gap: "10px" };
+  const wrap = { boxSizing: "border-box", minHeight: "100vh", padding: "14px 16px", background: c.bg, color: c.fg, fontFamily: "system-ui, -apple-system, Segoe UI, sans-serif", border: `1px solid ${c.border}`, borderRadius: "12px", display: "flex", flexDirection: "column", gap: "10px", textAlign: "left" };
 
   if (missing) return <div style={wrap}><p style={{ margin: 0, fontSize: "14px" }}>Marché introuvable.</p></div>;
   if (!market) return <div style={wrap} />;
