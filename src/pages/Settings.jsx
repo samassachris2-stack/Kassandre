@@ -11,6 +11,7 @@ export default function Settings() {
   const [bio, setBio] = useState(user?.bio || "");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   async function handleSave() {
     if (!pseudo.trim()) return;
@@ -22,6 +23,14 @@ export default function Settings() {
     setLoading(false);
     setSuccess(true);
     setTimeout(() => setSuccess(false), 3000);
+  }
+
+  async function copyLink() {
+    try {
+      await navigator.clipboard.writeText(`https://kassandre.app/?ref=${user.uid}`);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } catch { /* presse-papiers indisponible */ }
   }
 
   if (!user) return <p style={{ padding: "40px" }}>Connecte toi d'abord.</p>;
@@ -92,6 +101,25 @@ export default function Settings() {
         </button>
 
         {success && <p style={{ color: "#7c3aed", textAlign: "center" }}>Profil mis à jour.</p>}
+
+        <div style={{ border: "1px solid #2a2a3e", borderRadius: "10px", padding: "16px", background: "#12121a" }}>
+          <p style={{ fontWeight: "600", marginBottom: "6px" }}>Parrainer un ami</p>
+          <p style={{ fontSize: "13px", color: "#8888a0", marginBottom: "12px", lineHeight: 1.5 }}>
+            Quand quelqu'un s'inscrit avec votre lien, vous recevez chacun 200 points.
+            {user.referralCount > 0 && ` Déjà ${user.referralCount} filleul${user.referralCount > 1 ? "s" : ""}.`}
+          </p>
+          <div style={{ display: "flex", gap: "8px" }}>
+            <input
+              readOnly
+              value={`https://kassandre.app/?ref=${user.uid}`}
+              onFocus={(e) => e.target.select()}
+              style={{ flex: 1, minWidth: 0, padding: "9px 12px", borderRadius: "8px", border: "1px solid #2a2a3e", background: "#0a0a0f", color: "#e8e8f0", fontSize: "13px" }}
+            />
+            <button onClick={copyLink} style={{ padding: "9px 14px", background: "#7c3aed", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "600", fontSize: "13px" }}>
+              {copied ? "Copié" : "Copier"}
+            </button>
+          </div>
+        </div>
 
         <button
           onClick={() => navigate(`/profil/${user.uid}`)}

@@ -596,6 +596,59 @@ export const snapshotMonthlyBalances = onSchedule(
   }
 );
 
+// ── Parrainage ───────────────────────────────────────────────────────────
+// Le filleul arrive via kassandre.app/?ref=<uid du parrain>. Après sa première
+// connexion, le client appelle claimReferral : les deux reçoivent le bonus.
+// Garde-fous : une seule fois par compte, compte créé il y a moins de 48 h,
+// pas d'auto-parrainage, plafond de filleuls par parrain.
+const REFERRAL_BONUS = 200;
+const REFERRAL_MAX_PER_REFERRER = 50;
+const REFERRAL_WINDOW_MS = 48 * 3600 * 1000;
+
+export const claimReferral = onCall({ enforceAppCheck: true }, async (request) => {
+  const userId = requireAuth(request);
+  const referrerId = request.data?.referrerId;
+  if (typeof referrerId !== "string" || !ID_RE.test(referrerId)) {
+    throw new HttpsError("invalid-argument", "Lien de parrainage invalide.");
+  }
+  if (referrerId === userId) {
+    throw new HttpsError("failed-precondition", "Tu ne peux pas te parrainer toi-même.");
+  }
+
+  const userRef = db.collection("users").doc(userId);
+  const referrerRef = db.collection("users").doc(referrerId);
+
+  return db.runTransaction(async (tx) => {
+    const [userSnap, referrerSnap] = await Promise.all([tx.get(userRef), tx.get(referrerRef)]);
+    if (!userSnap.exists) throw new HttpsError("not-found", "Utilisateur introuvable.");
+    if (!referrerSnap.exists) throw new HttpsError("not-found", "Parrain introuvable.");
+
+    const user = userSnap.data();
+    if (user.referredBy) throw new HttpsError("already-exists", "Parrainage déjà utilisé.");
+    const createdMs = user.createdAt?.toMillis ? user.createdAt.toMillis() : 0;
+    if (!createdMs || Date.now() - createdMs > REFERRAL_WINDOW_MS) {
+      throw new HttpsError("failed-precondition", "Le parrainage n'est possible que pour un nouveau compte.");
+    }
+    if ((referrerSnap.data().referralCount || 0) >= REFERRAL_MAX_PER_REFERRER) {
+      throw new HttpsError("resource-exhausted", "Ce parrain a atteint sa limite de filleuls.");
+    }
+
+    tx.update(userRef, {
+      balance: FieldValue.increment(REFERRAL_BONUS),
+      referredBy: referrerId,
+    });
+    tx.update(referrerRef, {
+      balance: FieldValue.increment(REFERRAL_BONUS),
+      referralCount: FieldValue.increment(1),
+    });
+    tx.set(db.collection("notifications").doc(`${referrerId}_ref_${userId}`), {
+      userId: referrerId, type: "referral", bonus: REFERRAL_BONUS,
+      read: false, createdAt: FieldValue.serverTimestamp(),
+    });
+    return { success: true, bonus: REFERRAL_BONUS };
+  });
+});
+
 // ── Alertes de suivi : forts mouvements de probabilité ───────────────────
 // Toutes les heures, pour chaque marché ouvert qui a des suiveurs : si la
 // probabilité a bougé d'au moins MOVE_THRESHOLD points en 24 h, on prévient les

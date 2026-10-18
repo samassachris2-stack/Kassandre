@@ -123,7 +123,7 @@ export function calcSellSharesLMSR(quantities, b, optionIndex, sharesToSell) {
 
 // ── Appels aux Cloud Functions (écritures réelles, sécurisées côté serveur) ──
 
-async function callFunction(name, data) {
+export async function callFunction(name, data) {
   const { getFunctions, httpsCallable } = await import("firebase/functions");
   const { app } = await import("./firebase");
   const functions = getFunctions(app);

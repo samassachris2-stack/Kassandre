@@ -18,6 +18,7 @@ function describe(n) {
     const res = n.outcomeLabel ? ` Résultat : ${n.outcomeLabel}.` : "";
     return `${q} est résolu.${res}`;
   }
+  if (n.type === "referral") return `Un filleul vient de s'inscrire avec votre lien : +${n.bonus} points.`;
   return q;
 }
 
@@ -74,7 +75,7 @@ export default function NotificationBell() {
               Aucune alerte. Suivez un marché avec le bouton Suivre pour être prévenu.
             </p>
           ) : items.map((n) => (
-            <Link key={n.id} to={`/market/${n.marketId}`} onClick={toggle}
+            <Link key={n.id} to={n.marketId ? `/market/${n.marketId}` : "/settings"} onClick={toggle}
               style={{ display: "block", padding: "12px 14px", textDecoration: "none", color: "#e8e8f0", fontSize: "13px", lineHeight: 1.4, borderBottom: "0.5px solid rgba(124,58,237,0.12)", background: n.read ? "transparent" : "rgba(124,58,237,0.08)" }}>
               {describe(n)}
             </Link>
