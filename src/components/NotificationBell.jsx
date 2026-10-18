@@ -69,18 +69,47 @@ export default function NotificationBell() {
         )}
       </button>
       {open && (
-        <div style={{ position: "absolute", right: 0, top: "36px", width: "min(340px, 90vw)", maxHeight: "420px", overflowY: "auto", background: "#0f0f17", border: "0.5px solid rgba(124,58,237,0.3)", borderRadius: "10px", zIndex: 60, boxShadow: "0 8px 30px rgba(0,0,0,0.5)" }}>
-          {items.length === 0 ? (
-            <p style={{ color: "#8888a0", fontSize: "13px", padding: "16px", margin: 0 }}>
-              Aucune alerte. Suivez un marché avec le bouton Suivre pour être prévenu.
-            </p>
-          ) : items.map((n) => (
-            <Link key={n.id} to={n.marketId ? `/market/${n.marketId}` : "/settings"} onClick={toggle}
-              style={{ display: "block", padding: "12px 14px", textDecoration: "none", color: "#e8e8f0", fontSize: "13px", lineHeight: 1.4, borderBottom: "0.5px solid rgba(124,58,237,0.12)", background: n.read ? "transparent" : "rgba(124,58,237,0.08)" }}>
-              {describe(n)}
-            </Link>
-          ))}
-        </div>
+        <>
+          <style>{`
+            .kassandre-notif-panel {
+              position: absolute; right: 0; top: 36px;
+              width: min(340px, 90vw); max-height: 420px; overflow-y: auto;
+              background: #0f0f17; border: 0.5px solid rgba(124,58,237,0.3);
+              border-radius: 10px; z-index: 60; box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+            }
+            .kassandre-notif-head { display: none; }
+            /* Sur téléphone : panneau pleine largeur sous la navbar, avec un bouton de fermeture */
+            @media (max-width: 720px) {
+              .kassandre-notif-panel {
+                position: fixed; top: 68px; left: 8px; right: 8px; width: auto;
+                max-height: calc(100vh - 84px); border-radius: 12px;
+              }
+              .kassandre-notif-head { display: flex; }
+            }
+          `}</style>
+          <div className="kassandre-notif-panel" role="dialog" aria-label="Notifications">
+            <div className="kassandre-notif-head" style={{
+              alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0,
+              padding: "12px 14px", background: "#0f0f17", borderBottom: "0.5px solid rgba(124,58,237,0.2)",
+            }}>
+              <span style={{ fontSize: "15px", fontWeight: 600, color: "#e8e8f0" }}>Notifications</span>
+              <button type="button" onClick={toggle} aria-label="Fermer" style={{
+                background: "transparent", border: "none", color: "#8888a0", fontSize: "24px",
+                lineHeight: 1, cursor: "pointer", padding: "0 6px",
+              }}>×</button>
+            </div>
+            {items.length === 0 ? (
+              <p style={{ color: "#8888a0", fontSize: "14px", padding: "18px 16px", margin: 0, lineHeight: 1.5 }}>
+                Aucune alerte. Suivez un marché avec le bouton Suivre pour être prévenu.
+              </p>
+            ) : items.map((n) => (
+              <Link key={n.id} to={n.marketId ? `/market/${n.marketId}` : "/settings"} onClick={toggle}
+                style={{ display: "block", padding: "14px 16px", textDecoration: "none", color: "#e8e8f0", fontSize: "14px", lineHeight: 1.5, borderBottom: "0.5px solid rgba(124,58,237,0.12)", background: n.read ? "transparent" : "rgba(124,58,237,0.08)" }}>
+                {describe(n)}
+              </Link>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
