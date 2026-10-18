@@ -1,8 +1,9 @@
 import { initializeApp } from "firebase-admin/app";
-import { getFirestore, FieldValue } from "firebase-admin/firestore";
+import { getFirestore, FieldValue, Timestamp } from "firebase-admin/firestore";
 import { onCall, onRequest, HttpsError } from "firebase-functions/v2/https";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { buildOgPayload, buildIndexPayload, ID_RE } from "./og-data.js";
+import { detectMove, outcomeLabelFor } from "./follow-alerts.js";
 import {
   calcShares, calcSellShares, calcSharesLMSR, calcSellSharesLMSR,
   getPricesLMSR, defaultLiquidityB,
@@ -457,6 +458,15 @@ export const resolveMarket = onCall({ enforceAppCheck: true }, async (request) =
   });
   if (allParticipantIds.length > 0) await statsBatch.commit();
 
+  // Infos affichées dans les notifications (question du marché, résultat lisible)
+  const marketData = (await marketRef.get()).data() || {};
+  let outcomeOptionLabel = null;
+  if (marketType === "multi") {
+    const optSnap = await marketRef.collection("options").doc(String(outcome)).get();
+    outcomeOptionLabel = optSnap.exists ? optSnap.data().label || null : null;
+  }
+  const outcomeLabel = outcomeLabelFor(outcome, outcomeOptionLabel);
+
   const batch = db.batch();
   Object.entries(payoutByUser).forEach(([uid, totalWinnings]) => {
     const userRef = db.collection("users").doc(uid);
@@ -467,12 +477,38 @@ export const resolveMarket = onCall({ enforceAppCheck: true }, async (request) =
     batch.set(notifRef, {
       userId: uid, type: "resolved", marketId, outcome,
       payout: Math.round(totalWinnings),
+      question: marketData.question || null,
+      outcomeLabel,
       read: false,
       createdAt: FieldValue.serverTimestamp(),
     });
   });
 
   await batch.commit();
+
+  // Les membres qui suivent le marché sont prévenus, même sans pari. Un échec
+  // ici ne doit jamais faire échouer la résolution (gains déjà versés).
+  try {
+    const followSnap = await db.collection("follows").where("marketId", "==", marketId).get();
+    const followerIds = [...new Set(followSnap.docs.map((d) => d.data().userId))]
+      .filter((uid) => uid && !(uid in payoutByUser));
+    for (let i = 0; i < followerIds.length; i += 400) {
+      const fb = db.batch();
+      followerIds.slice(i, i + 400).forEach((uid) => {
+        fb.set(db.collection("notifications").doc(`${uid}_${marketId}`), {
+          userId: uid, type: "resolved_followed", marketId, outcome,
+          question: marketData.question || null,
+          outcomeLabel,
+          read: false,
+          createdAt: FieldValue.serverTimestamp(),
+        });
+      });
+      await fb.commit();
+    }
+  } catch (e) {
+    console.error("notifications de suivi (résolution) échouées", marketId, e.message);
+  }
+
   return { success: true };
 });
 
@@ -557,6 +593,70 @@ export const snapshotMonthlyBalances = onSchedule(
   async () => {
     const count = await snapshotAllBalances("balanceSnapshotMonthly");
     console.log(`Snapshot mensuel effectué pour ${count} utilisateur(s).`);
+  }
+);
+
+// ── Alertes de suivi : forts mouvements de probabilité ───────────────────
+// Toutes les heures, pour chaque marché ouvert qui a des suiveurs : si la
+// probabilité a bougé d'au moins MOVE_THRESHOLD points en 24 h, on prévient les
+// suiveurs (au plus une alerte par marché et par jour, grâce à l'ID du document).
+export const notifyBigMoves = onSchedule(
+  { schedule: "every 60 minutes", timeZone: "Europe/Paris" },
+  async () => {
+    const followSnap = await db.collection("follows").get();
+    const byMarket = {};
+    followSnap.forEach((d) => {
+      const { userId, marketId } = d.data();
+      if (userId && marketId) (byMarket[marketId] ||= []).push(userId);
+    });
+
+    const since = Timestamp.fromMillis(Date.now() - 24 * 3600 * 1000);
+    const day = new Date().toISOString().slice(0, 10);
+    let sent = 0;
+
+    for (const [marketId, followers] of Object.entries(byMarket)) {
+      try {
+        const marketRef = db.collection("markets").doc(marketId);
+        const marketSnap = await marketRef.get();
+        if (!marketSnap.exists || marketSnap.data().status !== "open") continue;
+
+        const hist = marketRef.collection("priceHistory");
+        const [beforeSnap, firstSnap, latestSnap] = await Promise.all([
+          hist.where("timestamp", "<", since).orderBy("timestamp", "desc").limit(1).get(),
+          hist.where("timestamp", ">=", since).orderBy("timestamp", "asc").limit(1).get(),
+          hist.orderBy("timestamp", "desc").limit(1).get(),
+        ]);
+        const baseline = (beforeSnap.docs[0] || firstSnap.docs[0])?.data();
+        const latest = latestSnap.docs[0]?.data();
+
+        let labels = {};
+        if (marketSnap.data().type === "multi") {
+          const optSnap = await marketRef.collection("options").get();
+          optSnap.forEach((o) => { labels[o.id] = o.data().label; });
+        }
+
+        const move = detectMove(baseline, latest, labels);
+        if (!move) continue;
+
+        for (const uid of new Set(followers)) {
+          try {
+            await db.collection("notifications").doc(`${uid}_${marketId}_move_${day}`).create({
+              userId: uid, type: "move", marketId,
+              question: marketSnap.data().question || null,
+              label: move.label, from: move.from, to: move.to,
+              read: false,
+              createdAt: FieldValue.serverTimestamp(),
+            });
+            sent++;
+          } catch (e) {
+            if (e.code !== 6) throw e; // 6 = ALREADY_EXISTS : déjà prévenu aujourd'hui
+          }
+        }
+      } catch (e) {
+        console.error("alerte de mouvement échouée", marketId, e.message);
+      }
+    }
+    console.log(`Alertes de mouvement : ${sent} notification(s) créée(s).`);
   }
 );
 

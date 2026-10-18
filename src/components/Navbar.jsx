@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import NotificationBell from "./NotificationBell";
 
 const CATEGORIES = ["Sport", "Politique", "Crypto", "Tech", "Économie", "International", "Culture", "Climat", "Autre"];
 
@@ -205,6 +206,7 @@ export default function Navbar() {
 
         {user ? (
           <div style={S.rightGroup}>
+            <NotificationBell />
             <span style={S.balance}>
               {Number(user.balance).toFixed(2)}<span className="kassandre-nav-balance-text"> pts</span>
             </span>

@@ -7,6 +7,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "rec
 import { useSEO } from "../hooks/useSEO";
 import { doc, onSnapshot, collection, getDocs, query, orderBy } from "firebase/firestore";
 import { notify } from "../lib/notify";
+import FollowButton from "../components/FollowButton";
 
 const S = {
   layoutWrap: {
@@ -586,10 +587,11 @@ export default function Market() {
       <div style={S.tagRow}>
         {market.category && <span style={S.tag}>{market.category}</span>}
         <span style={S.statusDot}>· {statusLabel}</span>
+        <div style={{ marginLeft: "auto" }}><FollowButton marketId={id} /></div>
         <button
           onClick={shareMarket}
           style={{
-            marginLeft: "auto", display: "flex", alignItems: "center", gap: "6px",
+            display: "flex", alignItems: "center", gap: "6px",
             background: "rgba(124,58,237,0.1)", border: "0.5px solid rgba(124,58,237,0.3)",
             color: "#a78bfa", borderRadius: "8px", padding: "6px 12px",
             fontSize: "13px", fontWeight: "500", cursor: "pointer",

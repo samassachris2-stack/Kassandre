@@ -53,8 +53,12 @@ service cloud.firestore {
     // requête where("userId", "==", uid) n'est autorisée que si la règle porte
     // sur ce même champ.
     match /positions/{positionId} {
+      // Le test sur l'ID passe d'abord : il permet d'écouter un document qui
+      // n'existe pas encore (resource est alors null). Le test sur le champ
+      // userId sert aux requêtes where("userId", "==", uid).
       allow read: if request.auth != null &&
-        resource.data.userId == request.auth.uid;
+        (positionId.matches(request.auth.uid + '_.*') ||
+         resource.data.userId == request.auth.uid);
       allow write: if false;
     }
 
@@ -93,10 +97,30 @@ service cloud.firestore {
 
     // ── Notifications ────────────────────────────────────────────────────────
     // Lecture par le destinataire, écriture par les Cloud Functions uniquement.
+    // Le destinataire peut seulement la marquer comme lue.
     match /notifications/{notifId} {
       allow read: if request.auth != null &&
         resource.data.userId == request.auth.uid;
-      allow write: if false;
+      allow update: if request.auth != null
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read'])
+        && request.resource.data.read == true;
+      allow create, delete: if false;
+    }
+
+    // ── Suivi de marchés ─────────────────────────────────────────────────────
+    // Document follows/{uid}_{marketId}. Chacun gère uniquement ses suivis ;
+    // les Cloud Functions les lisent pour envoyer les alertes.
+    match /follows/{followId} {
+      allow read: if request.auth != null &&
+        (followId.matches(request.auth.uid + '_.*') ||
+         resource.data.userId == request.auth.uid);
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasOnly(['userId', 'marketId', 'createdAt'])
+        && request.resource.data.userId == request.auth.uid
+        && followId == request.auth.uid + '_' + request.resource.data.marketId;
+      allow delete: if request.auth != null && followId.matches(request.auth.uid + '_.*');
+      allow update: if false;
     }
 
     // ── Fonction helper ──────────────────────────────────────────────────────
