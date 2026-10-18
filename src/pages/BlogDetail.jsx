@@ -4,6 +4,8 @@ import { getArticleBySlug } from "../lib/articles";
 import { useSEO } from "../hooks/useSEO";
 import { generateArticleStructuredData } from "../lib/structuredData";
 import ShareButtons from "../components/ShareButtons";
+import RelatedArticles from "../components/RelatedArticles";
+import { readingMinutes } from "../lib/blogUtils";
 
 export default function BlogDetail() {
   const { slug } = useParams();
@@ -204,13 +206,14 @@ export default function BlogDetail() {
           <div style={styles.meta}>
             <span style={styles.date}>
               {formatDate(article.publishedAt)}
+              <span style={{ color: "#8888a0", fontWeight: 400 }}> · {readingMinutes(article.content)} min de lecture</span>
             </span>
             {article.tags && article.tags.length > 0 && (
               <div style={styles.tags}>
                 {article.tags.map((tag) => (
-                  <span key={tag} style={styles.tag}>
+                  <Link key={tag} to={`/blog?tag=${encodeURIComponent(tag)}`} style={{ ...styles.tag, textDecoration: "none" }}>
                     {tag}
-                  </span>
+                  </Link>
                 ))}
               </div>
             )}
@@ -262,6 +265,8 @@ export default function BlogDetail() {
           </section>
         )}
       </article>
+
+      <RelatedArticles current={article} />
     </div>
   );
 }

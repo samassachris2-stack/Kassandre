@@ -1,10 +1,19 @@
-import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect, useMemo } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { getPublishedArticles } from "../lib/articles";
+import { readingMinutes, tagCounts, matchesQuery } from "../lib/blogUtils";
+
+const PAGE_SIZE = 8;
+// En dessous de ce nombre d'articles, la recherche et les thèmes n'apportent rien.
+const FILTERS_FROM = 6;
 
 export default function BlogList() {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [params, setParams] = useSearchParams();
+  const [search, setSearch] = useState("");
+  const [visible, setVisible] = useState(PAGE_SIZE);
+  const tag = params.get("tag") || "";
 
   useEffect(() => {
     const fetchArticles = async () => {
@@ -27,6 +36,60 @@ export default function BlogList() {
     });
   };
 
+  const showFilters = articles.length >= FILTERS_FROM;
+  const tags = useMemo(() => tagCounts(articles), [articles]);
+  const filtered = useMemo(
+    () => articles.filter((a) => (!tag || (a.tags || []).includes(tag)) && matchesQuery(a, search)),
+    [articles, tag, search]
+  );
+  const filtering = Boolean(tag || search.trim());
+  // Sans filtre, le plus récent passe en grand ; le reste suit en liste paginée.
+  const featured = !filtering ? filtered[0] : null;
+  const rest = featured ? filtered.slice(1) : filtered;
+  const shown = rest.slice(0, visible);
+
+  function pickTag(t) {
+    setVisible(PAGE_SIZE);
+    const next = new URLSearchParams(params);
+    if (!t || t === tag) next.delete("tag"); else next.set("tag", t);
+    setParams(next, { replace: true });
+  }
+
+  const renderCard = (article, big = false) => (
+    <Link key={article.id} to={`/blog/${article.slug}`} style={{ textDecoration: "none" }}>
+      <article className="blog-list-card" style={big ? { ...styles.articleCard, flexDirection: "column", gap: 0 } : styles.articleCard}>
+        {article.coverImageUrl && (
+          <img loading={big ? "eager" : "lazy"} decoding="async"
+            className="blog-list-cover"
+            src={article.coverImageUrl}
+            alt=""
+            style={big ? styles.featuredCover : styles.cover}
+          />
+        )}
+        <div style={styles.cardBody}>
+          <div style={styles.articleMeta}>
+            <span style={styles.date}>
+              {big && <span style={styles.badge}>À la une · </span>}
+              {formatDate(article.publishedAt)}
+              <span style={styles.readTime}> · {readingMinutes(article.content)} min de lecture</span>
+            </span>
+            {article.tags && article.tags.length > 0 && (
+              <div style={styles.tags}>
+                {article.tags.slice(0, 2).map((t) => (
+                  <span key={t} style={styles.tag}>{t}</span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <h2 style={big ? styles.featuredTitle : styles.articleTitle}>{article.title}</h2>
+          <p style={styles.excerpt}>{article.excerpt}</p>
+          <div style={styles.readMore}>Lire l'article →</div>
+        </div>
+      </article>
+    </Link>
+  );
+
   return (
     <div style={styles.container}>
       <style>{`
@@ -44,54 +107,56 @@ export default function BlogList() {
         </p>
       </div>
 
+      {showFilters && (
+        <div style={styles.toolbar}>
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setVisible(PAGE_SIZE); }}
+            placeholder="Rechercher un article, un thème..."
+            aria-label="Rechercher un article"
+            style={styles.search}
+          />
+          {tags.length > 0 && (
+            <div style={styles.pills}>
+              <button style={styles.pill(!tag)} onClick={() => pickTag("")}>Tous</button>
+              {tags.slice(0, 12).map(([t, n]) => (
+                <button key={t} style={styles.pill(tag === t)} onClick={() => pickTag(t)}>
+                  {t}<span style={styles.pillCount}>{n}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {loading && <p style={styles.loading}>Chargement des articles...</p>}
 
       {!loading && articles.length === 0 && (
         <p style={styles.empty}>Aucun article publié pour le moment.</p>
       )}
 
+      {!loading && articles.length > 0 && filtering && (
+        <p style={styles.resultCount}>
+          {filtered.length} article{filtered.length > 1 ? "s" : ""}
+          {tag ? ` sur « ${tag} »` : ""}
+        </p>
+      )}
+
+      {!loading && articles.length > 0 && filtered.length === 0 && (
+        <p style={styles.empty}>Aucun article ne correspond à votre recherche.</p>
+      )}
+
       <div style={styles.articlesList}>
-        {articles.map((article) => (
-          <Link
-            key={article.id}
-            to={`/blog/${article.slug}`}
-            style={{ textDecoration: "none" }}
-          >
-            <article className="blog-list-card" style={styles.articleCard}>
-              {article.coverImageUrl && (
-                <img loading="lazy" decoding="async"
-                  className="blog-list-cover"
-                  src={article.coverImageUrl}
-                  alt=""
-                  style={styles.cover}
-                />
-              )}
-              <div style={styles.cardBody}>
-                <div style={styles.articleMeta}>
-                  <span style={styles.date}>
-                    {formatDate(article.publishedAt)}
-                  </span>
-                  {article.tags && article.tags.length > 0 && (
-                    <div style={styles.tags}>
-                      {article.tags.slice(0, 2).map((tag) => (
-                        <span key={tag} style={styles.tag}>
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <h2 style={styles.articleTitle}>{article.title}</h2>
-
-                <p style={styles.excerpt}>{article.excerpt}</p>
-
-                <div style={styles.readMore}>Lire l'article →</div>
-              </div>
-            </article>
-          </Link>
-        ))}
+        {featured && renderCard(featured, true)}
+        {shown.map((article) => renderCard(article))}
       </div>
+
+      {rest.length > visible && (
+        <button style={styles.moreBtn} onClick={() => setVisible((v) => v + PAGE_SIZE)}>
+          Voir plus d'articles ({rest.length - visible})
+        </button>
+      )}
     </div>
   );
 }
@@ -203,4 +268,30 @@ const styles = {
     fontWeight: "500",
     marginTop: "16px",
   },
+  toolbar: { display: "flex", flexDirection: "column", gap: "14px", marginBottom: "36px" },
+  search: {
+    width: "100%", boxSizing: "border-box", padding: "12px 16px", borderRadius: "10px",
+    border: "1px solid #2a2a35", background: "#12121a", color: "#e8e8f0", fontSize: "15px",
+  },
+  pills: { display: "flex", flexWrap: "wrap", gap: "8px" },
+  pill: (active) => ({
+    fontSize: "0.85rem", padding: "6px 14px", borderRadius: "20px", cursor: "pointer",
+    border: active ? "1px solid #7c3aed" : "1px solid #2a2a35",
+    background: active ? "rgba(124,58,237,0.18)" : "transparent",
+    color: active ? "#a78bfa" : "#a0a0b0",
+  }),
+  pillCount: { opacity: 0.6, marginLeft: "6px" },
+  featuredCover: { width: "100%", height: "320px", objectFit: "cover", display: "block" },
+  featuredTitle: { fontSize: "2rem", fontWeight: "bold", color: "#e8e8f0", margin: "12px 0", lineHeight: "1.3" },
+  badge: {
+    fontSize: "0.75rem", fontWeight: 600, color: "#7c3aed", textTransform: "uppercase",
+    letterSpacing: "0.06em",
+  },
+  readTime: { fontSize: "0.85rem", color: "#8888a0" },
+  moreBtn: {
+    display: "block", margin: "36px auto 0", padding: "12px 28px", borderRadius: "10px",
+    background: "transparent", border: "1px solid #7c3aed", color: "#a78bfa",
+    fontSize: "0.95rem", fontWeight: 600, cursor: "pointer",
+  },
+  resultCount: { fontSize: "0.9rem", color: "#8888a0", marginBottom: "20px" },
 };
