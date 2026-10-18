@@ -340,7 +340,7 @@ export default function Navbar() {
                   {user.displayName || "Mon compte"}
                 </div>
                 <div style={{ color: "#a78bfa", fontSize: "13px", fontWeight: 600, marginTop: "2px" }}>
-                  {Number(user.balance).toFixed(2)} pts
+                  {formatPointsShort(user.balance)} pts
                 </div>
               </div>
             </div>
