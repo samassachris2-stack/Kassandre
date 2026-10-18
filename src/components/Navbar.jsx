@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import NotificationBell from "./NotificationBell";
@@ -155,6 +155,14 @@ export default function Navbar() {
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
 
+  // Échap ferme le menu mobile
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+    const onKey = (e) => { if (e.key === "Escape") setMenuOpen(false); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [menuOpen]);
+
   return (
     <>
       <style>{`
@@ -261,37 +269,82 @@ export default function Navbar() {
       </div>
 
       {menuOpen && user && (
-        <div style={S.mobileMenu}>
-          <Link
-            to="/blog"
-            style={S.mobileLink(location.pathname.startsWith("/blog"))}
+        <>
+          {/* Fond assombri : toucher en dehors du menu le ferme */}
+          <div
             onClick={() => setMenuOpen(false)}
-          >
-            Blog
-          </Link>
-          <Link
-            to="/portefeuille"
-            style={S.mobileLink(location.pathname === "/portefeuille")}
-            onClick={() => setMenuOpen(false)}
-          >
-            Portefeuille
-          </Link>
-          {user.isAdmin && (
-            <Link
-              to="/admin/blog"
-              style={S.mobileLink(location.pathname === "/admin/blog")}
-              onClick={() => setMenuOpen(false)}
+            style={{ position: "fixed", top: "60px", left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.55)", zIndex: 47 }}
+          />
+          <div role="menu" style={{
+            position: "fixed", top: "68px", left: "8px", right: "8px", zIndex: 48,
+            background: "#0f0f17", border: "0.5px solid rgba(124,58,237,0.3)",
+            borderRadius: "14px", boxShadow: "0 12px 36px rgba(0,0,0,0.6)", padding: "10px",
+          }}>
+            <div style={{
+              display: "flex", alignItems: "center", gap: "12px",
+              padding: "8px 8px 14px", marginBottom: "6px",
+              borderBottom: "0.5px solid rgba(124,58,237,0.15)",
+            }}>
+              <img
+                src={user.photoURL}
+                width={42}
+                height={42}
+                alt=""
+                style={{ borderRadius: "50%", border: "2px solid rgba(124,58,237,0.5)", objectFit: "cover", flexShrink: 0 }}
+              />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ color: "#e8e8f0", fontWeight: 600, fontSize: "15px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {user.displayName || "Mon compte"}
+                </div>
+                <div style={{ color: "#a78bfa", fontSize: "13px", fontWeight: 600, marginTop: "2px" }}>
+                  {Number(user.balance).toFixed(2)} pts
+                </div>
+              </div>
+            </div>
+
+            {[
+              ["Mon profil", `/profil/${user.uid}`],
+              ["Portefeuille", "/portefeuille"],
+              ["Blog", "/blog"],
+              ...(user.isAdmin ? [["Gérer le blog", "/admin/blog"]] : []),
+              ["Paramètres", "/settings"],
+            ].map(([label, to]) => {
+              const active = location.pathname === to || (to !== "/blog" && location.pathname.startsWith(to));
+              return (
+                <Link
+                  key={to}
+                  to={to}
+                  role="menuitem"
+                  onClick={() => setMenuOpen(false)}
+                  style={{
+                    display: "flex", justifyContent: "space-between", alignItems: "center",
+                    padding: "13px 10px", borderRadius: "8px", textDecoration: "none",
+                    fontSize: "15px", fontWeight: 500,
+                    color: active ? "#a78bfa" : "#e8e8f0",
+                    background: active ? "rgba(124,58,237,0.12)" : "transparent",
+                  }}
+                >
+                  <span>{label}</span>
+                  <span style={{ color: "#4a4a60", fontSize: "18px" }}>›</span>
+                </Link>
+              );
+            })}
+
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => { setMenuOpen(false); logout(); }}
+              style={{
+                display: "block", width: "100%", marginTop: "6px", padding: "13px 10px",
+                background: "transparent", border: "none", borderTop: "0.5px solid rgba(124,58,237,0.15)",
+                borderRadius: "0 0 8px 8px", color: "#ef4444", fontSize: "15px", fontWeight: 500,
+                textAlign: "left", cursor: "pointer",
+              }}
             >
-              Gérer le blog
-            </Link>
-          )}
-          <button
-            onClick={() => { setMenuOpen(false); logout(); }}
-            style={{ ...S.mobileLink(false), textAlign: "left", border: "none", background: "transparent", cursor: "pointer", color: "#ef4444" }}
-          >
-            Déconnexion
-          </button>
-        </div>
+              Déconnexion
+            </button>
+          </div>
+        </>
       )}
     </>
   );
