@@ -1,4 +1,5 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
+import { trackPageView } from "./lib/analytics";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import Feed from "./pages/Feed";
 const Market = lazy(() => import("./pages/Market"));
@@ -24,6 +25,13 @@ const EmbedMarket = lazy(() => import("./pages/EmbedMarket"));
 // Les pages /embed/... s'affichent seules, sans barre, pied de page ni notifications.
 function Shell() {
   const { pathname } = useLocation();
+
+  // Un page_view à chaque changement de page. Le délai laisse le temps au titre de se mettre à jour.
+  useEffect(() => {
+    const timer = setTimeout(() => trackPageView(pathname), 300);
+    return () => clearTimeout(timer);
+  }, [pathname]);
+
   if (pathname.startsWith("/embed/")) {
     return (
       <Suspense fallback={null}>
