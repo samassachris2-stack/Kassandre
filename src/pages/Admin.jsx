@@ -1090,6 +1090,8 @@ export default function Admin() {
 
       <h2 style={{ fontSize: "18px", marginBottom: "16px" }}>Marchés ouverts ({filteredMarkets.length}/{markets.length})</h2>
 
+      {/* Recherche, filtres et sélection restent visibles sous la navbar et la barre de catégories (60 + 60px) */}
+      <div style={{ position: "sticky", top: "120px", zIndex: 20, background: "#0a0a0f", paddingBottom: "4px" }}>
       <div style={{ display: "flex", gap: "10px", marginBottom: "16px", flexWrap: "wrap" }}>
         <input
           type="text"
@@ -1159,6 +1161,7 @@ export default function Admin() {
           </button>
         </div>
       )}
+      </div>
 
       {filteredMarkets.length === 0 && (
         <p style={{ color: "#6b6b8a", fontSize: "13px", textAlign: "center", padding: "30px 0" }}>
