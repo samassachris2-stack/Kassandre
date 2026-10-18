@@ -496,8 +496,11 @@ export default function Market() {
     const sideLabel = market.type === "multi"
       ? options.find((o) => o.id === selectedOption)?.label
       : side === "yes" ? "OUI" : "NON";
-    const text = `Je parie sur "${sideLabel}" :\n\n"${market.question}"\n\nTu penses quoi ? 👁 kassandre.app`;
-    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, "_blank");
+    // Le lien porte le pari (?pick=) : l'aperçu affiché sur X montre « Mon pari : ... »
+    const pick = market.type === "multi" ? sideLabel : side;
+    const link = `https://kassandre.app/market/${id}${pick ? `?pick=${encodeURIComponent(pick)}` : ""}`;
+    const text = `Je parie sur "${sideLabel}" :\n\n"${market.question}"\n\nTu penses quoi ?`;
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(link)}`, "_blank");
   }
 
   async function shareOnInstagram() {

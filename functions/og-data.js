@@ -44,9 +44,11 @@ export async function buildOgPayload(db, kind, id) {
         .sort((a, b) => (b.price ?? 0) - (a.price ?? 0))
         .slice(0, 10);
     }
+    const cats = Array.isArray(m.categories) ? m.categories : m.category ? [m.category] : [];
     return {
       question: m.question ?? "",
       description: m.description ?? "",
+      category: cats.length > 0 ? String(cats[0]) : null,
       type: m.type ?? null,
       status: m.status ?? null,
       resolutionDate: typeof m.resolutionDate === "string" ? m.resolutionDate : iso(m.resolutionDate)?.slice(0, 10) ?? null,

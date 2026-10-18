@@ -79,5 +79,11 @@
       "source": "/((?!assets/).*)",
       "destination": "/"
     }
-  ]
+  ],
+  "functions": {
+    "api/og-image.js": {
+      "includeFiles": "api/_fonts/**",
+      "maxDuration": 15
+    }
+  }
 }

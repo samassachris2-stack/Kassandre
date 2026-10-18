@@ -51,7 +51,7 @@ const fetchMarket = (id, fetchFn) => fetchOgData("market", id, fetchFn);
 
 // ── Construction des métadonnées par type de page ─────────────────────────
 
-async function buildMeta(kind, id, fetchFn) {
+async function buildMeta(kind, id, fetchFn, opts = {}) {
   const base = { title: DEFAULT_TITLE, description: DEFAULT_DESC, image: DEFAULT_IMAGE, path: "/", type: "website", body: "" };
 
   if (kind === "blog") {
@@ -114,6 +114,10 @@ async function buildMeta(kind, id, fetchFn) {
       title: `${m.question} | Kassandre`,
       description: truncate(desc || "Marché de prédiction sur Kassandre : donnez votre pronostic."),
       path: `/market/${encodeURIComponent(id)}`,
+      // Image générée pour ce marché (probabilités en direct, pari de la personne
+      // qui partage via ?pick=). Voir api/og-image.js.
+      image: `${SITE}/api/og-image?id=${encodeURIComponent(id)}${opts.pick ? `&pick=${encodeURIComponent(String(opts.pick).slice(0, 120))}` : ""}`,
+      dynamicImage: true,
       debug: "ok",
       body: `<article><h1>${esc(m.question)}</h1>${m.description ? `<p>${esc(stripHtml(m.description))}</p>` : ""}${probaHtml}${statusHtml}${dateHtml}</article>`,
     };
@@ -126,7 +130,7 @@ async function buildMeta(kind, id, fetchFn) {
 
 function render(shell, meta) {
   const url = `${SITE}${meta.path === "/" ? "" : meta.path}`;
-  const isDefaultImage = meta.image === DEFAULT_IMAGE;
+  const isDefaultImage = meta.image === DEFAULT_IMAGE || meta.dynamicImage === true;
   const tags = [
     `<title>${esc(meta.title)}</title>`,
     `<meta name="description" content="${esc(meta.description)}" />`,
@@ -175,6 +179,7 @@ export default async function handler(req, res) {
   const url = new URL(req.url, SITE);
   const kind = url.searchParams.get("kind") || "home";
   const id = url.searchParams.get("id") || "";
+  const pick = url.searchParams.get("pick") || "";
 
   let shell;
   try {
@@ -190,7 +195,7 @@ export default async function handler(req, res) {
 
   let meta;
   try {
-    meta = await buildMeta(kind, id, fetch);
+    meta = await buildMeta(kind, id, fetch, { pick });
   } catch (e) {
     console.error("og: lookup failed", kind, id, e.message);
     // Balises par défaut, mais on garde l'URL demandée comme canonique
