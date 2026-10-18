@@ -11,6 +11,7 @@ const BlogAdminPage = lazy(() => import("./pages/BlogAdminPage"));
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import NotificationHost from "./components/NotificationHost";
+import CookieBanner from "./components/CookieBanner";
 const Settings = lazy(() => import("./pages/Settings"));
 const CGU = lazy(() => import("./pages/CGU"));
 const Confidentialite = lazy(() => import("./pages/Confidentialite"));
@@ -64,6 +65,7 @@ function Shell() {
         </div>
         <Footer />
         <NotificationHost />
+        <CookieBanner />
       </div>
   );
 }

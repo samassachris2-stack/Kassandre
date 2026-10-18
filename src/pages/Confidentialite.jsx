@@ -12,7 +12,7 @@ export default function Confidentialite() {
   return (
     <div style={S.page}>
       <h1 style={S.title}>Politique de confidentialité</h1>
-      <p style={S.updated}>Dernière mise à jour : 4 juillet 2026</p>
+      <p style={S.updated}>Dernière mise à jour : 18 octobre 2026</p>
 
       <div style={S.section}>
         <h2 style={S.sectionTitle}>1. Responsable du traitement</h2>
@@ -81,9 +81,16 @@ export default function Confidentialite() {
       <div style={S.section}>
         <h2 style={S.sectionTitle}>8. Cookies</h2>
         <p style={S.text}>
-          Kassandre utilise uniquement les cookies strictement nécessaires au fonctionnement
-          du service (session d'authentification). Aucun cookie publicitaire ou de traçage
-          tiers n'est utilisé.
+          Cookies strictement nécessaires : ils servent à la session de connexion et à la
+          sécurité du service. Le service de sécurité Google reCAPTCHA, utilisé pour protéger
+          le site contre les abus, peut déposer ses propres cookies techniques. Ils sont
+          déposés sans ton accord.
+        </p>
+        <p style={S.text}>
+          Cookies de mesure d'audience : Kassandre utilise Firebase Analytics (Google) pour
+          comprendre quelles pages sont consultées. Ces cookies ne sont déposés que si tu
+          acceptes dans le bandeau. Tu peux refuser à tout moment ; ton choix est conservé
+          dans ton navigateur. Aucun cookie publicitaire n'est utilisé.
         </p>
       </div>
     </div>
