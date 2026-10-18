@@ -8,6 +8,7 @@ import { useSEO } from "../hooks/useSEO";
 import { doc, onSnapshot, collection, getDocs, query, orderBy } from "firebase/firestore";
 import { notify } from "../lib/notify";
 import FollowButton from "../components/FollowButton";
+import EmbedCode from "../components/EmbedCode";
 
 const S = {
   layoutWrap: {
@@ -587,7 +588,10 @@ export default function Market() {
       <div style={S.tagRow}>
         {market.category && <span style={S.tag}>{market.category}</span>}
         <span style={S.statusDot}>· {statusLabel}</span>
-        <div style={{ marginLeft: "auto" }}><FollowButton marketId={id} /></div>
+        <div style={{ marginLeft: "auto", display: "flex", gap: "8px" }}>
+          <FollowButton marketId={id} />
+          <EmbedCode marketId={id} question={market.question} isMulti={market.type === "multi"} />
+        </div>
         <button
           onClick={shareMarket}
           style={{

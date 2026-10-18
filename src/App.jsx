@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import Feed from "./pages/Feed";
 const Market = lazy(() => import("./pages/Market"));
 const Leaderboard = lazy(() => import("./pages/Leaderboard"));
@@ -17,10 +17,19 @@ const Confidentialite = lazy(() => import("./pages/Confidentialite"));
 const MentionsLegales = lazy(() => import("./pages/MentionsLegales"));
 const BlogList = lazy(() => import("./pages/BlogList"));
 const BlogDetail = lazy(() => import("./pages/BlogDetail"));
+const EmbedMarket = lazy(() => import("./pages/EmbedMarket"));
 
-export default function App() {
+// Les pages /embed/... s'affichent seules, sans barre, pied de page ni notifications.
+function Shell() {
+  const { pathname } = useLocation();
+  if (pathname.startsWith("/embed/")) {
+    return (
+      <Suspense fallback={null}>
+        <Routes><Route path="/embed/:id" element={<EmbedMarket />} /></Routes>
+      </Suspense>
+    );
+  }
   return (
-    <BrowserRouter>
       <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
         <Navbar />
         <div style={{ flex: 1 }}>
@@ -49,6 +58,13 @@ export default function App() {
         <Footer />
         <NotificationHost />
       </div>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Shell />
     </BrowserRouter>
   );
 }
