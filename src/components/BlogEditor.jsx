@@ -4,11 +4,16 @@ import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
 import TextAlign from "@tiptap/extension-text-align";
 import Underline from "@tiptap/extension-underline";
+import { TextStyle } from "@tiptap/extension-text-style";
+import Color from "@tiptap/extension-color";
 import { useState, useRef, useCallback } from "react";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "../lib/firebase";
 import { safeFileName } from "../lib/cssUrl";
 import ResizableImage from "./ResizableImage";
+import TextStyleControls from "./TextStyleControls";
+import BlogBubbleMenu from "./BlogBubbleMenu";
+import { TextStyleExtras } from "../lib/tiptapTextStyle";
 import { notify } from "../lib/notify";
 
 // Tous les boutons de cette toolbar vivent dans le <form> de l'admin blog.
@@ -42,11 +47,15 @@ export default function BlogEditor({ content, onChange }) {
   const [showLinkInput, setShowLinkInput] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
   const fileInputRef = useRef(null);
+  const containerRef = useRef(null);
 
   const editor = useEditor({
     extensions: [
       StarterKit,
       Underline,
+      TextStyle,
+      Color,
+      TextStyleExtras,
       ResizableImage.configure({
         allowBase64: true,
       }),
@@ -116,7 +125,7 @@ export default function BlogEditor({ content, onChange }) {
   }
 
   return (
-    <div style={styles.container}>
+    <div ref={containerRef} style={styles.container}>
       <style>{`
         .blog-editor-content .ProseMirror {
           min-height: 350px;
@@ -241,6 +250,10 @@ export default function BlogEditor({ content, onChange }) {
         >
           <u>S</u>
         </ToolButton>
+
+        <div style={styles.separator} />
+
+        <TextStyleControls editor={editor} />
 
         <div style={styles.separator} />
 
@@ -410,12 +423,15 @@ export default function BlogEditor({ content, onChange }) {
       <div className="blog-editor-content" style={styles.editor}>
         <EditorContent editor={editor} />
       </div>
+
+      <BlogBubbleMenu editor={editor} containerRef={containerRef} />
     </div>
   );
 }
 
 const styles = {
   container: {
+    position: "relative",
     backgroundColor: "#1a1a22",
     borderRadius: "8px",
     border: "1px solid #2a2a35",
