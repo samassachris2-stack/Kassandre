@@ -123,6 +123,13 @@ service cloud.firestore {
       allow update: if false;
     }
 
+    // ── Données publiques calculées (ex. meta/movers) ────────────────────────
+    // Écrites par les Cloud Functions uniquement.
+    match /meta/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
     // ── Fonction helper ──────────────────────────────────────────────────────
     function isAdmin() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;

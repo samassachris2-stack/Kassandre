@@ -9,7 +9,7 @@
 const SITE = "https://kassandre.app";
 const OG_DATA_URL = "https://us-central1-kassandre-f868e.cloudfunctions.net/ogData";
 
-const STATIC_PAGES = ["/", "/presidentielle-2027", "/blog", "/leaderboard", "/cgu", "/confidentialite", "/mentions-legales"];
+const STATIC_PAGES = ["/", "/presidentielle-2027", "/blog", "/leaderboard", "/resolution", "/cgu", "/confidentialite", "/mentions-legales"];
 const CATEGORIES = ["Sport", "Politique", "Crypto", "Tech", "Économie", "International", "Culture", "Climat", "Autre"];
 
 const xmlEsc = (s) =>

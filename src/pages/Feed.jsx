@@ -7,6 +7,7 @@ import { placeBet, calcShares } from "../lib/amm.js";
 import { getLatestArticles } from "../lib/articles";
 import { useSEO } from "../hooks/useSEO";
 import { generateOrganizationStructuredData } from "../lib/structuredData";
+import MoversSection from "../components/MoversSection";
 
 // Nombre de cartes affichées par "page" (les filtres, tris et compteurs de tags
 // restent calculés sur tous les marchés ouverts, seul le rendu est paginé).
@@ -731,6 +732,7 @@ export default function Feed({ hub }) {
       )}
 
       {(hubDef || (!catFromRoute && !tagFromRoute)) && <FeaturedCarousel markets={hubDef ? marketsInCategory : markets} />}
+      {!hubDef && !catFromRoute && !tagFromRoute && <MoversSection />}
       {!catFromRoute && !tagFromRoute && <BlogPreviewSection />}
 
       {/* ── Barre de recherche ── */}

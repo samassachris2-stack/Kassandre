@@ -17,6 +17,7 @@ const Confidentialite = lazy(() => import("./pages/Confidentialite"));
 const MentionsLegales = lazy(() => import("./pages/MentionsLegales"));
 const BlogList = lazy(() => import("./pages/BlogList"));
 const BlogDetail = lazy(() => import("./pages/BlogDetail"));
+const Resolution = lazy(() => import("./pages/Resolution"));
 const EmbedMarket = lazy(() => import("./pages/EmbedMarket"));
 
 // Les pages /embed/... s'affichent seules, sans barre, pied de page ni notifications.
@@ -39,6 +40,7 @@ function Shell() {
           <Suspense fallback={<p style={{ padding: "40px", color: "#8888a0" }}>Chargement...</p>}>
           <Routes>
             <Route path="/" element={<Feed />} />
+            <Route path="/resolution" element={<Resolution />} />
             <Route path="/presidentielle-2027" element={<Feed hub="presidentielle" />} />
             <Route path="/:cat" element={<Feed />} />
             <Route path="/:cat/:tag" element={<Feed />} />

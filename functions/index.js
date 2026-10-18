@@ -737,6 +737,57 @@ export const notifyBigMoves = onSchedule(
   }
 );
 
+// ── Marchés qui bougent ──────────────────────────────────────────────────
+// Toutes les heures : les 5 plus fortes variations sur 24 h parmi les marchés
+// ouverts, écrites dans meta/movers (lecture publique) pour l'accueil.
+export const computeMovers = onSchedule(
+  { schedule: "every 60 minutes", timeZone: "Europe/Paris" },
+  async () => {
+    const since = Timestamp.fromMillis(Date.now() - 24 * 3600 * 1000);
+    const openSnap = await db.collection("markets").where("status", "==", "open").get();
+    const found = [];
+
+    for (const marketDoc of openSnap.docs) {
+      try {
+        const marketRef = marketDoc.ref;
+        const hist = marketRef.collection("priceHistory");
+        const [beforeSnap, firstSnap, latestSnap] = await Promise.all([
+          hist.where("timestamp", "<", since).orderBy("timestamp", "desc").limit(1).get(),
+          hist.where("timestamp", ">=", since).orderBy("timestamp", "asc").limit(1).get(),
+          hist.orderBy("timestamp", "desc").limit(1).get(),
+        ]);
+        const baseline = (beforeSnap.docs[0] || firstSnap.docs[0])?.data();
+        const latest = latestSnap.docs[0]?.data();
+
+        const labels = {};
+        if (marketDoc.data().type === "multi") {
+          const optSnap = await marketRef.collection("options").get();
+          optSnap.forEach((o) => { labels[o.id] = o.data().label; });
+        }
+
+        const move = detectMove(baseline, latest, labels, 3);
+        if (move) {
+          found.push({
+            marketId: marketDoc.id,
+            question: marketDoc.data().question || "",
+            label: move.label, from: Math.round(move.from), to: Math.round(move.to),
+            diff: Math.abs(move.to - move.from),
+          });
+        }
+      } catch (e) {
+        console.error("movers: marché ignoré", marketDoc.id, e.message);
+      }
+    }
+
+    found.sort((a, b) => b.diff - a.diff);
+    await db.collection("meta").doc("movers").set({
+      items: found.slice(0, 5).map(({ diff, ...rest }) => rest),
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+    console.log(`Movers : ${found.length} marché(s) en mouvement.`);
+  }
+);
+
 // ── ogData : données publiques pour les aperçus de liens ─────────────────
 // Appelée côté serveur par api/og.js (Vercel) quand Facebook, X, LinkedIn,
 // WhatsApp... demandent une page d'article ou de marché. Les robots n'ont pas

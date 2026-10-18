@@ -155,6 +155,10 @@ export default function Footer() {
               onMouseEnter={(e) => { e.currentTarget.style.color = "#e8e8f0"; }}
               onMouseLeave={(e) => { e.currentTarget.style.color = "#a8a8b8"; }}
             >Portefeuille</Link>
+            <Link to="/resolution" style={S.link}
+              onMouseEnter={(e) => { e.currentTarget.style.color = "#e8e8f0"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = "#a8a8b8"; }}
+            >Comment on résout</Link>
             <Link to="/soumettre" style={S.link}
               onMouseEnter={(e) => { e.currentTarget.style.color = "#e8e8f0"; }}
               onMouseLeave={(e) => { e.currentTarget.style.color = "#a8a8b8"; }}
