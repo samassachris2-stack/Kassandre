@@ -466,6 +466,8 @@ export default function Feed({ hub }) {
   const [sortBy, setSortBy] = useState("volume");
   const [selectedTag, setSelectedTag] = useState(null);
   const [tagsExpanded, setTagsExpanded] = useState(false);
+  // Sur téléphone, la liste des tags est repliée par défaut (un seul bouton à la place)
+  const [mobileTagsOpen, setMobileTagsOpen] = useState(false);
   const contentColRef = useRef(null);
   const searchSentinelRef = useRef(null);
   const [searchBarRect, setSearchBarRect] = useState(null);
@@ -598,25 +600,31 @@ export default function Feed({ hub }) {
     {seo}
     <style>{`
       .kassandre-feed-layout { display: flex; }
+      .kassandre-tags-toggle { display: none; }
       .kassandre-feed-sidebar::-webkit-scrollbar { display: none; }
       .kassandre-feed-sidebar { scrollbar-width: none; }
       @media (max-width: 720px) {
         .kassandre-feed-layout { flex-direction: column; }
         /* Sur téléphone, les catégories deviennent une rangée défilante horizontale
            au lieu d'une longue liste verticale qui repousse les marchés. */
+        .kassandre-tags-toggle { display: flex; }
         .kassandre-feed-sidebar {
           position: static !important;
           flex: none !important;
           width: 100%;
           max-height: none !important;
+          display: none !important;
+        }
+        .kassandre-feed-sidebar.is-open {
           display: flex !important;
-          flex-direction: row !important;
+          flex-wrap: wrap;
           align-items: center;
           gap: 6px;
-          overflow-x: auto !important;
-          overflow-y: hidden !important;
-          padding: 0 0 6px 0 !important;
-          margin-bottom: 4px;
+          max-height: 45vh !important;
+          overflow-y: auto !important;
+          overflow-x: hidden !important;
+          padding: 0 0 8px 0 !important;
+          margin-bottom: 8px;
         }
         .kassandre-feed-sidebar > button {
           width: auto !important;
@@ -640,7 +648,21 @@ export default function Feed({ hub }) {
       padding: "0 16px",
       gap: "28px",
     }}>
-      <aside className="kassandre-feed-sidebar" style={{
+      <button
+        type="button"
+        className="kassandre-tags-toggle"
+        onClick={() => setMobileTagsOpen((v) => !v)}
+        style={{
+          width: "100%", alignItems: "center", justifyContent: "space-between",
+          padding: "10px 14px", marginBottom: "12px", borderRadius: "8px",
+          border: "0.5px solid rgba(124,58,237,0.3)", background: "#15151f",
+          color: "#a78bfa", fontWeight: "600", fontSize: "14px", cursor: "pointer",
+        }}
+      >
+        <span>{selectedTag ? `Tag : ${selectedTag}` : "Filtrer par tag"}</span>
+        <span>{mobileTagsOpen ? "▲" : "▼"}</span>
+      </button>
+      <aside className={`kassandre-feed-sidebar${mobileTagsOpen ? " is-open" : ""}`} style={{
         flex: "0 0 200px",
         position: "sticky",
         top: "108px",
