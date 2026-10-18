@@ -281,12 +281,13 @@ export default function Navbar() {
           {/* Fond assombri : toucher en dehors du menu le ferme */}
           <div
             onClick={() => setMenuOpen(false)}
-            style={{ position: "fixed", top: "60px", left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.55)", zIndex: 47 }}
+            style={{ position: "fixed", top: "60px", left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.6)", zIndex: 55 }}
           />
           <div role="menu" style={{
-            position: "fixed", top: "68px", left: "8px", right: "8px", zIndex: 48,
+            position: "fixed", top: "128px", left: "8px", right: "8px", zIndex: 60,
             background: "#0f0f17", border: "0.5px solid rgba(124,58,237,0.3)",
             borderRadius: "14px", boxShadow: "0 12px 36px rgba(0,0,0,0.6)", padding: "10px",
+            maxHeight: "calc(100vh - 150px)", overflowY: "auto",
           }}>
             <div style={{
               display: "flex", alignItems: "center", gap: "12px",
