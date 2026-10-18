@@ -33,8 +33,8 @@ function Shell() {
       </Suspense>
     );
   }
-  // L'éditeur d'articles a besoin de toute la hauteur : pas de navbar sur /admin/blog
-  const hideNavbar = pathname.startsWith("/admin/blog");
+  // Les pages d'administration ont besoin de toute la hauteur : pas de navbar sur /admin
+  const hideNavbar = pathname.startsWith("/admin");
   return (
       <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
         {!hideNavbar && <Navbar />}
