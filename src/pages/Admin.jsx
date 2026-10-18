@@ -663,12 +663,12 @@ export default function Admin() {
 
   function exportMarketsCsv() {
     const esc = (v) => `"${String(v ?? "").replace(/"/g, '""').replace(/\r?\n/g, " ")}"`;
-    const lines = ["question,type,categories,resolutionDate,id"];
+    const lines = ["question,type,categories,resolutionDate,resolutionSource,description,id"];
     [...markets]
       .sort((a, b) => String(a.resolutionDate || "").localeCompare(String(b.resolutionDate || "")))
       .forEach((m) => {
         const cats = (m.categories || (m.category ? [m.category] : [])).join("|");
-        lines.push([m.question, m.marketType || "binary", cats, m.resolutionDate || "", m.id].map(esc).join(","));
+        lines.push([m.question, m.type || "binary", cats, m.resolutionDate || "", m.resolutionSource || "", m.description || "", m.id].map(esc).join(","));
       });
     const blob = new Blob(["\ufeff" + lines.join("\n")], { type: "text/csv;charset=utf-8" });
     const a = document.createElement("a");
