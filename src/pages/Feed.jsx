@@ -602,14 +602,35 @@ export default function Feed({ hub }) {
       .kassandre-feed-sidebar { scrollbar-width: none; }
       @media (max-width: 720px) {
         .kassandre-feed-layout { flex-direction: column; }
-        .kassandre-feed-sidebar { position: static !important; flex: none !important; width: 100%; max-height: none !important; overflow-y: visible !important; }
+        /* Sur téléphone, les catégories deviennent une rangée défilante horizontale
+           au lieu d'une longue liste verticale qui repousse les marchés. */
+        .kassandre-feed-sidebar {
+          position: static !important;
+          flex: none !important;
+          width: 100%;
+          max-height: none !important;
+          display: flex !important;
+          flex-direction: row !important;
+          align-items: center;
+          gap: 6px;
+          overflow-x: auto !important;
+          overflow-y: hidden !important;
+          padding: 0 0 6px 0 !important;
+          margin-bottom: 4px;
+        }
+        .kassandre-feed-sidebar > button {
+          width: auto !important;
+          flex: 0 0 auto;
+          margin-bottom: 0 !important;
+          padding: 7px 12px !important;
+          white-space: nowrap;
+          border: 0.5px solid rgba(124,58,237,0.2) !important;
+          border-radius: 999px !important;
+        }
+        .kassandre-feed-sidebar > p { flex: 0 0 auto; white-space: nowrap; }
         .kassandre-tags-collapse-sticky {
-          position: sticky;
-          bottom: 12px;
-          z-index: 10;
-          background: #15151f !important;
-          border: 0.5px solid rgba(124,58,237,0.3) !important;
-          box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+          position: static !important;
+          border-color: rgba(124,58,237,0.5) !important;
         }
       }
     `}</style>
