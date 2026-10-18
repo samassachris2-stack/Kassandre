@@ -25,7 +25,10 @@ function Shell() {
   if (pathname.startsWith("/embed/")) {
     return (
       <Suspense fallback={null}>
-        <Routes><Route path="/embed/:id" element={<EmbedMarket />} /></Routes>
+        <Routes>
+          <Route path="/embed/:id" element={<EmbedMarket />} />
+          <Route path="*" element={<p style={{ padding: "16px", color: "#8888a0", fontFamily: "system-ui" }}>Marché introuvable.</p>} />
+        </Routes>
       </Suspense>
     );
   }
