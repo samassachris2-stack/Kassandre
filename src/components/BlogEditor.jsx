@@ -12,7 +12,6 @@ import { storage } from "../lib/firebase";
 import { safeFileName } from "../lib/cssUrl";
 import ResizableImage from "./ResizableImage";
 import TextStyleControls from "./TextStyleControls";
-import BlogBubbleMenu from "./BlogBubbleMenu";
 import { TextStyleExtras } from "../lib/tiptapTextStyle";
 import { notify } from "../lib/notify";
 
@@ -47,7 +46,6 @@ export default function BlogEditor({ content, onChange }) {
   const [showLinkInput, setShowLinkInput] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
   const fileInputRef = useRef(null);
-  const containerRef = useRef(null);
 
   const editor = useEditor({
     extensions: [
@@ -125,7 +123,7 @@ export default function BlogEditor({ content, onChange }) {
   }
 
   return (
-    <div ref={containerRef} style={styles.container}>
+    <div style={styles.container}>
       <style>{`
         .blog-editor-content .ProseMirror {
           min-height: 350px;
@@ -422,16 +420,12 @@ export default function BlogEditor({ content, onChange }) {
 
       <div className="blog-editor-content" style={styles.editor}>
         <EditorContent editor={editor} />
-      </div>
-
-      <BlogBubbleMenu editor={editor} containerRef={containerRef} />
-    </div>
+      </div>    </div>
   );
 }
 
 const styles = {
   container: {
-    position: "relative",
     backgroundColor: "#1a1a22",
     borderRadius: "8px",
     border: "1px solid #2a2a35",
