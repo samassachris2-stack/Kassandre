@@ -561,7 +561,7 @@ function ExpandedDetail({ pos }) {
 }
 
 export default function Portefeuille() {
-  const { user } = useAuth();
+  const { user, login } = useAuth();
   const [positions, setPositions] = useState([]);
   const [resolvedPositions, setResolvedPositions] = useState([]);
   const [valueHistory, setValueHistory] = useState([]);
@@ -804,7 +804,19 @@ export default function Portefeuille() {
   }, [tab, positions, resolvedPositions, typeFilter, categoryFilter, sortBy]);
 
   if (!user) {
-    return <div style={S.page}><div style={S.emptyState}>Connecte-toi pour voir ton portefeuille.</div></div>;
+    return (
+      <div style={S.page}>
+        <div style={{ ...S.emptyState, display: "flex", flexDirection: "column", alignItems: "center", gap: "14px" }}>
+          <span>Connecte-toi pour voir ton portefeuille.</span>
+          <button
+            onClick={login}
+            style={{ background: "#7c3aed", border: "none", color: "#fff", fontSize: "15px", fontWeight: "600", padding: "12px 24px", borderRadius: "10px", cursor: "pointer" }}
+          >
+            Connexion Google
+          </button>
+        </div>
+      </div>
+    );
   }
 
   if (error) return <p style={{ padding: "40px", color: "#ef4444" }}>Erreur : {error}</p>;

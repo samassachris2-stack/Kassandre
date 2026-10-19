@@ -328,7 +328,7 @@ const MULTI_COLORS = ["#7c3aed", "#22c55e", "#ef4444", "#f59e0b", "#06b6d4"];
 
 export default function Market() {
   const { id } = useParams();
-  const { user } = useAuth();
+  const { user, login } = useAuth();
   const [market, setMarket] = useState(null);
   const [options, setOptions] = useState([]);
   const [side, setSide] = useState("yes");
@@ -941,8 +941,15 @@ export default function Market() {
           )}
 
           {!user && (
-            <div style={S.notLoggedIn}>
-              Connecte-toi pour parier.
+            <div style={{ ...S.notLoggedIn, display: "flex", flexDirection: "column", alignItems: "center", gap: "14px" }}>
+              <span>Connecte-toi pour parier.</span>
+              <button
+                onClick={login}
+                style={{ background: "#7c3aed", border: "none", color: "#fff", fontSize: "15px", fontWeight: "600", padding: "12px 24px", borderRadius: "10px", cursor: "pointer" }}
+              >
+                Connexion Google
+              </button>
+              <span style={{ fontSize: "12px", color: "#8888a0" }}>Gratuit, points virtuels, sans argent réel.</span>
             </div>
           )}
         </div>
