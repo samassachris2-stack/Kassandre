@@ -57,7 +57,7 @@ function Shell() {
   return (
       <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
         {!hideNavbar && <Navbar />}
-        <div style={{ flex: 1 }}>
+        <div style={{ flex: 1, minHeight: "75vh" }}>
           <Suspense fallback={<p style={{ padding: "40px", color: "#8888a0" }}>Chargement...</p>}>
           <Routes>
             <Route path="/" element={<Feed />} />
