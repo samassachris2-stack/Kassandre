@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect } from "react";
 import { trackPageView } from "./lib/analytics";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, useNavigationType } from "react-router-dom";
 import Feed from "./pages/Feed";
 const Market = lazy(() => import("./pages/Market"));
 const Leaderboard = lazy(() => import("./pages/Leaderboard"));
@@ -24,7 +24,15 @@ const EmbedMarket = lazy(() => import("./pages/EmbedMarket"));
 
 // Les pages /embed/... s'affichent seules, sans barre, pied de page ni notifications.
 function Shell() {
-  const { pathname } = useLocation();
+  const { pathname, hash } = useLocation();
+  const navType = useNavigationType();
+
+  // Une nouvelle page s'ouvre en haut. Sans cela, le défilement de la page
+  // précédente est conservé. Le retour arrière (POP) garde le comportement du navigateur.
+  useEffect(() => {
+    if (hash || navType === "POP") return;
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, [pathname, hash, navType]);
 
   // Un page_view à chaque changement de page. Le délai laisse le temps au titre de se mettre à jour.
   useEffect(() => {
