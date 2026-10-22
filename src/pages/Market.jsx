@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { db } from "../lib/firebase";
 import { useAuth } from "../context/AuthContext";
 import { placeBet, calcShares, calcSellShares, sellShares, placeBetMulti, calcSharesLMSR, calcSellSharesLMSR, sellSharesMulti, defaultLiquidityB, getBidAsk } from "../lib/amm.js";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+const PriceChart = lazy(() => import("../components/PriceChart"));
 import { useSEO } from "../hooks/useSEO";
 import { doc, onSnapshot, collection, getDocs, query, orderBy } from "firebase/firestore";
 import { notify } from "../lib/notify";
@@ -668,17 +668,9 @@ export default function Market() {
           {priceHistory.length > 1 && (
             <div style={S.chartWrap}>
               <p style={S.chartLabel}>Évolution des cotes</p>
-              <ResponsiveContainer width="100%" height={120}>
-                <LineChart data={priceHistory}>
-                  <XAxis dataKey="time" tick={{ fontSize: 11, fill: "#6b6b8a" }} />
-                  <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: "#6b6b8a" }} unit="%" />
-                  <Tooltip
-                    formatter={(value) => [`${value}%`, "Oui"]}
-                    contentStyle={{ background: "#12121a", border: "1px solid #2a2a3e", borderRadius: "8px", color: "#e8e8f0", fontSize: "13px" }}
-                  />
-                  <Line type="monotone" dataKey="oui" stroke="#7c3aed" strokeWidth={2} dot={false} />
-                </LineChart>
-              </ResponsiveContainer>
+              <Suspense fallback={<div style={{ height: 120 }} />}>
+                <PriceChart data={priceHistory} height={120} />
+              </Suspense>
             </div>
           )}
         </>
@@ -750,17 +742,13 @@ export default function Market() {
             {multiHistory.length > 1 && (
               <div style={S.chartWrap}>
                 <p style={S.chartLabel}>Évolution des cotes</p>
-                <ResponsiveContainer width="100%" height={150}>
-                  <LineChart data={multiHistory}>
-                    <XAxis dataKey="time" tick={{ fontSize: 11, fill: "#6b6b8a" }} />
-                    <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: "#6b6b8a" }} unit="%" />
-                    <Tooltip contentStyle={{ background: "#12121a", border: "1px solid #2a2a3e", borderRadius: "8px", color: "#e8e8f0", fontSize: "13px" }} />
-                    {options.map((opt, i) => (
-                      <Line key={opt.id} type="monotone" dataKey={opt.id} name={opt.label}
-                        stroke={MULTI_COLORS[i % MULTI_COLORS.length]} strokeWidth={2} dot={false} />
-                    ))}
-                  </LineChart>
-                </ResponsiveContainer>
+                <Suspense fallback={<div style={{ height: 150 }} />}>
+                  <PriceChart
+                    data={multiHistory}
+                    height={150}
+                    lines={options.map((opt, i) => ({ key: opt.id, name: opt.label, color: MULTI_COLORS[i % MULTI_COLORS.length] }))}
+                  />
+                </Suspense>
               </div>
             )}
           </>

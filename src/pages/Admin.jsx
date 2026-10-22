@@ -5,6 +5,7 @@ import { db, storage } from "../lib/firebase";
 import { useAuth } from "../context/AuthContext";
 import { resolveMarket, deleteMarket } from "../lib/amm.js";
 import { notify, askConfirm } from "../lib/notify";
+import { prepareImageForUpload } from "../lib/imageUtils";
 
 function MultiResolveButtons({ marketId }) {
   const [options, setOptions] = useState([]);
@@ -241,7 +242,8 @@ function FeaturedSettings({ market }) {
     setUploading(true);
     try {
       const imgRef = ref(storage, `market-covers/${market.id}`);
-      await uploadBytes(imgRef, blob);
+      const light = await prepareImageForUpload(blob, 1200, 0.82).catch(() => blob);
+      await uploadBytes(imgRef, light, { contentType: "image/jpeg" });
       const url = await getDownloadURL(imgRef);
       await updateDoc(doc(db, "markets", market.id), { coverImageUrl: url });
     } catch (err) {

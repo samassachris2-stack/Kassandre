@@ -281,15 +281,30 @@ function BlogPreviewSection() {
 
 function MultiLeaderGauge({ marketId }) {
   const [options, setOptions] = useState(null);
+  const [visible, setVisible] = useState(false);
+  const boxRef = useRef(null);
+
+  // Les options ne sont lues que lorsque la carte entre dans l'écran :
+  // évite des dizaines de requêtes au chargement de l'accueil.
+  useEffect(() => {
+    const el = boxRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") { setVisible(true); return undefined; }
+    const io = new IntersectionObserver((entries) => {
+      if (entries.some((e) => e.isIntersecting)) { setVisible(true); io.disconnect(); }
+    }, { rootMargin: "200px" });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   useEffect(() => {
+    if (!visible) return;
     getDocs(collection(db, "markets", marketId, "options")).then((snap) => {
       setOptions(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     });
-  }, [marketId]);
+  }, [marketId, visible]);
 
   if (!options || options.length === 0) {
-    return <div style={{ width: 56, height: 56, flexShrink: 0 }} />;
+    return <div ref={boxRef} style={{ width: 56, height: 56, flexShrink: 0 }} />;
   }
 
   const numOptions = options.length;
