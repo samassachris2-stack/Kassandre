@@ -80,9 +80,10 @@ async function buildMeta(kind, id, fetchFn, opts = {}) {
     return {
       title: `${a.title} | Kassandre`,
       description: truncate(stripHtml(a.excerpt) || text || DEFAULT_DESC),
-      image: a.coverImageUrl || DEFAULT_IMAGE,
+      image: `${SITE}/og/blog/${encodeURIComponent(a.slug || id)}.png`,
       path: `/blog/${encodeURIComponent(a.slug || id)}`,
       type: "article",
+      dynamicImage: true,
       debug: "ok",
       published: a.publishedAt,
       tags: Array.isArray(a.tags) ? a.tags : [],

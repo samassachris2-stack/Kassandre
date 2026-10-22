@@ -60,6 +60,10 @@
       "destination": "/api/og-image?id=:id"
     },
     {
+      "source": "/og/blog/:slug.png",
+      "destination": "/api/og-image?kind=article&id=:slug"
+    },
+    {
       "source": "/sitemap.xml",
       "destination": "/api/sitemap?type=index"
     },

@@ -6,7 +6,7 @@
 import { readFileSync } from "node:fs";
 import satori from "satori";
 import { Resvg } from "@resvg/resvg-js";
-import { cardElement, CARD_WIDTH, CARD_HEIGHT } from "./_card.js";
+import { cardElement, articleCardElement, CARD_WIDTH, CARD_HEIGHT } from "./_card.js";
 
 const SITE = "https://kassandre.app";
 const OG_DATA_URL = "https://us-central1-kassandre-f868e.cloudfunctions.net/ogData";
@@ -28,6 +28,22 @@ function loadFonts() {
   return fonts;
 }
 
+// Télécharge la couverture et la renvoie en data URI (Satori ne lit que png/jpeg).
+async function fetchCover(url) {
+  try {
+    if (!/^https:\/\//.test(url || "")) return null;
+    const r = await fetch(url, { signal: AbortSignal.timeout(5000) });
+    if (!r.ok) return null;
+    const type = (r.headers.get("content-type") || "").split(";")[0].trim();
+    if (type !== "image/jpeg" && type !== "image/png") return null;
+    const buf = Buffer.from(await r.arrayBuffer());
+    if (buf.length > 6 * 1024 * 1024) return null;
+    return `data:${type};base64,${buf.toString("base64")}`;
+  } catch {
+    return null;
+  }
+}
+
 function fallback(res) {
   res.statusCode = 302;
   res.setHeader("Location", `${SITE}/og-image.png`);
@@ -40,13 +56,17 @@ export default async function handler(req, res) {
     const url = new URL(req.url, SITE);
     const id = url.searchParams.get("id") || "";
     const pick = (url.searchParams.get("pick") || "").slice(0, 120);
+    const kind = url.searchParams.get("kind") === "article" ? "article" : "market";
     if (!ID_RE.test(id)) return fallback(res);
 
-    const r = await fetch(`${OG_DATA_URL}?kind=market&id=${encodeURIComponent(id)}`);
+    const r = await fetch(`${OG_DATA_URL}?kind=${kind}&id=${encodeURIComponent(id)}`);
     if (!r.ok) return fallback(res);
-    const market = await r.json();
+    const data = await r.json();
+    const element = kind === "article"
+      ? articleCardElement(data, await fetchCover(data.coverImageUrl))
+      : cardElement(data, pick);
 
-    const svg = await satori(cardElement(market, pick), {
+    const svg = await satori(element, {
       width: CARD_WIDTH,
       height: CARD_HEIGHT,
       fonts: loadFonts(),
@@ -56,7 +76,7 @@ export default async function handler(req, res) {
     res.statusCode = 200;
     res.setHeader("Content-Type", "image/png");
     // Les probabilités bougent : cache court côté CDN, rafraîchi en arrière-plan.
-    res.setHeader("Cache-Control", "public, s-maxage=600, stale-while-revalidate=86400");
+    res.setHeader("Cache-Control", kind === "article" ? "public, s-maxage=86400, stale-while-revalidate=604800" : "public, s-maxage=600, stale-while-revalidate=86400");
     res.end(png);
   } catch (e) {
     console.error("og-image: échec", e.message);

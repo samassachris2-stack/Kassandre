@@ -132,3 +132,27 @@ export function cardElement(market, pickParam) {
     ]),
   ]);
 }
+
+// ── Carte d'un article de blog : photo de couverture en fond, titre par-dessus ──
+// coverData : data URI (png/jpeg) de la couverture, ou null (fond dégradé violet).
+export function articleCardElement(article, coverData) {
+  const title = clip(String(article.title || "").trim(), 130);
+  const size = title.length > 90 ? 52 : title.length > 60 ? 60 : 70;
+  const bg = coverData
+    ? [
+        h("img", { position: "absolute", top: 0, left: 0, width: CARD_WIDTH, height: CARD_HEIGHT, objectFit: "cover" }, undefined, { src: coverData, width: CARD_WIDTH, height: CARD_HEIGHT }),
+        h("div", { position: "absolute", top: 0, left: 0, width: CARD_WIDTH, height: CARD_HEIGHT, display: "flex", backgroundImage: "linear-gradient(180deg, rgba(10,10,15,0.25) 0%, rgba(10,10,15,0.92) 100%)" }, ""),
+      ]
+    : [h("div", { position: "absolute", top: 0, left: 0, width: CARD_WIDTH, height: CARD_HEIGHT, display: "flex", backgroundImage: "linear-gradient(135deg, #1a1033 0%, #0a0a0f 100%)" }, "")];
+  return h("div", { display: "flex", position: "relative", width: CARD_WIDTH, height: CARD_HEIGHT, background: "#0a0a0f", fontFamily: "Inter" }, [
+    ...bg,
+    h("div", { position: "absolute", top: 56, left: 56, display: "flex", flexDirection: "column", justifyContent: "space-between", width: CARD_WIDTH - 112, height: CARD_HEIGHT - 112 }, [
+      h("div", { display: "flex", alignItems: "center", gap: 14 }, [
+        h("img", { width: 48, height: 48 }, undefined, { src: LOGO, width: 48, height: 48 }),
+        h("div", { display: "flex", fontSize: 32, fontWeight: 800, color: "#ffffff" }, "Kassandre"),
+        h("div", { display: "flex", fontSize: 22, color: LIGHT_PURPLE, marginLeft: 8 }, "Analyses"),
+      ]),
+      h("div", { display: "flex", fontSize: size, fontWeight: 800, color: "#ffffff", lineHeight: 1.12 }, title),
+    ]),
+  ]);
+}
