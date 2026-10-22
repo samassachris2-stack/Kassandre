@@ -14,6 +14,21 @@ import { cssUrl } from "../lib/cssUrl";
 // restent calculés sur tous les marchés ouverts, seul le rendu est paginé).
 const PAGE_SIZE = 24;
 
+// Les tags saisis à la main varient ("france", "France", "États-Unis", "etats-unis").
+// Pour l'affichage et le filtre, on les regroupe sous une même clé.
+function normTag(t) {
+  return String(t || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[\s_]+/g, "-")
+    .trim();
+}
+function prettyTag(t) {
+  const s = String(t || "").trim();
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
 // Texte d'introduction des pages de catégorie : du contenu éditorial à indexer
 // (sans lui, une page de catégorie n'est qu'une liste de cartes).
 const CATEGORY_INTROS = {
@@ -551,22 +566,34 @@ export default function Feed({ hub }) {
   }, [markets, activeCategories, hubDef]);
 
   const tagsInCategory = useMemo(() => {
-    const counts = {};
+    const groups = new Map(); // clé normalisée -> { variants: {original: n}, marketIds: Set }
     marketsInCategory.forEach((m) => {
       (m.tags || []).forEach((tag) => {
-        counts[tag] = (counts[tag] || 0) + 1;
+        const key = normTag(tag);
+        if (!key) return;
+        if (!groups.has(key)) groups.set(key, { variants: {}, ids: new Set() });
+        const g = groups.get(key);
+        g.variants[tag] = (g.variants[tag] || 0) + 1;
+        g.ids.add(m.id);
       });
     });
-    return Object.entries(counts)
-      .map(([tag, count]) => ({ tag, count }))
-      .sort((a, b) => b.count - a.count);
+    // Forme retenue : la plus fréquente ; à égalité, celle avec accents ou majuscule.
+    const decorated = (t) => (/[\u0080-\uffff]/.test(t) || t !== t.toLowerCase() ? 1 : 0);
+    return [...groups.entries()]
+      .map(([key, g]) => {
+        const tag = Object.entries(g.variants)
+          .sort((x, y) => y[1] - x[1] || decorated(y[0]) - decorated(x[0]))[0][0];
+        return { key, tag, label: prettyTag(tag), count: g.ids.size };
+      })
+      .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label, "fr"));
   }, [marketsInCategory, catFromRoute]);
 
   const visibleMarkets = useMemo(() => {
     let list = marketsInCategory;
 
     if (selectedTag) {
-      list = list.filter((m) => (m.tags || []).includes(selectedTag));
+      const wanted = normTag(selectedTag);
+      list = list.filter((m) => (m.tags || []).some((t) => normTag(t) === wanted));
     }
 
     if (searchTerm.trim()) {
@@ -618,6 +645,32 @@ export default function Feed({ hub }) {
       .kassandre-tags-toggle { display: none; }
       .kassandre-feed-sidebar::-webkit-scrollbar { display: none; }
       .kassandre-feed-sidebar { scrollbar-width: none; }
+      /* Tags : lignes sur ordinateur, pastilles sur téléphone */
+      .k-tag {
+        display: flex; align-items: center; justify-content: space-between; gap: 10px;
+        width: 100%; padding: 9px 12px; margin-bottom: 3px;
+        border: 1px solid transparent; border-radius: 10px; cursor: pointer; text-align: left;
+        background: transparent; color: #a8a8b8; font-size: 14px; font-weight: 500;
+        transition: background .15s, color .15s, border-color .15s;
+      }
+      .k-tag:hover { background: rgba(124,58,237,0.08); color: #d4d4e4; }
+      .k-tag-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .k-tag-count {
+        flex: none; min-width: 22px; padding: 1px 7px; border-radius: 999px; text-align: center;
+        font-size: 11px; font-weight: 600; color: #8a8aa8; background: rgba(255,255,255,0.06);
+      }
+      .k-tag.is-active {
+        color: #fff; font-weight: 600; border-color: rgba(167,139,250,0.55);
+        background: linear-gradient(135deg, rgba(124,58,237,0.45), rgba(91,33,182,0.35));
+        box-shadow: 0 2px 12px rgba(124,58,237,0.25);
+      }
+      .k-tag.is-active .k-tag-count { color: #fff; background: rgba(255,255,255,0.2); }
+      .k-tag-more {
+        width: 100%; padding: 8px 12px; margin-top: 4px; border: none; border-radius: 10px;
+        cursor: pointer; text-align: left; background: transparent; color: #a78bfa;
+        font-weight: 600; font-size: 13px;
+      }
+      .k-tag-more:hover { background: rgba(124,58,237,0.08); }
       @media (max-width: 720px) {
         .kassandre-feed-layout { flex-direction: column; }
         /* Sur téléphone, les catégories deviennent une rangée défilante horizontale
@@ -641,15 +694,14 @@ export default function Feed({ hub }) {
           padding: 0 0 8px 0 !important;
           margin-bottom: 8px;
         }
-        .kassandre-feed-sidebar > button {
-          width: auto !important;
-          flex: 0 0 auto;
-          margin-bottom: 0 !important;
-          padding: 7px 12px !important;
-          white-space: nowrap;
-          border: 0.5px solid rgba(124,58,237,0.2) !important;
-          border-radius: 999px !important;
+        .kassandre-feed-sidebar > .k-tag, .kassandre-feed-sidebar > .k-tag-more {
+          width: auto !important; flex: 0 0 auto; margin: 0 !important; white-space: nowrap;
+          padding: 7px 8px 7px 13px !important; gap: 8px;
+          border: 1px solid rgba(124,58,237,0.22); border-radius: 999px !important;
+          background: #15151f;
         }
+        .kassandre-feed-sidebar > .k-tag.is-active { border-color: rgba(167,139,250,0.7); }
+        .kassandre-feed-sidebar > .k-tag-more { padding: 7px 13px !important; color: #a78bfa; border-style: dashed; }
         .kassandre-feed-sidebar > p { flex: 0 0 auto; white-space: nowrap; }
         .kassandre-tags-collapse-sticky {
           position: static !important;
@@ -674,7 +726,7 @@ export default function Feed({ hub }) {
           color: "#a78bfa", fontWeight: "600", fontSize: "14px", cursor: "pointer",
         }}
       >
-        <span>{selectedTag ? `Tag : ${selectedTag}` : "Filtrer par tag"}</span>
+        <span>{selectedTag ? `Tag : ${prettyTag(selectedTag)}` : "Filtrer par tag"}</span>
         <span>{mobileTagsOpen ? "▲" : "▼"}</span>
       </button>
       <aside className={`kassandre-feed-sidebar${mobileTagsOpen ? " is-open" : ""}`} style={{
@@ -686,6 +738,7 @@ export default function Feed({ hub }) {
         paddingRight: "4px",
       }}>
         <button
+          className={`k-tag${!selectedTag ? " is-active" : ""}`}
           onClick={() => {
             if (tagFromRoute && catFromRoute) {
               navigate(`/${encodeURIComponent(catFromRoute)}`);
@@ -693,65 +746,43 @@ export default function Feed({ hub }) {
               setSelectedTag(null);
             }
           }}
-          style={{
-            display: "flex", alignItems: "center", justifyContent: "space-between",
-            width: "100%", padding: "10px 12px", marginBottom: "4px",
-            borderRadius: "8px", cursor: "pointer", textAlign: "left",
-            border: "none",
-            background: !selectedTag ? "rgba(124,58,237,0.15)" : "transparent",
-            color: !selectedTag ? "#a78bfa" : "#a8a8b8",
-            fontWeight: !selectedTag ? "600" : "500",
-            fontSize: "14px",
-          }}
         >
-          <span>Tous</span>
-          <span style={{ fontSize: "12px", color: "#6b6b8a" }}>{marketsInCategory.length}</span>
+          <span className="k-tag-label">Tous</span>
+          <span className="k-tag-count">{marketsInCategory.length}</span>
         </button>
-        {(tagsExpanded ? tagsInCategory : tagsInCategory.slice(0, 12)).map(({ tag, count }) => (
-          <button
-            key={tag}
-            onClick={() => {
-              if (selectedTag === tag) {
-                // Désélection : retour à la catégorie seule si on est sur une route avec tag
-                if (catFromRoute) {
-                  navigate(`/${encodeURIComponent(catFromRoute)}`);
+        {(tagsExpanded ? tagsInCategory : tagsInCategory.slice(0, 12)).map(({ key, tag, label, count }) => {
+          const active = !!selectedTag && normTag(selectedTag) === key;
+          return (
+            <button
+              key={key}
+              className={`k-tag${active ? " is-active" : ""}`}
+              onClick={() => {
+                if (active) {
+                  // Désélection : retour à la catégorie seule si on est sur une route avec tag
+                  if (catFromRoute) {
+                    navigate(`/${encodeURIComponent(catFromRoute)}`);
+                  } else {
+                    setSelectedTag(null);
+                  }
+                } else if (catFromRoute) {
+                  // Navigation vers la vraie route /:cat/:tag
+                  navigate(`/${encodeURIComponent(catFromRoute)}/${encodeURIComponent(tag)}`);
                 } else {
-                  setSelectedTag(null);
+                  // Pas de catégorie dans l'URL (Feed général) : filtre en state uniquement
+                  setSelectedTag(tag);
                 }
-              } else if (catFromRoute) {
-                // Navigation vers la vraie route /:cat/:tag
-                navigate(`/${encodeURIComponent(catFromRoute)}/${encodeURIComponent(tag)}`);
-              } else {
-                // Pas de catégorie dans l'URL (Feed général) : filtre en state uniquement
-                setSelectedTag(tag);
-              }
-              window.scrollTo({ top: 0, behavior: "instant" });
-            }}
-            style={{
-              display: "flex", alignItems: "center", justifyContent: "space-between",
-              width: "100%", padding: "10px 12px", marginBottom: "4px",
-              borderRadius: "8px", cursor: "pointer", textAlign: "left",
-              border: "none",
-              background: selectedTag === tag ? "rgba(124,58,237,0.15)" : "transparent",
-              color: selectedTag === tag ? "#a78bfa" : "#a8a8b8",
-              fontWeight: selectedTag === tag ? "600" : "500",
-              fontSize: "14px",
-            }}
-          >
-            <span>{tag}</span>
-            <span style={{ fontSize: "12px", color: "#6b6b8a" }}>{count}</span>
-          </button>
-        ))}
+                window.scrollTo({ top: 0, behavior: "instant" });
+              }}
+            >
+              <span className="k-tag-label">{label}</span>
+              <span className="k-tag-count">{count}</span>
+            </button>
+          );
+        })}
         {tagsInCategory.length > 12 && (
           <button
             onClick={() => setTagsExpanded((v) => !v)}
-            className={tagsExpanded ? "kassandre-tags-collapse-sticky" : ""}
-            style={{
-              width: "100%", padding: "8px 12px", marginTop: "4px",
-              borderRadius: "8px", cursor: "pointer", textAlign: "left",
-              border: "none", background: "transparent",
-              color: "#7c3aed", fontWeight: "600", fontSize: "13px",
-            }}
+            className={`k-tag-more${tagsExpanded ? " kassandre-tags-collapse-sticky" : ""}`}
           >
             {tagsExpanded ? "▲ Voir moins" : `Voir plus (+${tagsInCategory.length - 12})`}
           </button>
