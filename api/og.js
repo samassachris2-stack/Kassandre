@@ -208,6 +208,13 @@ export default async function handler(req, res) {
     meta = { ...(await buildMeta("home", "", fetch)), path: requested, debug: "fallback" };
   }
 
+  if (url.searchParams.get("debug") === "1") {
+    res.statusCode = 200;
+    res.setHeader("Content-Type", "text/plain; charset=utf-8");
+    res.setHeader("Cache-Control", "no-store");
+    return res.end(`statut: ${meta.debug || "n/a"}\ntitre: ${meta.title}\nimage: ${meta.image}\nchemin: ${meta.path}\n`);
+  }
+
   res.statusCode = 200;
   res.setHeader("Content-Type", "text/html; charset=utf-8");
   // Les robots de partage rappellent souvent : on met en cache côté CDN.
