@@ -205,7 +205,7 @@ export default async function handler(req, res) {
     const requested = kind === "article" ? `/blog/${encodeURIComponent(id)}`
       : kind === "market" ? `/market/${encodeURIComponent(id)}`
       : kind === "blog" ? "/blog" : kind === "presidentielle" ? "/presidentielle-2027" : "/";
-    meta = { ...(await buildMeta("home", "", fetch)), path: requested, debug: "fallback" };
+    meta = { ...(await buildMeta("home", "", fetch)), path: requested, debug: "fallback: " + e.message };
   }
 
   if (url.searchParams.get("debug") === "1") {
