@@ -234,6 +234,16 @@ export default function Navbar() {
           >
             Portefeuille
           </Link>
+          {user?.isAdmin && (
+            <Link
+              to="/admin"
+              style={S.navLink(location.pathname.startsWith("/admin"))}
+              onMouseEnter={(e) => { if (!location.pathname.startsWith("/admin")) e.currentTarget.style.color = "#e8e8f0"; }}
+              onMouseLeave={(e) => { if (!location.pathname.startsWith("/admin")) e.currentTarget.style.color = "#a8a8b8"; }}
+            >
+              Admin
+            </Link>
+          )}
         </div>
 
         <div className="kassandre-nav-divider" style={S.divider} />
@@ -348,10 +358,12 @@ export default function Navbar() {
             {[
               ["Mon profil", `/profil/${user.uid}`],
               ["Portefeuille", "/portefeuille"],
-              ...(user.isAdmin ? [["Gérer le blog", "/admin/blog"]] : []),
+              ...(user.isAdmin
+                ? [["Admin : marchés", "/admin"], ["Admin : résolutions", "/admin/resolutions"], ["Admin : blog", "/admin/blog"]]
+                : []),
               ["Paramètres", "/settings"],
             ].map(([label, to]) => {
-              const active = location.pathname === to || location.pathname.startsWith(to);
+              const active = to === "/admin" ? location.pathname === "/admin" : (location.pathname === to || location.pathname.startsWith(to));
               return (
                 <Link
                   key={to}

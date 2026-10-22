@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, serverTimestamp, query, where, onSnapshot, writeBatch } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../lib/firebase";
+import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { resolveMarket, deleteMarket } from "../lib/amm.js";
 import { notify, askConfirm } from "../lib/notify";
@@ -401,13 +402,29 @@ function CsvImport({ onAddToQueue }) {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (ev) => setRawText(ev.target.result);
+    reader.onload = (ev) => {
+      const text = String(ev.target.result || "").replace(/^\ufeff/, "");
+      setRawText(text);
+      buildPreview(text); // aperçu immédiat : un appui de moins sur téléphone
+    };
     reader.readAsText(file, "utf-8");
     e.target.value = "";
   }
 
-  function buildPreview() {
-    const rows = parseCsv(rawText);
+  async function handlePasteFromClipboard() {
+    try {
+      const text = (await navigator.clipboard.readText()).replace(/^\ufeff/, "");
+      if (!text.trim()) { notify("Le presse-papiers est vide.", "warning"); return; }
+      setRawText(text);
+      buildPreview(text);
+    } catch {
+      notify("Impossible de lire le presse-papiers : colle le texte dans la zone ci-dessous.", "warning");
+    }
+  }
+
+  function buildPreview(textArg) {
+    const text = typeof textArg === "string" ? textArg : rawText;
+    const rows = parseCsv(text);
     if (rows.length === 0) {
       notify("Le CSV est vide ou n'a pas pu être lu.", "warning");
       return;
@@ -416,7 +433,12 @@ function CsvImport({ onAddToQueue }) {
     const header = rows[0].map((h) => h.trim().toLowerCase());
     const dataRows = rows.slice(1);
 
-    const expectedCols = csvType === "binary"
+    // Le type est déduit de l'en-tête : une colonne "options" = multi-choix.
+    const detectedType = header.includes("options") ? "multi" : "binary";
+    if (detectedType !== csvType) setCsvType(detectedType);
+    const csvType_ = detectedType;
+
+    const expectedCols = csvType_ === "binary"
       ? ["question", "description", "categories", "resolutiondate", "resolutionsource"]
       : ["question", "description", "categories", "resolutiondate", "resolutionsource", "options"];
 
@@ -459,7 +481,7 @@ function CsvImport({ onAddToQueue }) {
         return;
       }
 
-      if (csvType === "binary") {
+      if (csvType_ === "binary") {
         results.push({
           marketType: "binary", question, description, categories, tags,
           resolutionDate, resolutionSource, options: [],
@@ -516,6 +538,8 @@ function CsvImport({ onAddToQueue }) {
       </div>
 
       <p style={{ fontSize: "12px", color: "#6b6b8a", marginBottom: "10px", lineHeight: "1.6" }}>
+        Le type (Oui/Non ou multi-choix) est détecté automatiquement d'après la colonne <code>options</code>.
+        <br />
         Colonnes attendues : <code>question,description,categories,resolutionDate,resolutionSource{csvType === "multi" ? ",options" : ""}</code>
         <br />
         Colonne optionnelle : <code>tags</code> (séparés par <code>|</code>, ex: <code>Trump|Midterms</code>).
@@ -523,17 +547,23 @@ function CsvImport({ onAddToQueue }) {
         Catégories {csvType === "multi" ? "et options " : ""}séparées par <code>|</code> dans une même cellule. Date au format AAAA-MM-JJ.
       </p>
 
-      <div style={{ display: "flex", gap: "8px", marginBottom: "12px" }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "12px" }}>
         <button
           onClick={() => fileInputRef.current?.click()}
           style={{ padding: "10px 16px", background: "#1a1a2e", color: "#a78bfa", borderRadius: "8px", border: "1px solid #7c3aed", cursor: "pointer", fontWeight: "600", fontSize: "13px" }}
         >
           Choisir un fichier .csv
         </button>
-        <input ref={fileInputRef} type="file" accept=".csv,text/csv" style={{ display: "none" }} onChange={handleFileChange} />
+        <button
+          onClick={handlePasteFromClipboard}
+          style={{ padding: "10px 16px", background: "#1a1a2e", color: "#a78bfa", borderRadius: "8px", border: "1px solid #7c3aed", cursor: "pointer", fontWeight: "600", fontSize: "13px" }}
+        >
+          Coller le CSV copié
+        </button>
+        <input ref={fileInputRef} type="file" style={{ display: "none" }} onChange={handleFileChange} />
         {rawText && (
           <button
-            onClick={buildPreview}
+            onClick={() => buildPreview()}
             style={{ padding: "10px 16px", background: "#7c3aed", color: "#fff", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: "600", fontSize: "13px" }}
           >
             Prévisualiser
@@ -933,7 +963,11 @@ export default function Admin() {
 
   return (
     <div style={{ maxWidth: "700px", margin: "40px auto", padding: "0 16px" }}>
-      <h1 style={{ fontSize: "24px", marginBottom: "32px" }}>Admin</h1>
+      <h1 style={{ fontSize: "24px", marginBottom: "16px" }}>Admin</h1>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "28px" }}>
+        <Link to="/admin/resolutions" style={{ padding: "10px 16px", borderRadius: "10px", background: "#7c3aed", color: "#fff", fontWeight: 600, fontSize: "14px", textDecoration: "none" }}>Résolutions</Link>
+        <Link to="/admin/blog" style={{ padding: "10px 16px", borderRadius: "10px", background: "#1a1a2e", border: "1px solid #2a2a3e", color: "#e8e8f0", fontWeight: 600, fontSize: "14px", textDecoration: "none" }}>Blog</Link>
+      </div>
 
       <CsvImport
         onAddToQueue={(item) => setQueue((prev) => [...prev, { ...item, _id: `${Date.now()}_${Math.random()}` }])}

@@ -9,6 +9,7 @@ const Profil = lazy(() => import("./pages/Profil"));
 const Soumettre = lazy(() => import("./pages/Soumettre"));
 const Admin = lazy(() => import("./pages/Admin"));
 const BlogAdminPage = lazy(() => import("./pages/BlogAdminPage"));
+const AdminResolutions = lazy(() => import("./pages/AdminResolutions"));
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import NotificationHost from "./components/NotificationHost";
@@ -74,6 +75,7 @@ function Shell() {
             <Route path="/soumettre" element={<Soumettre />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/admin/blog" element={<BlogAdminPage />} />
+            <Route path="/admin/resolutions" element={<AdminResolutions />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/cgu" element={<CGU />} />
             <Route path="/confidentialite" element={<Confidentialite />} />

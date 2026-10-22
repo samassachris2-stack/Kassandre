@@ -128,7 +128,6 @@ export default function BlogCSVImport({ onImportComplete }) {
           <input
             ref={fileInputRef}
             type="file"
-            accept=".csv"
             onChange={handleFileChange}
             style={{ display: 'none' }}
           />
