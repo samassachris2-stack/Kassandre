@@ -1,7 +1,7 @@
 // Parse CSV string into array of objects
 export const parseCSV = (csvText) => {
   const lines = csvText.split('\n');
-  const headers = lines[0].split(',').map(h => h.trim());
+  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
 
   const rows = [];
   for (let i = 1; i < lines.length; i++) {
