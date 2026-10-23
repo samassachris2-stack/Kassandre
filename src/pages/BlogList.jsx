@@ -2,158 +2,238 @@ import { useState, useEffect, useMemo } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { getPublishedArticles } from "../lib/articles";
 import { readingMinutes, tagCounts, matchesQuery } from "../lib/blogUtils";
+import { cssUrl } from "../lib/cssUrl";
 
-const PAGE_SIZE = 8;
+const PAGE_SIZE = 12;
+const TAGS_SHOWN = 8;
 // En dessous de ce nombre d'articles, la recherche et les thèmes n'apportent rien.
 const FILTERS_FROM = 6;
+const OPINION_TAGS = ["tribune", "opinion", "édito", "edito"];
+
+const toDate = (ts) => {
+  if (!ts) return null;
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  return Number.isNaN(d.getTime()) ? null : d;
+};
+
+function dateLabel(ts) {
+  const d = toDate(ts);
+  if (!d) return "";
+  const days = Math.floor((Date.now() - d.getTime()) / 86400000);
+  if (days <= 0) return "Aujourd'hui";
+  if (days === 1) return "Hier";
+  if (days < 7) return `Il y a ${days} jours`;
+  return d.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+}
+
+function monthLabel(ts) {
+  const d = toDate(ts);
+  if (!d) return "Sans date";
+  const s = d.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+const isOpinion = (a) => (a.tags || []).some((t) => OPINION_TAGS.includes(String(t).toLowerCase()));
+
+function minutesOf(a) {
+  return a.readingTime || readingMinutes(a.content);
+}
 
 export default function BlogList() {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [params, setParams] = useSearchParams();
-  const [search, setSearch] = useState("");
   const [visible, setVisible] = useState(PAGE_SIZE);
+  const [allTags, setAllTags] = useState(false);
   const tag = params.get("tag") || "";
+  const search = params.get("q") || "";
+  const sort = params.get("sort") || "recent";
 
   useEffect(() => {
-    const fetchArticles = async () => {
-      setLoading(true);
-      const data = await getPublishedArticles();
+    let alive = true;
+    getPublishedArticles().then((data) => {
+      if (!alive) return;
       setArticles(data);
       setLoading(false);
-    };
-
-    fetchArticles();
+    });
+    return () => { alive = false; };
   }, []);
 
-  const formatDate = (timestamp) => {
-    if (!timestamp) return "";
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-    return date.toLocaleDateString("fr-FR", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
-
-  const showFilters = articles.length >= FILTERS_FROM;
-  const tags = useMemo(() => tagCounts(articles), [articles]);
-  const filtered = useMemo(
-    () => articles.filter((a) => (!tag || (a.tags || []).includes(tag)) && matchesQuery(a, search)),
-    [articles, tag, search]
-  );
-  const filtering = Boolean(tag || search.trim());
-  // Sans filtre, le plus récent passe en grand ; le reste suit en liste paginée.
-  const featured = !filtering ? filtered[0] : null;
-  const rest = featured ? filtered.slice(1) : filtered;
-  const shown = rest.slice(0, visible);
-
-  function pickTag(t) {
+  function setParam(name, value) {
     setVisible(PAGE_SIZE);
     const next = new URLSearchParams(params);
-    if (!t || t === tag) next.delete("tag"); else next.set("tag", t);
+    if (!value || (name === "sort" && value === "recent")) next.delete(name); else next.set(name, value);
     setParams(next, { replace: true });
   }
 
-  const renderCard = (article, big = false) => (
-    <Link key={article.id} to={`/blog/${article.slug}`} style={{ textDecoration: "none" }}>
-      <article className="blog-list-card" style={big ? { ...styles.articleCard, flexDirection: "column", gap: 0 } : styles.articleCard}>
-        {article.coverImageUrl && (
-          <img loading={big ? "eager" : "lazy"} decoding="async"
-            className="blog-list-cover"
-            src={article.coverImageUrl}
-            alt=""
-            style={big ? styles.featuredCover : styles.cover}
-          />
-        )}
-        <div style={styles.cardBody}>
-          <div style={styles.articleMeta}>
-            <span style={styles.date}>
-              {big && <span style={styles.badge}>À la une · </span>}
-              {formatDate(article.publishedAt)}
-              <span style={styles.readTime}> · {readingMinutes(article.content)} min de lecture</span>
-            </span>
-            {article.tags && article.tags.length > 0 && (
-              <div style={styles.tags}>
-                {article.tags.slice(0, 2).map((t) => (
-                  <span key={t} style={styles.tag}>{t}</span>
-                ))}
-              </div>
-            )}
-          </div>
+  const showFilters = articles.length >= FILTERS_FROM;
+  const tags = useMemo(() => tagCounts(articles), [articles]);
+  const filtering = Boolean(tag || search.trim());
 
-          <h2 style={big ? styles.featuredTitle : styles.articleTitle}>{article.title}</h2>
-          <p style={styles.excerpt}>{article.excerpt}</p>
-          <div style={styles.readMore}>Lire l'article →</div>
-        </div>
-      </article>
-    </Link>
-  );
+  const filtered = useMemo(() => {
+    const list = articles.filter((a) => (!tag || (a.tags || []).includes(tag)) && matchesQuery(a, search));
+    if (sort === "old") return [...list].reverse();
+    if (sort === "short") return [...list].sort((a, b) => minutesOf(a) - minutesOf(b));
+    return list;
+  }, [articles, tag, search, sort]);
+
+  // Mise en avant : seulement sans filtre et en tri « récents ».
+  const showHero = !filtering && sort === "recent" && filtered.length >= 4;
+  const hero = showHero ? filtered[0] : null;
+  const side = showHero ? filtered.slice(1, 4) : [];
+  const rest = showHero ? filtered.slice(4) : filtered;
+  const shown = rest.slice(0, visible);
+
+  // Regroupement par mois quand on parcourt par date.
+  const groups = useMemo(() => {
+    if (sort === "short") return [{ label: "", items: shown }];
+    const out = [];
+    shown.forEach((a) => {
+      const label = monthLabel(a.publishedAt);
+      const last = out[out.length - 1];
+      if (last && last.label === label) last.items.push(a); else out.push({ label, items: [a] });
+    });
+    return out;
+  }, [shown, sort]);
+
+  const tagList = allTags ? tags : tags.slice(0, TAGS_SHOWN);
+  // Si le thème choisi est hors de la liste réduite, on l'ajoute pour qu'il reste visible.
+  const tagListShown = tag && !tagList.some(([t]) => t === tag)
+    ? [...tagList, [tag, tags.find(([t]) => t === tag)?.[1] || 0]]
+    : tagList;
 
   return (
-    <div style={styles.container}>
-      <style>{`
-        @media (max-width: 640px) {
-          .blog-list-title { font-size: 1.9rem !important; }
-          .blog-list-card { flex-direction: column !important; }
-          .blog-list-cover { width: 100% !important; height: 180px !important; }
-        }
-      `}</style>
-      <div style={styles.header}>
-        <h1 className="blog-list-title" style={styles.title}>Analyses et actualités</h1>
-        <p style={styles.subtitle}>
-          Explorez nos analyses sur les prediction markets, l'actualité et les
-          tendances
-        </p>
-      </div>
+    <div style={S.container}>
+      <style>{CSS}</style>
+
+      <header style={S.header}>
+        <h1 className="bl-title" style={S.title}>Analyses et actualités</h1>
+        <p style={S.subtitle}>Décryptages, enquêtes et points de vue sur l'actualité et les prédictions.</p>
+        <div style={S.headerMeta}>
+          {articles.length > 0 && <span>{articles.length} article{articles.length > 1 ? "s" : ""}</span>}
+          <a href="/rss.xml" style={S.rss}>Flux RSS</a>
+        </div>
+      </header>
 
       {showFilters && (
-        <div style={styles.toolbar}>
-          <input
-            type="search"
-            value={search}
-            onChange={(e) => { setSearch(e.target.value); setVisible(PAGE_SIZE); }}
-            placeholder="Rechercher un article, un thème..."
-            aria-label="Rechercher un article"
-            style={styles.search}
-          />
+        <div style={S.toolbar}>
+          <div style={S.searchRow}>
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setParam("q", e.target.value)}
+              placeholder="Rechercher un article, un thème..."
+              aria-label="Rechercher un article"
+              style={S.search}
+            />
+            <select value={sort} onChange={(e) => setParam("sort", e.target.value)} aria-label="Trier" style={S.select}>
+              <option value="recent">Plus récents</option>
+              <option value="old">Plus anciens</option>
+              <option value="short">Lecture courte</option>
+            </select>
+          </div>
           {tags.length > 0 && (
-            <div style={styles.pills}>
-              <button style={styles.pill(!tag)} onClick={() => pickTag("")}>Tous</button>
-              {tags.slice(0, 12).map(([t, n]) => (
-                <button key={t} style={styles.pill(tag === t)} onClick={() => pickTag(t)}>
-                  {t}<span style={styles.pillCount}>{n}</span>
+            <div className="bl-pills" style={S.pills}>
+              <button style={S.pill(!tag)} onClick={() => setParam("tag", "")}>Tous</button>
+              {tagListShown.map(([t, n]) => (
+                <button key={t} style={S.pill(tag === t)} onClick={() => setParam("tag", tag === t ? "" : t)}>
+                  {t}<span style={S.pillCount}>{n}</span>
                 </button>
               ))}
+              {tags.length > TAGS_SHOWN && (
+                <button style={S.pillMore} onClick={() => setAllTags((v) => !v)}>
+                  {allTags ? "Moins de thèmes" : `+ ${tags.length - TAGS_SHOWN} thèmes`}
+                </button>
+              )}
             </div>
           )}
         </div>
       )}
 
-      {loading && <p style={styles.loading}>Chargement des articles...</p>}
-
-      {!loading && articles.length === 0 && (
-        <p style={styles.empty}>Aucun article publié pour le moment.</p>
+      {loading && (
+        <div className="bl-grid">
+          {[0, 1, 2, 3, 4, 5].map((i) => <div key={i} className="bl-skel" />)}
+        </div>
       )}
 
+      {!loading && articles.length === 0 && <p style={S.empty}>Aucun article publié pour le moment.</p>}
+
       {!loading && articles.length > 0 && filtering && (
-        <p style={styles.resultCount}>
+        <p style={S.resultCount}>
           {filtered.length} article{filtered.length > 1 ? "s" : ""}
-          {tag ? ` sur « ${tag} »` : ""}
+          {tag ? ` sur « ${tag} »` : ""}{search.trim() ? ` pour « ${search.trim()} »` : ""}
+          <button style={S.reset} onClick={() => setParams({}, { replace: true })}>Effacer les filtres</button>
         </p>
       )}
 
       {!loading && articles.length > 0 && filtered.length === 0 && (
-        <p style={styles.empty}>Aucun article ne correspond à votre recherche.</p>
+        <p style={S.empty}>Aucun article ne correspond à votre recherche.</p>
       )}
 
-      <div style={styles.articlesList}>
-        {featured && renderCard(featured, true)}
-        {shown.map((article) => renderCard(article))}
-      </div>
+      {hero && (
+        <section className="bl-hero" aria-label="À la une">
+          <Link to={`/blog/${hero.slug}`} className="bl-hero-main" style={{
+            background: hero.coverImageUrl
+              ? `linear-gradient(to top, rgba(10,10,15,0.96) 12%, rgba(10,10,15,0.35) 70%), ${cssUrl(hero.coverImageUrl)} center / cover no-repeat`
+              : "linear-gradient(135deg, #1a1033, #0a0a0f)",
+          }}>
+            <div style={S.heroBody}>
+              <div style={S.heroBadges}>
+                <span style={S.badge}>À la une</span>
+                {isOpinion(hero) && <span style={S.badgeOpinion}>Tribune</span>}
+              </div>
+              <h2 className="bl-hero-title" style={S.heroTitle}>{hero.title}</h2>
+              <p style={S.heroExcerpt}>{hero.excerpt}</p>
+              <span style={S.meta}>{dateLabel(hero.publishedAt)} · {minutesOf(hero)} min de lecture</span>
+            </div>
+          </Link>
+          <div className="bl-side">
+            <div style={S.sideTitle}>Derniers articles</div>
+            {side.map((a) => (
+              <Link key={a.id} to={`/blog/${a.slug}`} className="bl-side-item">
+                {a.coverImageUrl
+                  ? <img src={a.coverImageUrl} alt="" loading="lazy" decoding="async" style={S.sideImg} />
+                  : <div style={{ ...S.sideImg, background: "linear-gradient(135deg,#1a1033,#0f0f17)" }} />}
+                <div style={{ minWidth: 0 }}>
+                  <div style={S.sideItemTitle}>{a.title}</div>
+                  <div style={S.metaSmall}>{dateLabel(a.publishedAt)} · {minutesOf(a)} min</div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {groups.map((g) => (
+        <section key={g.label || "all"} style={{ marginBottom: "28px" }}>
+          {g.label && <h2 style={S.month}>{g.label}</h2>}
+          <div className="bl-grid">
+            {g.items.map((a) => (
+              <Link key={a.id} to={`/blog/${a.slug}`} className="bl-card">
+                <div className="bl-cover" style={{ background: a.coverImageUrl ? undefined : "linear-gradient(135deg,#1a1033,#0f0f17)" }}>
+                  {a.coverImageUrl && <img src={a.coverImageUrl} alt="" loading="lazy" decoding="async" />}
+                  {isOpinion(a) && <span style={S.cardBadge}>Tribune</span>}
+                </div>
+                <div style={S.cardBody}>
+                  <div style={S.metaSmall}>{dateLabel(a.publishedAt)} · {minutesOf(a)} min de lecture</div>
+                  <h3 style={S.cardTitle}>{a.title}</h3>
+                  <p style={S.cardExcerpt}>{a.excerpt}</p>
+                  {(a.tags || []).length > 0 && (
+                    <div style={S.cardTags}>
+                      {a.tags.filter((t) => !OPINION_TAGS.includes(String(t).toLowerCase())).slice(0, 2).map((t) => (
+                        <span key={t} style={S.tag}>{t}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      ))}
 
       {rest.length > visible && (
-        <button style={styles.moreBtn} onClick={() => setVisible((v) => v + PAGE_SIZE)}>
+        <button style={S.moreBtn} onClick={() => setVisible((v) => v + PAGE_SIZE)}>
           Voir plus d'articles ({rest.length - visible})
         </button>
       )}
@@ -161,117 +241,52 @@ export default function BlogList() {
   );
 }
 
-const styles = {
-  container: {
-    maxWidth: "900px",
-    margin: "0 auto",
-    padding: "40px 20px",
-    minHeight: "calc(100vh - 200px)",
-  },
-  header: {
-    marginBottom: "60px",
-    textAlign: "center",
-  },
-  title: {
-    fontSize: "2.5rem",
-    fontWeight: "bold",
-    color: "#e8e8f0",
-    marginBottom: "12px",
-  },
-  subtitle: {
-    fontSize: "1.1rem",
-    color: "#a0a0b0",
-    margin: 0,
-  },
-  loading: {
-    color: "#a0a0b0",
-    textAlign: "center",
-    padding: "40px 0",
-  },
-  empty: {
-    color: "#a0a0b0",
-    textAlign: "center",
-    padding: "40px 0",
-  },
-  articlesList: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "32px",
-  },
-  articleCard: {
-    display: "flex",
-    gap: "24px",
-    backgroundColor: "#1a1a22",
-    border: "1px solid #2a2a35",
-    borderRadius: "12px",
-    overflow: "hidden",
-    transition: "all 0.3s ease",
-    cursor: "pointer",
-  },
-  articleCardHover: {
-    backgroundColor: "#242430",
-    borderColor: "#7c3aed",
-    transform: "translateY(-2px)",
-  },
-  cover: {
-    width: "220px",
-    height: "auto",
-    objectFit: "cover",
-    flexShrink: 0,
-  },
-  cardBody: {
-    padding: "28px",
-    flex: 1,
-    minWidth: 0,
-  },
-  articleMeta: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "16px",
-    flexWrap: "wrap",
-    gap: "12px",
-  },
-  date: {
-    fontSize: "0.9rem",
-    color: "#7c3aed",
-    fontWeight: "500",
-  },
-  tags: {
-    display: "flex",
-    gap: "8px",
-  },
-  tag: {
-    fontSize: "0.8rem",
-    color: "#a0a0b0",
-    backgroundColor: "#0a0a0f",
-    padding: "4px 12px",
-    borderRadius: "4px",
-    border: "1px solid #2a2a35",
-  },
-  articleTitle: {
-    fontSize: "1.6rem",
-    fontWeight: "bold",
-    color: "#e8e8f0",
-    margin: "12px 0",
-    lineHeight: "1.4",
-  },
-  excerpt: {
-    fontSize: "1rem",
-    color: "#b0b0c0",
-    margin: "12px 0",
-    lineHeight: "1.6",
-  },
-  readMore: {
-    fontSize: "0.95rem",
-    color: "#7c3aed",
-    fontWeight: "500",
-    marginTop: "16px",
-  },
-  toolbar: { display: "flex", flexDirection: "column", gap: "14px", marginBottom: "36px" },
+const CSS = `
+  .bl-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .bl-card { display: flex; flex-direction: column; background: #14141c; border: 1px solid #2a2a35; border-radius: 12px; overflow: hidden; text-decoration: none; transition: border-color .2s, transform .2s; }
+  .bl-card:hover { border-color: #7c3aed; transform: translateY(-2px); }
+  .bl-cover { position: relative; aspect-ratio: 16 / 9; overflow: hidden; }
+  .bl-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .bl-skel { height: 280px; border-radius: 12px; background: linear-gradient(90deg,#14141c,#1c1c27,#14141c); background-size: 200% 100%; animation: blskel 1.4s infinite; }
+  @keyframes blskel { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+  .bl-hero { display: grid; grid-template-columns: 1.7fr 1fr; gap: 18px; margin-bottom: 40px; }
+  .bl-hero-main { display: flex; align-items: flex-end; min-height: 380px; border-radius: 14px; overflow: hidden; text-decoration: none; border: 1px solid #2a2a35; }
+  .bl-hero-main:hover { border-color: #7c3aed; }
+  .bl-side { display: flex; flex-direction: column; gap: 4px; background: #14141c; border: 1px solid #2a2a35; border-radius: 14px; padding: 16px; }
+  .bl-side-item { display: flex; gap: 12px; padding: 10px 0; border-top: 1px solid #22222d; text-decoration: none; align-items: center; }
+  .bl-side-item:first-of-type { border-top: none; }
+  .bl-side-item:hover div:first-child { color: #a78bfa; }
+  .bl-pills { overflow-x: auto; }
+  @media (max-width: 900px) {
+    .bl-grid { grid-template-columns: repeat(2, 1fr); }
+    .bl-hero { grid-template-columns: 1fr; }
+    .bl-hero-main { min-height: 300px; }
+  }
+  @media (max-width: 600px) {
+    .bl-grid { grid-template-columns: 1fr; }
+    .bl-title { font-size: 1.9rem !important; }
+    .bl-hero-title { font-size: 1.4rem !important; }
+    .bl-pills { flex-wrap: nowrap !important; padding-bottom: 6px; }
+    .bl-pills button { flex-shrink: 0; white-space: nowrap; }
+  }
+`;
+
+const S = {
+  container: { maxWidth: "1100px", margin: "0 auto", padding: "40px 20px", minHeight: "calc(100vh - 200px)" },
+  header: { marginBottom: "32px", textAlign: "center" },
+  title: { fontSize: "2.5rem", fontWeight: "bold", color: "#e8e8f0", marginBottom: "10px" },
+  subtitle: { fontSize: "1.05rem", color: "#a0a0b0", margin: 0 },
+  headerMeta: { display: "flex", justifyContent: "center", gap: "14px", marginTop: "12px", fontSize: "0.85rem", color: "#8888a0" },
+  rss: { color: "#a78bfa", textDecoration: "none" },
+  toolbar: { display: "flex", flexDirection: "column", gap: "14px", marginBottom: "32px" },
+  searchRow: { display: "flex", gap: "10px" },
   search: {
-    width: "100%", boxSizing: "border-box", padding: "12px 16px", borderRadius: "10px",
+    flex: 1, minWidth: 0, boxSizing: "border-box", padding: "12px 16px", borderRadius: "10px",
     border: "1px solid #2a2a35", background: "#12121a", color: "#e8e8f0", fontSize: "15px",
+  },
+  select: {
+    padding: "0 12px", borderRadius: "10px", border: "1px solid #2a2a35", background: "#12121a",
+    color: "#e8e8f0", fontSize: "14px",
   },
   pills: { display: "flex", flexWrap: "wrap", gap: "8px" },
   pill: (active) => ({
@@ -280,18 +295,59 @@ const styles = {
     background: active ? "rgba(124,58,237,0.18)" : "transparent",
     color: active ? "#a78bfa" : "#a0a0b0",
   }),
-  pillCount: { opacity: 0.6, marginLeft: "6px" },
-  featuredCover: { width: "100%", height: "320px", objectFit: "cover", display: "block" },
-  featuredTitle: { fontSize: "2rem", fontWeight: "bold", color: "#e8e8f0", margin: "12px 0", lineHeight: "1.3" },
-  badge: {
-    fontSize: "0.75rem", fontWeight: 600, color: "#7c3aed", textTransform: "uppercase",
-    letterSpacing: "0.06em",
+  pillMore: {
+    fontSize: "0.85rem", padding: "6px 14px", borderRadius: "20px", cursor: "pointer",
+    border: "1px dashed #3a3a48", background: "transparent", color: "#8888a0",
   },
-  readTime: { fontSize: "0.85rem", color: "#8888a0" },
+  pillCount: { opacity: 0.6, marginLeft: "6px" },
+  empty: { color: "#a0a0b0", textAlign: "center", padding: "40px 0" },
+  resultCount: { fontSize: "0.9rem", color: "#8888a0", marginBottom: "20px" },
+  reset: {
+    marginLeft: "12px", background: "none", border: "none", color: "#a78bfa", cursor: "pointer",
+    fontSize: "0.9rem", textDecoration: "underline",
+  },
+  heroBody: { padding: "28px", width: "100%", boxSizing: "border-box" },
+  heroBadges: { display: "flex", gap: "8px", marginBottom: "12px" },
+  badge: {
+    fontSize: "0.72rem", fontWeight: 700, color: "#fff", background: "#7c3aed", borderRadius: "6px",
+    padding: "3px 10px", textTransform: "uppercase", letterSpacing: "0.06em",
+  },
+  badgeOpinion: {
+    fontSize: "0.72rem", fontWeight: 700, color: "#f59e0b", background: "rgba(245,158,11,0.16)",
+    borderRadius: "6px", padding: "3px 10px", textTransform: "uppercase", letterSpacing: "0.06em",
+  },
+  heroTitle: { fontSize: "1.9rem", fontWeight: "bold", color: "#fff", margin: "0 0 10px", lineHeight: 1.25 },
+  heroExcerpt: {
+    fontSize: "1rem", color: "#c8c8d8", margin: "0 0 12px", lineHeight: 1.55,
+    display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden",
+  },
+  meta: { fontSize: "0.85rem", color: "#a0a0b0" },
+  sideTitle: { fontSize: "0.8rem", fontWeight: 700, color: "#a78bfa", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "6px" },
+  sideImg: { width: "84px", height: "64px", objectFit: "cover", borderRadius: "8px", flexShrink: 0 },
+  sideItemTitle: {
+    fontSize: "0.92rem", fontWeight: 600, color: "#e8e8f0", lineHeight: 1.35, marginBottom: "4px",
+    display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden",
+  },
+  metaSmall: { fontSize: "0.78rem", color: "#8888a0" },
+  month: { fontSize: "1.1rem", fontWeight: 700, color: "#e8e8f0", margin: "0 0 14px", paddingBottom: "8px", borderBottom: "1px solid #22222d" },
+  cardBadge: {
+    position: "absolute", top: "10px", left: "10px", fontSize: "0.7rem", fontWeight: 700, color: "#f59e0b",
+    background: "rgba(10,10,15,0.85)", borderRadius: "6px", padding: "3px 9px", textTransform: "uppercase", letterSpacing: "0.06em",
+  },
+  cardBody: { padding: "14px 16px 16px", display: "flex", flexDirection: "column", gap: "8px", flex: 1 },
+  cardTitle: {
+    fontSize: "1.05rem", fontWeight: 700, color: "#e8e8f0", margin: 0, lineHeight: 1.35,
+    display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden",
+  },
+  cardExcerpt: {
+    fontSize: "0.88rem", color: "#a8a8b8", margin: 0, lineHeight: 1.5,
+    display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden",
+  },
+  cardTags: { display: "flex", gap: "6px", flexWrap: "wrap", marginTop: "auto", paddingTop: "4px" },
+  tag: { fontSize: "0.74rem", color: "#a0a0b0", background: "#0a0a0f", padding: "3px 10px", borderRadius: "4px", border: "1px solid #2a2a35" },
   moreBtn: {
-    display: "block", margin: "36px auto 0", padding: "12px 28px", borderRadius: "10px",
+    display: "block", margin: "28px auto 0", padding: "12px 28px", borderRadius: "10px",
     background: "transparent", border: "1px solid #7c3aed", color: "#a78bfa",
     fontSize: "0.95rem", fontWeight: 600, cursor: "pointer",
   },
-  resultCount: { fontSize: "0.9rem", color: "#8888a0", marginBottom: "20px" },
 };
