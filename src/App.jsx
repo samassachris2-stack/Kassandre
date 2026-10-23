@@ -6,6 +6,7 @@ const Market = lazy(() => import("./pages/Market"));
 const Leaderboard = lazy(() => import("./pages/Leaderboard"));
 const Portefeuille = lazy(() => import("./pages/Portefeuille"));
 const Profil = lazy(() => import("./pages/Profil"));
+const Tracker = lazy(() => import("./pages/Tracker"));
 const Soumettre = lazy(() => import("./pages/Soumettre"));
 const Admin = lazy(() => import("./pages/Admin"));
 const BlogAdminPage = lazy(() => import("./pages/BlogAdminPage"));
@@ -72,6 +73,7 @@ function Shell() {
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/portefeuille" element={<Portefeuille />} />
             <Route path="/profil/:uid" element={<Profil />} />
+            <Route path="/tracker/:uid" element={<Tracker />} />
             <Route path="/soumettre" element={<Soumettre />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/admin/blog" element={<BlogAdminPage />} />

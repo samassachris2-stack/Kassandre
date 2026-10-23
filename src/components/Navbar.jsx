@@ -358,6 +358,7 @@ export default function Navbar() {
             {[
               ["Mon profil", `/profil/${user.uid}`],
               ["Portefeuille", "/portefeuille"],
+              ["Mon tracker", `/tracker/${user.uid}`],
               ...(user.isAdmin
                 ? [["Admin : marchés", "/admin"], ["Admin : résolutions", "/admin/resolutions"], ["Admin : blog", "/admin/blog"]]
                 : []),

@@ -830,6 +830,11 @@ export default function Portefeuille() {
   return (
     <div style={S.page}>
       <h1 style={S.title}>Portefeuille</h1>
+      {user && (
+        <Link to={`/tracker/${user.uid}`} style={{ display: "inline-block", margin: "0 0 16px", fontSize: "13px", fontWeight: 600, color: "#a78bfa", textDecoration: "none" }}>
+          Analyser mes prévisions : tracker →
+        </Link>
+      )}
 
       {positions.length > 0 && (
         <div style={S.summaryRow}>

@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { doc, getDoc, updateDoc, collection, query, where, getDocs, orderBy, limit } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../lib/firebase";
@@ -340,6 +340,9 @@ export default function Profil() {
             )}
           </div>
           <p style={S.betsCount}>{profile.totalBets || 0} paris placés</p>
+          <Link to={`/tracker/${uid}`} style={{ display: "inline-block", marginTop: "6px", fontSize: "13px", fontWeight: 600, color: "#a78bfa", textDecoration: "none" }}>
+            Voir le tracker de prévisions →
+          </Link>
           {profile.bio && !editing && <p style={S.bioText}>{profile.bio}</p>}
         </div>
 
