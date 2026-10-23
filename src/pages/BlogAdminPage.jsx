@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 import BlogEditor from "../components/BlogEditor";
 import BlogCSVImport from "../components/BlogCSVImport";
+import MarketPicker from "../components/MarketPicker";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "../lib/firebase";
 import {
@@ -320,13 +321,10 @@ export default function BlogAdminPage() {
               </div>
 
               <div style={styles.formGroup}>
-                <label style={styles.label}>Market IDs</label>
-                <input
-                  type="text"
+                <label style={styles.label}>Marchés liés (3 maximum)</label>
+                <MarketPicker
                   value={formData.linkedMarkets}
-                  onChange={(e) => setFormData({ ...formData, linkedMarkets: e.target.value })}
-                  style={styles.input}
-                  placeholder="3 maximum : market-id-1, market-id-2"
+                  onChange={(v) => setFormData({ ...formData, linkedMarkets: v })}
                 />
               </div>
 
