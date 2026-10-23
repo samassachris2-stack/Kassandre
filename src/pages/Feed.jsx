@@ -8,6 +8,7 @@ import { getLatestArticles } from "../lib/articles";
 import { useSEO } from "../hooks/useSEO";
 import { generateOrganizationStructuredData } from "../lib/structuredData";
 import MoversSection from "../components/MoversSection";
+import TrackerWidget from "../components/TrackerWidget";
 import { cssUrl } from "../lib/cssUrl";
 
 // Nombre de cartes affichées par "page" (les filtres, tris et compteurs de tags
@@ -823,6 +824,7 @@ export default function Feed({ hub }) {
 
       {(hubDef || (!catFromRoute && !tagFromRoute)) && <FeaturedCarousel markets={hubDef ? marketsInCategory : markets} />}
       {!hubDef && !catFromRoute && !tagFromRoute && <MoversSection />}
+      {!hubDef && !catFromRoute && !tagFromRoute && <TrackerWidget />}
       {!catFromRoute && !tagFromRoute && <BlogPreviewSection />}
 
       {/* ── Barre de recherche ── */}
