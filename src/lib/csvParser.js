@@ -83,7 +83,7 @@ export const csvRowToArticle = (row) => {
       ? row.tags.split(';').map(t => t.trim()).filter(t => t)
       : [],
     linkedMarkets: row.linkedMarkets
-      ? row.linkedMarkets.split(';').map(m => m.trim()).filter(m => m)
+      ? row.linkedMarkets.split(';').map(m => m.trim()).filter(m => m).slice(0, 3)
       : [],
     status: row.status || 'draft',
   };

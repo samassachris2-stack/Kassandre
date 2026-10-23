@@ -63,7 +63,8 @@ export default function BlogAdmin() {
       linkedMarkets: formData.linkedMarkets
         .split(",")
         .map((id) => id.trim())
-        .filter((id) => id),
+        .filter((id) => id)
+        .slice(0, 3),
       status: formData.status,
     };
 
@@ -225,7 +226,7 @@ export default function BlogAdmin() {
                 setFormData({ ...formData, linkedMarkets: e.target.value })
               }
               style={styles.input}
-              placeholder="market-id-1, market-id-2"
+              placeholder="3 maximum : market-id-1, market-id-2"
             />
           </div>
 

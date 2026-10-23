@@ -5,6 +5,7 @@ import { useSEO } from "../hooks/useSEO";
 import { generateArticleStructuredData } from "../lib/structuredData";
 import ShareButtons from "../components/ShareButtons";
 import RelatedArticles from "../components/RelatedArticles";
+import LinkedMarkets from "../components/LinkedMarkets";
 import { readingMinutes } from "../lib/blogUtils";
 import { trackPageView } from "../lib/analytics";
 
@@ -256,22 +257,7 @@ export default function BlogDetail() {
           excerpt={article.excerpt}
         />
 
-        {article.linkedMarkets && article.linkedMarkets.length > 0 && (
-          <section style={styles.marketsSection}>
-            <h3 style={styles.marketsTitle}>Markets liés</h3>
-            <div style={styles.marketsList}>
-              {article.linkedMarkets.map((marketId) => (
-                <Link
-                  key={marketId}
-                  to={`/market/${marketId}`}
-                  style={styles.marketLink}
-                >
-                  Voir le market →
-                </Link>
-              ))}
-            </div>
-          </section>
-        )}
+        <LinkedMarkets ids={article.linkedMarkets} />
       </article>
 
       <RelatedArticles current={article} />
