@@ -86,5 +86,6 @@ export const csvRowToArticle = (row) => {
       ? row.linkedMarkets.split(';').map(m => m.trim()).filter(m => m).slice(0, 3)
       : [],
     status: row.status || 'draft',
+    publishedAt: row.publishedAt || '',
   };
 };

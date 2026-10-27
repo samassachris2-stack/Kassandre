@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { parseCSV, validateArticle, csvRowToArticle } from '../lib/csvParser';
+import { Timestamp } from 'firebase/firestore';
 import { createArticle } from '../lib/articles';
 
 export default function BlogCSVImport({ onImportComplete }) {
@@ -69,6 +70,10 @@ export default function BlogCSVImport({ onImportComplete }) {
           tags: article.tags,
           linkedMarkets: article.linkedMarkets,
           status: article.status,
+          // Colonne facultative publishedAt (AAAA-MM-JJ ou AAAA-MM-JJ HH:MM)
+          ...(article.publishedAt && !Number.isNaN(new Date(article.publishedAt.replace(' ', 'T')).getTime())
+            ? { publishedAt: Timestamp.fromDate(new Date(article.publishedAt.replace(' ', 'T'))) }
+            : {}),
         });
         success++;
       } catch (error) {
@@ -133,7 +138,7 @@ export default function BlogCSVImport({ onImportComplete }) {
           />
           <p style={styles.help}>
             Format CSV: title, slug, excerpt, content, tags (séparés par ;),
-            linkedMarkets (séparés par ;), status (draft/published)
+            linkedMarkets (séparés par ;), status (draft/published), publishedAt (facultatif, AAAA-MM-JJ)
           </p>
         </div>
       )}

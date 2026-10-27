@@ -1,6 +1,7 @@
 import { prepareImageForUpload } from "../lib/imageUtils";
 import { safeFileName } from "../lib/cssUrl";
 import { useState, useEffect, useRef } from "react";
+import { Timestamp } from "firebase/firestore";
 import { useAuth } from "../context/AuthContext";
 import BlogEditor from "../components/BlogEditor";
 import BlogCSVImport from "../components/BlogCSVImport";
@@ -15,6 +16,14 @@ import {
   generateSlug,
 } from "../lib/articles";
 import { notify, askConfirm } from "../lib/notify";
+
+// Date d'un article (Timestamp Firestore) au format attendu par <input type="datetime-local">.
+function toLocalInput(ts) {
+  const d = ts?.toDate ? ts.toDate() : ts ? new Date(ts) : null;
+  if (!d || Number.isNaN(d.getTime())) return "";
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
 
 export default function BlogAdminPage() {
   const { user } = useAuth();
@@ -34,6 +43,7 @@ export default function BlogAdminPage() {
     linkedMarkets: "",
     status: "draft",
     coverImageUrl: "",
+    publishedAt: "",
   });
 
   useEffect(() => {
@@ -74,6 +84,10 @@ export default function BlogAdminPage() {
       status: formData.status,
       coverImageUrl: formData.coverImageUrl || null,
     };
+    if (formData.publishedAt) {
+      const d = new Date(formData.publishedAt);
+      if (!Number.isNaN(d.getTime())) articleData.publishedAt = Timestamp.fromDate(d);
+    }
 
     try {
       if (editingId) {
@@ -100,6 +114,7 @@ export default function BlogAdminPage() {
       linkedMarkets: article.linkedMarkets ? article.linkedMarkets.join(", ") : "",
       status: article.status,
       coverImageUrl: article.coverImageUrl || "",
+      publishedAt: toLocalInput(article.publishedAt || article.createdAt),
     });
     setEditingId(article.id);
     setShowForm(true);
@@ -154,6 +169,7 @@ export default function BlogAdminPage() {
       linkedMarkets: "",
       status: "draft",
       coverImageUrl: "",
+      publishedAt: "",
     });
     setEditingId(null);
     setShowForm(false);
@@ -318,6 +334,28 @@ export default function BlogAdminPage() {
                     <option value="published">Publié</option>
                   </select>
                 </div>
+              </div>
+
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Date de publication</label>
+                <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
+                  <input
+                    type="datetime-local"
+                    value={formData.publishedAt}
+                    onChange={(e) => setFormData({ ...formData, publishedAt: e.target.value })}
+                    style={{ ...styles.input, flex: "0 1 260px" }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, publishedAt: "" })}
+                    style={{ background: "transparent", border: "1px solid #2a2a35", color: "#a0a0b0", borderRadius: "6px", padding: "10px 14px", cursor: "pointer" }}
+                  >
+                    Effacer
+                  </button>
+                </div>
+                <span style={{ fontSize: "0.82rem", color: "#8888a0" }}>
+                  Date affichée sur le blog, dans le flux RSS et pour Google, et qui sert à ranger les articles. Laisse vide pour utiliser la date de la première publication.
+                </span>
               </div>
 
               <div style={styles.formGroup}>

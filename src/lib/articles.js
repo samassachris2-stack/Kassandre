@@ -107,7 +107,9 @@ export const createArticle = async (articleData) => {
       tags: articleData.tags || [],
       coverImageUrl: articleData.coverImageUrl || null,
     };
-    if (status === "published") {
+    // Une date choisie à la main (antidatage, reprise d'un ancien texte) est respectée.
+    if (!payload.publishedAt) delete payload.publishedAt;
+    if (status === "published" && !payload.publishedAt) {
       payload.publishedAt = serverTimestamp();
     }
     const docRef = await addDoc(articlesCollection, payload);
@@ -123,6 +125,8 @@ export const updateArticle = async (articleId, articleData) => {
   try {
     const articleRef = doc(articlesCollection, articleId);
     const updateData = { ...articleData, updatedAt: serverTimestamp() };
+    // Pas de date saisie : on garde celle qui existe déjà.
+    if (!updateData.publishedAt) delete updateData.publishedAt;
     // La date de publication ne se fixe qu'au premier passage en "published" :
     // la réécrire à chaque enregistrement fausse l'ordre du blog, le flux RSS
     // et la date affichée aux moteurs de recherche.
