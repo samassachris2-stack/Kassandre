@@ -6,7 +6,7 @@ import { generateArticleStructuredData } from "../lib/structuredData";
 import ShareButtons from "../components/ShareButtons";
 import RelatedArticles from "../components/RelatedArticles";
 import LinkedMarkets from "../components/LinkedMarkets";
-import { readingMinutes } from "../lib/blogUtils";
+import { readingMinutes, embedVideos } from "../lib/blogUtils";
 import { trackPageView } from "../lib/analytics";
 
 export default function BlogDetail() {
@@ -247,7 +247,7 @@ export default function BlogDetail() {
           className="blog-article-body"
           style={styles.content}
           dangerouslySetInnerHTML={{
-            __html: article.content,
+            __html: embedVideos(article.content),
           }}
         />
 
