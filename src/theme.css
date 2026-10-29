@@ -85,7 +85,7 @@
   --k-text: #000000;
   --k-muted2: #1c1c2c;
 }
-:root[data-contrast="high"] a { text-decoration: underline; }
+:root[data-contrast="high"] p a, :root[data-contrast="high"] li a { text-decoration: underline; }
 
 /* Animations réduites */
 :root[data-motion="reduced"] *,
