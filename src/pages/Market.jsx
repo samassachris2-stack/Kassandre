@@ -579,10 +579,17 @@ export default function Market() {
     <>
       {seo}
       <style>{`
+        .kassandre-market-layout { grid-template-areas: "main side" "data side"; grid-template-rows: auto 1fr; }
+        .kassandre-market-main { grid-area: main; }
+        .kassandre-market-sidecol { grid-area: side; grid-row: 1 / span 2; }
+        .kassandre-market-data { grid-area: data; }
         @media (max-width: 860px) {
           .kassandre-market-layout {
             grid-template-columns: 1fr !important;
+            grid-template-areas: "main" "side" "data";
+            grid-template-rows: auto;
           }
+          .kassandre-market-sidecol { grid-row: auto; }
           .kassandre-market-sidecol {
             position: static !important;
             top: auto !important;
@@ -590,7 +597,7 @@ export default function Market() {
         }
       `}</style>
       <div style={S.layoutWrap} className="kassandre-market-layout">
-        <div style={S.mainCol}>
+        <div style={S.mainCol} className="kassandre-market-main">
 
       {/* ── Header ── */}
       <div style={S.tagRow}>
@@ -771,14 +778,6 @@ export default function Market() {
         <p style={S.footer}>Résolution : {market.resolutionDate}</p>
       )}
 
-      <InsightsBlock marketId={id} />
-
-      <EvidenceBlock market={market} marketId={id} />
-
-      <MarketDataLinks market={market} marketId={id} />
-
-      <CommentsSection type="market" id={id} options={options} />
-
         </div>
 
         <div style={S.sideCol} className="kassandre-market-sidecol">
@@ -954,6 +953,15 @@ export default function Market() {
               <span style={{ fontSize: "12px", color: "var(--k-muted)" }}>Gratuit, points virtuels, sans argent réel.</span>
             </div>
           )}
+        </div>
+        <div style={S.mainCol} className="kassandre-market-data">
+      <InsightsBlock marketId={id} />
+
+      <EvidenceBlock market={market} marketId={id} />
+
+      <MarketDataLinks market={market} marketId={id} />
+
+      <CommentsSection type="market" id={id} options={options} />
         </div>
       </div>
     </>
