@@ -129,7 +129,7 @@ export default function BlogDetail() {
         .blog-article-body strong { color: var(--k-text); font-weight: 700; }
         .blog-article-body em { font-style: italic; }
         .blog-article-body u { text-decoration: underline; }
-        .blog-article-body a { color: var(--k-accent-text); text-decoration: underline; }
+        .blog-article-body a { color: var(--k-accent-text); text-decoration: none; font-weight: 600; }
         .blog-article-body blockquote {
           border-left: 3px solid var(--k-accent);
           margin: 20px 0;
