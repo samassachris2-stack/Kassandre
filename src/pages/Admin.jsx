@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { resolveMarket, deleteMarket } from "../lib/amm.js";
 import { notify, askConfirm } from "../lib/notify";
+import CopyIdButton from "../components/CopyIdButton";
 import { prepareImageForUpload } from "../lib/imageUtils";
 
 function MultiResolveButtons({ marketId }) {
@@ -1291,6 +1292,7 @@ export default function Admin() {
           <p style={{ fontSize: "12px", color: "#6b6b8a", marginBottom: "12px", marginLeft: "26px" }}>
             {market.type === "multi" ? "Multi-choix" : "Oui/Non"} · Résolution : {market.resolutionDate}
             {toCatArray(market.categories).length > 0 && ` · ${toCatArray(market.categories).join(", ")}`}
+            {" "}<CopyIdButton id={market.id} style={{ marginLeft: "6px" }} />
           </p>
           {market.type === "binary" && (
             <div style={{ display: "flex", gap: "8px" }}>

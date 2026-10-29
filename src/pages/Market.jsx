@@ -7,6 +7,7 @@ const PriceChart = lazy(() => import("../components/PriceChart"));
 import { useSEO } from "../hooks/useSEO";
 import { doc, onSnapshot, collection, getDocs, query, orderBy } from "firebase/firestore";
 import { notify } from "../lib/notify";
+import CopyIdButton from "../components/CopyIdButton";
 import FollowButton from "../components/FollowButton";
 import EmbedCode from "../components/EmbedCode";
 
@@ -621,6 +622,7 @@ export default function Market() {
           </div>
         )}
       </div>
+      <div style={{ marginTop: "-8px", marginBottom: "16px" }}><CopyIdButton id={market.id} /></div>
 
       {/* ── Binary prob display ── */}
       {!isMulti && (() => {
