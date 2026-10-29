@@ -13,6 +13,7 @@ import EmbedCode from "../components/EmbedCode";
 import CommentsSection from "../components/CommentsSection";
 import EvidenceBlock from "../components/EvidenceBlock";
 import InsightsBlock from "../components/InsightsBlock";
+import MarketDataLinks from "../components/MarketDataLinks";
 
 const S = {
   layoutWrap: {
@@ -773,6 +774,8 @@ export default function Market() {
       <InsightsBlock marketId={id} />
 
       <EvidenceBlock market={market} marketId={id} />
+
+      <MarketDataLinks market={market} marketId={id} />
 
       <CommentsSection type="market" id={id} options={options} />
 

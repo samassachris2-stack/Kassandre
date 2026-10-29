@@ -169,6 +169,71 @@ function Bars({ rows, avg, outcome }) {
   );
 }
 
+
+function TopChoices({ top, winner }) {
+  return (
+    <span style={{ display: "inline-flex", flexWrap: "wrap", gap: "6px", justifyContent: "flex-end" }}>
+      {top.map((t) => (
+        <span key={t.id} style={{
+          fontSize: "12px", padding: "2px 8px", borderRadius: "999px", whiteSpace: "nowrap",
+          border: `1px solid ${winner === t.id ? "#22c55e" : "var(--k-border)"}`, color: "var(--k-text2)", background: "var(--k-inset)",
+        }}>{winner === t.id ? "✓ " : ""}{t.label} <strong style={{ color: "var(--k-text)" }}>{t.pct} %</strong></span>
+      ))}
+    </span>
+  );
+}
+
+// Marchés à plusieurs choix : choix les plus soutenus, au global puis par groupe.
+function MultiInsights({ data, card }) {
+  const [tab, setTab] = useState("global");
+  const labels = data.labels || {};
+  const ageRows = Object.entries(data.byAge.groups)
+    .sort((a, b) => (labels.ageBands || []).indexOf(a[0]) - (labels.ageBands || []).indexOf(b[0]))
+    .map(([k, g]) => ({ key: k, label: ageLabel(k), ...g }));
+  const jobRows = Object.entries(data.byProfession.groups)
+    .sort((a, b) => b[1].n - a[1].n)
+    .map(([k, g]) => ({ key: k, label: labels.professions?.[k] || k, ...g }));
+  const rows = tab === "age" ? ageRows : tab === "metier" ? jobRows : [];
+  const btn = (id, text) => (
+    <button key={id} type="button" onClick={() => setTab(id)} aria-pressed={tab === id} style={{
+      padding: "7px 13px", borderRadius: "8px", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
+      border: `1px solid ${tab === id ? "var(--k-accent)" : "var(--k-border)"}`,
+      background: tab === id ? "rgba(var(--k-accent-rgb), 0.15)" : "var(--k-inset)",
+      color: tab === id ? "var(--k-accent-text)" : "var(--k-muted2)",
+    }}>{text}</button>
+  );
+  return (
+    <section style={card}>
+      <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "var(--k-text)", margin: "0 0 4px" }}>Qui pense quoi ?</h3>
+      <p style={{ fontSize: "12px", color: "var(--k-muted)", margin: "0 0 14px", lineHeight: 1.45 }}>
+        Choix les plus soutenus selon le profil des membres (chacun compte pour son choix principal). Groupes de {data.minGroupSize} personnes minimum.
+        {" "}{data.voters} parieurs, dont {data.profiled} ayant renseigné leur profil.
+      </p>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "14px" }}>
+        {btn("global", "Ensemble")}{btn("age", "Âge")}{btn("metier", "Métier")}
+      </div>
+      {tab === "global" ? (
+        data.overall.length ? <TopChoices top={data.overall} winner={data.outcome} /> : <p style={{ fontSize: "13px", color: "var(--k-muted)" }}>Pas encore assez de parieurs.</p>
+      ) : rows.length === 0 ? (
+        <p style={{ fontSize: "13px", color: "var(--k-muted)" }}>Pas encore assez de membres par groupe.</p>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          {rows.map((r) => (
+            <div key={r.key} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+              <span style={{ fontSize: "13px", color: "var(--k-text2)" }}>{r.label} <span style={{ color: "var(--k-muted)" }}>· {r.n} membres</span></span>
+              <TopChoices top={r.top} winner={data.outcome} />
+            </div>
+          ))}
+        </div>
+      )}
+      <p style={{ fontSize: "11px", color: "var(--k-faint)", margin: "14px 0 0", lineHeight: 1.45 }}>
+        {data.note} Les pourcentages sont arrondis à 5 % près pour les petits groupes.{" "}
+        <Link to="/settings" style={{ color: "var(--k-accent-text)" }}>Ajouter mon profil</Link>
+      </p>
+    </section>
+  );
+}
+
 // "Qui pense quoi ?" : répartition des paris OUI / NON par territoire, âge et métier,
 // à partir des profils partagés volontairement. Groupes de 10 personnes minimum.
 export default function InsightsBlock({ marketId }) {
@@ -185,11 +250,35 @@ export default function InsightsBlock({ marketId }) {
     return () => { alive = false; };
   }, [marketId]);
 
-  if (!data || !data.supported || data.profiled == null) return null;
+  if (!data || !data.supported) return null;
+
+  const card = { marginTop: "28px", textAlign: "left", border: "1px solid var(--k-border)", borderRadius: "12px", padding: "16px", background: "var(--k-surface)" };
+  const isMulti = data.type === "multi";
+
+  // Pas encore assez de profils : on montre la fonctionnalité et comment la débloquer.
+  if (data.profiled == null) {
+    const have = data.profiledCount || 0;
+    return (
+      <section style={card}>
+        <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "var(--k-text)", margin: "0 0 4px" }}>Qui pense quoi ?</h3>
+        <p style={{ fontSize: "13px", color: "var(--k-muted2)", margin: "0 0 10px", lineHeight: 1.5 }}>
+          Carte du monde et de la France, répartition par âge et par secteur d'activité : disponible dès que {data.minGroupSize} parieurs de ce marché ont renseigné leur profil.
+        </p>
+        <div style={{ height: "8px", borderRadius: "4px", background: "var(--k-surface2)", overflow: "hidden", maxWidth: "320px" }}>
+          <div style={{ width: `${Math.min(100, (have / data.minGroupSize) * 100)}%`, height: "100%", background: "var(--k-accent)" }} />
+        </div>
+        <p style={{ fontSize: "12px", color: "var(--k-muted)", margin: "6px 0 0" }}>
+          {have} profil{have > 1 ? "s" : ""} sur {data.minGroupSize} · {data.voters} parieur{data.voters > 1 ? "s" : ""} au total.{" "}
+          <Link to="/settings" style={{ color: "var(--k-accent-text)" }}>Ajouter mon profil (facultatif)</Link>
+        </p>
+      </section>
+    );
+  }
 
   const sectorMarket = (data.categories || []).some((c) => ["Économie", "Tech", "Crypto"].includes(c));
   const tab = tabSel || (sectorMarket ? "metier" : "territoire");
   const labels = data.labels || {};
+  if (isMulti) return <MultiInsights data={data} card={card} />;
   const ageRows = Object.entries(data.byAge.groups)
     .sort((a, b) => (labels.ageBands || []).indexOf(a[0]) - (labels.ageBands || []).indexOf(b[0]))
     .map(([k, g]) => ({ key: k, label: ageLabel(k), ...g }));

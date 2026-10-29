@@ -275,12 +275,82 @@ async function loadProfiles(db, uids) {
   return demo;
 }
 
+// Marchés à plusieurs choix : chaque parieur compte pour l'option sur laquelle il détient
+// le plus de parts. On montre les 3 choix les plus soutenus par groupe.
+async function getInsightsMulti(db, marketId, m) {
+  const [optSnap, betSnap] = await Promise.all([
+    db.collection("markets").doc(marketId).collection("options").get(),
+    db.collection("bets").where("marketId", "==", marketId).limit(10000).get(),
+  ]);
+  const options = optSnap.docs.map((d) => ({ id: d.id, label: d.data().label || d.id }));
+  const labelOf = new Map(options.map((o) => [o.id, o.label]));
+  const net = new Map();
+  betSnap.docs.forEach((d) => {
+    const b = d.data();
+    if (!b.userId || !b.optionId) return;
+    const u = net.get(b.userId) || new Map();
+    u.set(b.optionId, (u.get(b.optionId) || 0) + (b.shares || 0));
+    net.set(b.userId, u);
+  });
+  const voters = [];
+  net.forEach((u, uid) => {
+    let best = null;
+    u.forEach((sh, oid) => { if (sh > 0.001 && (!best || sh > best.sh)) best = { oid, sh }; });
+    if (best) voters.push({ uid, vote: best.oid });
+  });
+  const demo = await loadProfiles(db, voters.map((v) => v.uid));
+  const withProfile = voters.filter((v) => demo.has(v.uid)).map((v) => ({ ...v, ...demo.get(v.uid) }));
+  const enough = withProfile.length >= MIN_GROUP;
+
+  const dist = (list) => {
+    const c = new Map();
+    list.forEach((v) => c.set(v.vote, (c.get(v.vote) || 0) + 1));
+    return [...c.entries()]
+      .map(([id, n]) => ({ id, label: labelOf.get(id) || id, pct: pct(n, list.length) }))
+      .sort((a, b) => b.pct - a.pct);
+  };
+  const groupTop = (keyOf) => {
+    const map = new Map();
+    withProfile.forEach((v) => {
+      const k = keyOf(v);
+      if (!k) return;
+      map.set(k, [...(map.get(k) || []), v]);
+    });
+    const groups = {};
+    let hidden = 0;
+    map.forEach((list, k) => {
+      if (list.length >= MIN_GROUP) groups[k] = { n: list.length, top: dist(list).slice(0, 3) };
+      else hidden += 1;
+    });
+    return { groups, hiddenGroups: hidden };
+  };
+  const empty = { groups: {}, hiddenGroups: 0 };
+  return {
+    id: marketId,
+    supported: true,
+    type: "multi",
+    minGroupSize: MIN_GROUP,
+    status: m.status || null,
+    outcome: m.status === "resolved" && m.outcome ? String(m.outcome) : null,
+    categories: catsOf(m),
+    options,
+    voters: voters.length,
+    overall: voters.length >= MIN_GROUP ? dist(voters).slice(0, 6) : [],
+    profiled: enough ? withProfile.length : null,
+    profiledCount: withProfile.length,
+    note: "Opinion des membres de Kassandre ayant renseigné leur profil, pas un sondage représentatif.",
+    byAge: enough ? groupTop((v) => v.ageBand) : empty,
+    byProfession: enough ? groupTop((v) => v.profession) : empty,
+    labels: { professions: PROFESSIONS, ageBands: AGE_BANDS },
+  };
+}
+
 export async function getInsights(db, marketId) {
   return memo(`insights:${marketId}`, 600000, async () => {
     const mSnap = await db.collection("markets").doc(marketId).get();
     if (!mSnap.exists) return null;
     const m = mSnap.data();
-    if (m.type === "multi") return { id: marketId, supported: false, reason: "Disponible pour les marchés Oui/Non uniquement." };
+    if (m.type === "multi") return getInsightsMulti(db, marketId, m);
 
     const voters = await marketVoters(db, marketId);
     const demo = await loadProfiles(db, voters.map((v) => v.uid));
@@ -300,6 +370,7 @@ export async function getInsights(db, marketId) {
       voters: total,
       yesPct: total ? pct(yesAll, total) : null,
       profiled: enough ? withProfile.length : null,
+      profiledCount: withProfile.length,
       note: "Opinion des membres de Kassandre ayant renseigné leur profil, pas un sondage représentatif.",
       byCountry: enough ? groupBy(withProfile, (v) => v.country || (v.dept ? "FR" : null)) : empty,
       byDepartment: enough ? groupBy(withProfile, (v) => v.dept) : empty,

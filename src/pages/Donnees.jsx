@@ -50,7 +50,7 @@ function CalibrationChart({ data }) {
 const TR_CATS = ["Politique", "Économie", "Tech", "International", "Sport", "Crypto"];
 
 function TrackRecord() {
-  const [cat, setCat] = useState("");
+  const [cat, setCat] = useState(() => { const c = new URLSearchParams(window.location.search).get("cat"); return TR_CATS.includes(c) ? c : ""; });
   const [tab, setTab] = useState("age");
   const [d, setD] = useState(null);
   useEffect(() => {
@@ -73,7 +73,7 @@ function TrackRecord() {
   const avg = d?.allMembers?.rightPct;
 
   return (
-    <section style={{ border: "1px solid var(--k-border)", borderRadius: "12px", padding: "18px", background: "var(--k-surface)", marginBottom: "18px", textAlign: "left" }}>
+    <section id="anticipe" style={{ border: "1px solid var(--k-border)", borderRadius: "12px", padding: "18px", background: "var(--k-surface)", marginBottom: "18px", textAlign: "left", scrollMarginTop: "80px" }}>
       <h2 style={{ fontSize: "1.1rem", margin: "0 0 6px", color: "var(--k-text)" }}>Qui anticipe le mieux ?</h2>
       <p style={{ fontSize: "13px", color: "var(--k-muted2)", lineHeight: 1.55, margin: "0 0 12px" }}>
         Part des votes qui allaient dans le bon sens sur les marchés Oui/Non résolus, selon l'âge et le métier des membres qui ont renseigné leur profil.
