@@ -160,7 +160,7 @@ service cloud.firestore {
     }
 
     // ── Profil facultatif (statistiques agrégées) ────────────────────────────
-    // Département, arrondissement, tranche d'âge, métier. Visible et modifiable
+    // Pays, département (France), arrondissement, tranche d'âge, métier. Visible et modifiable
     // uniquement par son propriétaire, qui peut le supprimer à tout moment.
     // Seules les Cloud Functions (Admin SDK) le lisent, pour calculer des
     // statistiques de groupes d'au moins 10 personnes.
@@ -169,11 +169,15 @@ service cloud.firestore {
       allow create, update: if request.auth != null
         && request.auth.uid == userId
         && request.resource.data.keys().hasOnly(
-             ['consent', 'consentAt', 'dept', 'arr', 'ageBand', 'profession', 'updatedAt'])
+             ['consent', 'consentAt', 'country', 'dept', 'arr', 'ageBand', 'profession', 'updatedAt'])
         && request.resource.data.consent == true
         && request.resource.data.updatedAt == request.time
+        && (!('country' in request.resource.data)
+            || (request.resource.data.country is string
+                && request.resource.data.country.matches('^[A-Z]{2}$')))
         && (!('dept' in request.resource.data)
-            || (request.resource.data.dept is string
+            || (request.resource.data.country == 'FR'
+                && request.resource.data.dept is string
                 && request.resource.data.dept.matches('^(0[1-9]|[1-8][0-9]|9[0-5]|2A|2B|971|972|973|974|976|98|99)$')))
         && (!('arr' in request.resource.data)
             || (request.resource.data.arr is int

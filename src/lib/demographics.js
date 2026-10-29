@@ -27,14 +27,16 @@ export async function loadDemographics(uid) {
   return snap.exists() ? snap.data() : null;
 }
 
-export async function saveDemographics(uid, { dept, arr, ageBand, profession }, existing) {
+export async function saveDemographics(uid, { country, dept, arr, ageBand, profession }, existing) {
   const data = {
     consent: true,
     consentAt: existing?.consentAt || serverTimestamp(),
     updatedAt: serverTimestamp(),
   };
-  if (dept) data.dept = dept;
-  if (dept === "75" && arr) data.arr = Number(arr);
+  const c = country || "FR";
+  data.country = c;
+  if (c === "FR" && dept) data.dept = dept;
+  if (c === "FR" && dept === "75" && arr) data.arr = Number(arr);
   if (ageBand) data.ageBand = ageBand;
   if (profession) data.profession = profession;
   await setDoc(doc(db, "demographics", uid), data);

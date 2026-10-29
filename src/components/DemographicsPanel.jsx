@@ -3,6 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import { notify, askConfirm } from "../lib/notify";
 import { AGE_BANDS, PROFESSIONS, deleteDemographics, loadDemographics, saveDemographics } from "../lib/demographics";
 import departements from "../lib/departements.json";
+import pays from "../lib/pays.json";
 
 // Profil facultatif pour les statistiques de groupes. Rien n'est enregistré
 // sans consentement, et tout peut être effacé à tout moment.
@@ -11,7 +12,7 @@ export default function DemographicsPanel() {
   const [loaded, setLoaded] = useState(false);
   const [existing, setExisting] = useState(null);
   const [consent, setConsent] = useState(false);
-  const [f, setF] = useState({ dept: "", arr: "", ageBand: "", profession: "" });
+  const [f, setF] = useState({ country: "FR", dept: "", arr: "", ageBand: "", profession: "" });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -22,7 +23,7 @@ export default function DemographicsPanel() {
         if (d) {
           setExisting(d);
           setConsent(true);
-          setF({ dept: d.dept || "", arr: d.arr ? String(d.arr) : "", ageBand: d.ageBand || "", profession: d.profession || "" });
+          setF({ country: d.country || "FR", dept: d.dept || "", arr: d.arr ? String(d.arr) : "", ageBand: d.ageBand || "", profession: d.profession || "" });
         }
         setLoaded(true);
       })
@@ -46,7 +47,7 @@ export default function DemographicsPanel() {
     if (!(await askConfirm("Effacer ces informations et retirer ton consentement ?", { confirmLabel: "Effacer", danger: true }))) return;
     try {
       await deleteDemographics(user.uid);
-      setExisting(null); setConsent(false); setF({ dept: "", arr: "", ageBand: "", profession: "" });
+      setExisting(null); setConsent(false); setF({ country: "FR", dept: "", arr: "", ageBand: "", profession: "" });
       notify("Informations effacées.", "success");
     } catch { notify("Suppression impossible.", "error"); }
   }
@@ -73,13 +74,22 @@ export default function DemographicsPanel() {
 
       {consent && (
         <div>
-          <label style={lbl}>Département</label>
-          <select value={f.dept} onChange={(e) => setF({ ...f, dept: e.target.value, arr: e.target.value === "75" ? f.arr : "" })} style={sel}>
-            <option value="">Non précisé</option>
-            {departements.map((d) => <option key={d.code} value={d.code}>{d.code} · {d.nom}</option>)}
+          <label style={lbl}>Pays de résidence</label>
+          <select value={f.country} onChange={(e) => setF({ ...f, country: e.target.value, dept: "", arr: "" })} style={sel}>
+            {pays.map((c) => <option key={c.code} value={c.code}>{c.nom}</option>)}
           </select>
 
-          {f.dept === "75" && (
+          {f.country === "FR" && (
+            <>
+              <label style={lbl}>Département</label>
+              <select value={f.dept} onChange={(e) => setF({ ...f, dept: e.target.value, arr: e.target.value === "75" ? f.arr : "" })} style={sel}>
+                <option value="">Non précisé</option>
+                {departements.map((d) => <option key={d.code} value={d.code}>{d.code} · {d.nom}</option>)}
+              </select>
+            </>
+          )}
+
+          {f.country === "FR" && f.dept === "75" && (
             <>
               <label style={lbl}>Arrondissement de Paris</label>
               <select value={f.arr} onChange={(e) => setF({ ...f, arr: e.target.value })} style={sel}>

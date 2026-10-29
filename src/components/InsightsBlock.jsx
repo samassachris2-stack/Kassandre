@@ -28,6 +28,60 @@ function Legend() {
   );
 }
 
+
+function WorldMap({ groups, onPickFrance }) {
+  const [geo, setGeo] = useState(null);
+  const [vb, setVb] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    import("../lib/worldMap.json").then((m) => { if (alive) { setGeo(m.default); setVb({ x: 0, y: 0, w: m.default.w, h: m.default.h }); } });
+    return () => { alive = false; };
+  }, []);
+  if (!geo || !vb) return <p style={{ fontSize: "13px", color: "var(--k-muted)" }}>Chargement de la carte...</p>;
+
+  // Zoom animé vers la France, puis bascule sur la carte des départements.
+  function zoomFrance() {
+    const from = { x: 0, y: 0, w: geo.w, h: geo.h };
+    const f = geo.focus.FR;
+    const to = { x: f.x, y: f.y, w: f.w, h: f.h };
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) { onPickFrance(); return; }
+    const t0 = performance.now(), dur = 450;
+    const step = (t) => {
+      const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+      setVb({ x: from.x + (to.x - from.x) * e, y: from.y + (to.y - from.y) * e, w: from.w + (to.w - from.w) * e, h: from.h + (to.h - from.h) * e });
+      if (k < 1) requestAnimationFrame(step); else onPickFrance();
+    };
+    requestAnimationFrame(step);
+  }
+
+  return (
+    <>
+      <svg viewBox={`${vb.x} ${vb.y} ${vb.w} ${vb.h}`} style={{ width: "100%", display: "block", margin: "0 auto" }} role="img" aria-label="Carte du monde">
+        {geo.paths.map((p) => {
+          const g = groups[p.code];
+          const isFr = p.code === "FR";
+          return (
+            <path
+              key={p.code} d={p.d}
+              fill={g ? colorOf(g.yesPct) : "var(--k-surface2)"} stroke="var(--k-surface)" strokeWidth="0.5"
+              style={isFr ? { cursor: "pointer" } : undefined}
+              onClick={isFr ? zoomFrance : undefined}
+              tabIndex={isFr ? 0 : undefined}
+              onKeyDown={isFr ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); zoomFrance(); } } : undefined}
+              role={isFr ? "button" : undefined}
+            >
+              <title>{g ? `${p.nom} : ${g.yesPct} % pour OUI (${g.n} membres)` : `${p.nom} : pas assez de membres`}{isFr ? " · cliquer pour zoomer" : ""}</title>
+            </path>
+          );
+        })}
+      </svg>
+      <p style={{ fontSize: "12px", color: "var(--k-muted)", textAlign: "center", margin: "6px 0 0" }}>Clique sur la France pour voir le détail par département.</p>
+      <Legend />
+    </>
+  );
+}
+
 function FranceMap({ groups }) {
   const [geo, setGeo] = useState(null);
   useEffect(() => {
@@ -106,7 +160,7 @@ function Bars({ rows }) {
 export default function InsightsBlock({ marketId }) {
   const [data, setData] = useState(null);
   const [tab, setTab] = useState("territoire");
-  const [scope, setScope] = useState("france");
+  const [scope, setScope] = useState("monde");
 
   useEffect(() => {
     let alive = true;
@@ -156,7 +210,7 @@ export default function InsightsBlock({ marketId }) {
       {tab === "territoire" && (
         <>
           <div style={{ display: "flex", gap: "8px", marginBottom: "12px", justifyContent: "center" }}>
-            {[["france", "France"], ["paris", "Paris"]].map(([id, text]) => (
+            {[["monde", "Monde"], ["france", "France"], ["paris", "Paris"]].map(([id, text]) => (
               <button key={id} type="button" onClick={() => setScope(id)} style={{
                 padding: "4px 12px", borderRadius: "999px", fontSize: "12px", fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
                 border: `1px solid ${scope === id ? "var(--k-accent)" : "var(--k-border)"}`, background: "transparent",
@@ -164,7 +218,9 @@ export default function InsightsBlock({ marketId }) {
               }}>{text}</button>
             ))}
           </div>
-          {scope === "france" ? <FranceMap groups={data.byDepartment.groups} /> : <ParisMap groups={data.byParisArrondissement.groups} />}
+          {scope === "monde" && <WorldMap groups={data.byCountry?.groups || {}} onPickFrance={() => setScope("france")} />}
+          {scope === "france" && <FranceMap groups={data.byDepartment.groups} />}
+          {scope === "paris" && <ParisMap groups={data.byParisArrondissement.groups} />}
         </>
       )}
       {tab === "age" && <Bars rows={ageRows} />}

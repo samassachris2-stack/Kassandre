@@ -288,6 +288,7 @@ export async function getInsights(db, marketId) {
       yesPct: total ? pct(yesAll, total) : null,
       profiled: enough ? withProfile.length : null,
       note: "Opinion des membres de Kassandre ayant renseigné leur profil, pas un sondage représentatif.",
+      byCountry: enough ? groupBy(withProfile, (v) => v.country || (v.dept ? "FR" : null)) : empty,
       byDepartment: enough ? groupBy(withProfile, (v) => v.dept) : empty,
       byParisArrondissement: enough ? groupBy(withProfile.filter((v) => v.dept === "75"), (v) => v.arr) : empty,
       byAge: enough ? groupBy(withProfile, (v) => v.ageBand) : empty,
