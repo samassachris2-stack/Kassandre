@@ -4,6 +4,9 @@ import { onCall, onRequest, HttpsError } from "firebase-functions/v2/https";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { buildOgPayload, buildIndexPayload, ID_RE } from "./og-data.js";
 import { detectMove, outcomeLabelFor } from "./follow-alerts.js";
+import {
+  LICENSE, MARKET_COLUMNS, getCalibration, getHistory, getMarket, getStats, listMarkets, toCsv,
+} from "./public-api.js";
 import { computeDaily } from "./daily-bonus.js";
 import {
   calcShares, calcSellShares, calcSharesLMSR, calcSellSharesLMSR,
@@ -817,6 +820,95 @@ export const ogData = onRequest({ cors: false, maxInstances: 5 }, async (req, re
     res.json(payload);
   } catch (e) {
     console.error("ogData failed", kind, id, e);
+    res.status(500).json({ error: "internal" });
+  }
+});
+
+// ── publicApi : API ouverte en lecture seule ─────────────────────────────
+// Servie sous https://kassandre.app/api/v1/... (réécriture Vercel). Hors App
+// Check, données publiques uniquement (voir public-api.js). Les réponses sont
+// mises en cache par le CDN pendant 5 minutes.
+export const publicApi = onRequest({ cors: true, maxInstances: 5, memory: "512MiB", timeoutSeconds: 120 }, async (req, res) => {
+  if (req.method !== "GET" && req.method !== "OPTIONS") {
+    res.status(405).json({ error: "method not allowed" });
+    return;
+  }
+  const parts = String(req.path || "/").split("/").filter(Boolean);
+  if (parts[0] === "v1") parts.shift();
+  const reply = (body, ttl = 300) => {
+    res.set("Cache-Control", `public, max-age=60, s-maxage=${ttl}`);
+    res.json({ license: LICENSE, ...body });
+  };
+  const csv = (name, text) => {
+    res.set("Cache-Control", "public, max-age=60, s-maxage=300");
+    res.set("Content-Type", "text/csv; charset=utf-8");
+    res.set("Content-Disposition", `attachment; filename="${name}"`);
+    res.send("\ufeff" + text);
+  };
+  try {
+    if (parts.length === 0) {
+      reply({
+        name: "API ouverte Kassandre",
+        docs: "https://kassandre.app/donnees",
+        endpoints: [
+          "/api/v1/markets?status=resolved&category=Politique&tag=&q=&limit=50&offset=0",
+          "/api/v1/markets.csv?status=resolved",
+          "/api/v1/markets/{id}",
+          "/api/v1/markets/{id}/history",
+          "/api/v1/markets/{id}/history.csv",
+          "/api/v1/calibration?horizonDays=7",
+          "/api/v1/stats",
+        ],
+      });
+      return;
+    }
+    if (parts[0] === "markets.csv") {
+      const all = [];
+      let offset = 0;
+      for (;;) {
+        const page = await listMarkets(db, { ...req.query, limit: 200, offset });
+        all.push(...page.data);
+        offset += 200;
+        if (offset >= page.total || offset > 4000) break;
+      }
+      csv("kassandre-marches.csv", toCsv(all, MARKET_COLUMNS));
+      return;
+    }
+    if (parts[0] === "markets" && parts.length === 1) {
+      reply(await listMarkets(db, req.query));
+      return;
+    }
+    if (parts[0] === "markets" && parts.length >= 2) {
+      const id = parts[1];
+      if (!ID_RE.test(id)) { res.status(400).json({ error: "bad id" }); return; }
+      if (parts[2] === "history" || parts[2] === "history.csv") {
+        const h = await getHistory(db, id);
+        if (!h) { res.status(404).json({ error: "not found" }); return; }
+        if (parts[2] === "history.csv") {
+          const rows = h.points.map((p) => (h.type === "binary" ? { t: p.t, yes: p.yes } : { t: p.t, ...p.values }));
+          const cols = h.type === "binary" ? ["t", "yes"] : ["t", ...(h.options || []).map((o) => o.id)];
+          csv(`kassandre-${id}-historique.csv`, toCsv(rows, cols));
+        } else {
+          reply(h);
+        }
+        return;
+      }
+      const m = await getMarket(db, id);
+      if (!m) { res.status(404).json({ error: "not found" }); return; }
+      reply(m);
+      return;
+    }
+    if (parts[0] === "calibration") {
+      reply(await getCalibration(db, Number(req.query.horizonDays) || 7), 3600);
+      return;
+    }
+    if (parts[0] === "stats") {
+      reply(await getStats(db));
+      return;
+    }
+    res.status(404).json({ error: "not found" });
+  } catch (e) {
+    console.error("publicApi failed", req.path, e);
     res.status(500).json({ error: "internal" });
   }
 });

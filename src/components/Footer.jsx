@@ -197,6 +197,10 @@ export default function Footer() {
               onMouseEnter={(e) => { e.currentTarget.style.color = "var(--k-text)"; }}
               onMouseLeave={(e) => { e.currentTarget.style.color = "var(--k-muted2)"; }}
             >Apparence</Link>
+            <Link to="/donnees" style={S.link}
+              onMouseEnter={(e) => { e.currentTarget.style.color = "var(--k-text)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = "var(--k-muted2)"; }}
+            >Données ouvertes</Link>
           </div>
         </div>
 

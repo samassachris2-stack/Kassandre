@@ -1,6 +1,14 @@
 {
   "rewrites": [
     {
+      "source": "/api/v1",
+      "destination": "https://us-central1-kassandre-f868e.cloudfunctions.net/publicApi/v1"
+    },
+    {
+      "source": "/api/v1/:path*",
+      "destination": "https://us-central1-kassandre-f868e.cloudfunctions.net/publicApi/v1/:path*"
+    },
+    {
       "source": "/",
       "has": [
         {

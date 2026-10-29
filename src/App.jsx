@@ -16,6 +16,7 @@ import Footer from "./components/Footer";
 import NotificationHost from "./components/NotificationHost";
 import CookieBanner from "./components/CookieBanner";
 const Settings = lazy(() => import("./pages/Settings"));
+const Donnees = lazy(() => import("./pages/Donnees"));
 const CGU = lazy(() => import("./pages/CGU"));
 const Confidentialite = lazy(() => import("./pages/Confidentialite"));
 const MentionsLegales = lazy(() => import("./pages/MentionsLegales"));
@@ -79,6 +80,7 @@ function Shell() {
             <Route path="/admin/blog" element={<BlogAdminPage />} />
             <Route path="/admin/resolutions" element={<AdminResolutions />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/donnees" element={<Donnees />} />
             <Route path="/cgu" element={<CGU />} />
             <Route path="/confidentialite" element={<Confidentialite />} />
             <Route path="/mentions-legales" element={<MentionsLegales />} />
