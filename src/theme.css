@@ -49,26 +49,27 @@
 }
 
 :root[data-theme="light"] {
-  --k-bg: #e9ebf2;
-  --k-body-bg: #e9ebf2;
-  --k-inset: #dfe2ec;
-  --k-surface: #ffffff;
-  --k-surface2: #dde0ea;
-  --k-border: #b4b8c9;
-  --k-border2: #8f94a9;
-  --k-text: #0f1020;
-  --k-text2: #26263a;
-  --k-muted2: #363649;
-  --k-muted: #4a4a5f;
-  --k-faint: #5d5d73;
+  /* Fonds teintés par la couleur principale choisie : l'identité violette reste visible */
+  --k-bg: color-mix(in srgb, var(--k-accent) 9%, #f7f7fb);
+  --k-body-bg: color-mix(in srgb, var(--k-accent) 9%, #f7f7fb);
+  --k-inset: color-mix(in srgb, var(--k-accent) 12%, #f1f1f8);
+  --k-surface: color-mix(in srgb, var(--k-accent) 3%, #ffffff);
+  --k-surface2: color-mix(in srgb, var(--k-accent) 15%, #eeeef6);
+  --k-border: color-mix(in srgb, var(--k-accent) 32%, #c3c6d6);
+  --k-border2: color-mix(in srgb, var(--k-accent) 42%, #9a9eb4);
+  --k-text: #14102b;
+  --k-text2: #261f4a;
+  --k-muted2: #3a3162;
+  --k-muted: #4c4372;
+  --k-faint: #61587f;
   --k-disabled: #c4b5ee;
-  --k-accent-deep: #e4dcf8;
+  --k-accent-deep: color-mix(in srgb, var(--k-accent) 16%, #ffffff);
   --k-red-text: #a31616;
   --k-red-bg: #fbd5d9;
   --k-red-border: #ec9ea8;
-  --k-ink-rgb: 0, 0, 0;
-  --k-bg-rgb: 233, 235, 242;
-  --k-inset-rgb: 223, 226, 236;
+  --k-ink-rgb: 20, 16, 43;
+  --k-bg-rgb: 237, 233, 249;
+  --k-inset-rgb: 229, 224, 245;
   color-scheme: light;
 }
 
@@ -113,3 +114,22 @@
 }
 
 body { background: var(--k-body-bg); }
+
+/* Fluidité : défilement doux, changements de couleur progressifs, apparition des pages */
+html { scroll-behavior: smooth; }
+button, a, input, select, textarea, [role="button"] {
+  transition: background-color .18s ease, border-color .18s ease, color .18s ease,
+              box-shadow .18s ease, opacity .18s ease, transform .18s ease;
+}
+button:not(:disabled):active { transform: scale(.98); }
+.k-page { animation: k-page-in .24s ease-out both; }
+@keyframes k-page-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+/* Posée une fraction de seconde lors d'un changement de thème */
+.k-theme-anim, .k-theme-anim *, .k-theme-anim *::before, .k-theme-anim *::after {
+  transition: background-color .3s ease, color .3s ease, border-color .3s ease, fill .3s ease, stroke .3s ease !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .k-page { animation: none; }
+}
+:root[data-motion="reduced"] .k-page { animation: none; }

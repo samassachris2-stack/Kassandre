@@ -57,11 +57,17 @@ function Shell() {
   }
   // L'éditeur d'articles a besoin de toute la hauteur : pas de navbar sur /admin/blog
   const hideNavbar = pathname.startsWith("/admin/blog");
+  // Chaque page apparaît en fondu. Les pages du fil (/, /:categorie, /:categorie/:tag) partagent
+  // la même clé pour ne pas être rechargées quand on change de filtre.
+  const first = pathname.split("/")[1] || "";
+  const FIXED = ["market", "blog", "leaderboard", "portefeuille", "profil", "tracker", "soumettre", "admin", "settings", "donnees", "cgu", "confidentialite", "mentions-legales", "resolution", "presidentielle-2027"];
+  const pageKey = FIXED.includes(first) ? pathname : "feed";
   return (
       <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
         {!hideNavbar && <Navbar />}
         <div style={{ flex: 1, minHeight: "75vh" }}>
           <Suspense fallback={<p style={{ padding: "40px", color: "var(--k-muted)" }}>Chargement...</p>}>
+          <div key={pageKey} className="k-page">
           <Routes>
             <Route path="/" element={<Feed />} />
             <Route path="/resolution" element={<Resolution />} />
@@ -85,6 +91,7 @@ function Shell() {
             <Route path="/confidentialite" element={<Confidentialite />} />
             <Route path="/mentions-legales" element={<MentionsLegales />} />
           </Routes>
+          </div>
           </Suspense>
         </div>
         <Footer />

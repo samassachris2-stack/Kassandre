@@ -67,12 +67,19 @@ export function applyAppearance(s) {
   if (rootEl) rootEl.style.zoom = s.scale && s.scale !== 1 ? String(s.scale) : "";
 
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute("content", theme === "amoled" ? "#000000" : light ? "#e9ebf2" : "#0a0a0f");
+  if (meta) meta.setAttribute("content", theme === "amoled" ? "#000000" : light ? "#ede9f9" : "#0a0a0f");
   const scheme = document.querySelector('meta[name="color-scheme"]');
   if (scheme) scheme.setAttribute("content", light ? "light" : "dark");
 }
 
 export function setAppearance(patch) {
+  const themeChanged = patch.theme != null && patch.theme !== current.theme;
+  const accentChanged = patch.accent != null && patch.accent !== current.accent;
+  if (themeChanged || accentChanged) {
+    const el = document.documentElement;
+    el.classList.add("k-theme-anim");
+    setTimeout(() => el.classList.remove("k-theme-anim"), 400);
+  }
   current = { ...current, ...patch };
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(current)); } catch { /* ignoré */ }
   applyAppearance(current);
