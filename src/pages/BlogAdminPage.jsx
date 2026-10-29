@@ -1,4 +1,5 @@
 import { prepareImageForUpload } from "../lib/imageUtils";
+import { externalizeDataImages } from "../lib/blogImages";
 import { safeFileName } from "../lib/cssUrl";
 import { useState, useEffect, useRef } from "react";
 import { Timestamp } from "firebase/firestore";
@@ -70,11 +71,20 @@ export default function BlogAdminPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    let content = formData.content;
+    try {
+      content = await externalizeDataImages(content);
+    } catch (err) {
+      console.error("Images non envoyées:", err);
+      notify("Impossible d'envoyer les images collées : " + (err.code || err.message), "error");
+      return;
+    }
+
     const articleData = {
       title: formData.title,
       slug: formData.slug,
       excerpt: formData.excerpt,
-      content: formData.content,
+      content,
       tags: formData.tags.split(",").map((tag) => tag.trim()).filter(t => t),
       linkedMarkets: formData.linkedMarkets
         .split(",")
@@ -100,7 +110,7 @@ export default function BlogAdminPage() {
       await loadArticles();
     } catch (error) {
       console.error("Error saving article:", error);
-      notify("Erreur lors de l'enregistrement", "error");
+      notify("Erreur lors de l'enregistrement : " + (error.code || error.message), "error");
     }
   };
 

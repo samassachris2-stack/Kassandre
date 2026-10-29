@@ -84,7 +84,7 @@ export default function BlogEditor({ content, onChange }) {
       Color,
       TextStyleExtras,
       ResizableImage.configure({
-        allowBase64: false,
+        allowBase64: true,
       }),
       Link.configure({
         openOnClick: false,
