@@ -1,14 +1,14 @@
 const S = {
   page: { maxWidth: "700px", margin: "40px auto", padding: "0 16px 80px" },
-  title: { fontSize: "26px", fontWeight: "600", color: "#e8e8f0", marginBottom: "8px" },
-  updated: { fontSize: "13px", color: "#8888a0", marginBottom: "32px" },
+  title: { fontSize: "26px", fontWeight: "600", color: "var(--k-text)", marginBottom: "8px" },
+  updated: { fontSize: "13px", color: "var(--k-muted)", marginBottom: "32px" },
   section: { marginBottom: "28px" },
-  sectionTitle: { fontSize: "16px", fontWeight: "600", color: "#e8e8f0", marginBottom: "10px" },
-  text: { fontSize: "14px", color: "#a8a8b8", lineHeight: "1.7" },
+  sectionTitle: { fontSize: "16px", fontWeight: "600", color: "var(--k-text)", marginBottom: "10px" },
+  text: { fontSize: "14px", color: "var(--k-muted2)", lineHeight: "1.7" },
   notice: {
-    background: "rgba(124,58,237,0.08)", border: "0.5px solid rgba(124,58,237,0.2)",
+    background: "rgba(var(--k-accent-rgb),0.08)", border: "0.5px solid rgba(var(--k-accent-rgb),0.2)",
     borderRadius: "10px", padding: "14px 16px", fontSize: "13px",
-    color: "#a78bfa", marginBottom: "32px",
+    color: "var(--k-accent-text)", marginBottom: "32px",
   },
 };
 

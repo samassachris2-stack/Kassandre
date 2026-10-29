@@ -49,7 +49,7 @@ function Shell() {
       <Suspense fallback={null}>
         <Routes>
           <Route path="/embed/:id" element={<EmbedMarket />} />
-          <Route path="*" element={<p style={{ padding: "16px", color: "#8888a0", fontFamily: "system-ui" }}>Marché introuvable.</p>} />
+          <Route path="*" element={<p style={{ padding: "16px", color: "var(--k-muted)", fontFamily: "system-ui" }}>Marché introuvable.</p>} />
         </Routes>
       </Suspense>
     );
@@ -60,7 +60,7 @@ function Shell() {
       <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
         {!hideNavbar && <Navbar />}
         <div style={{ flex: 1, minHeight: "75vh" }}>
-          <Suspense fallback={<p style={{ padding: "40px", color: "#8888a0" }}>Chargement...</p>}>
+          <Suspense fallback={<p style={{ padding: "40px", color: "var(--k-muted)" }}>Chargement...</p>}>
           <Routes>
             <Route path="/" element={<Feed />} />
             <Route path="/resolution" element={<Resolution />} />

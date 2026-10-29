@@ -1,0 +1,115 @@
+/* Thèmes et réglages d'apparence. Les valeurs sombres reproduisent les
+   couleurs d'origine du site ; les autres thèmes ne changent que ces variables.
+   L'accent (--k-accent*) est posé par src/lib/appearance.js. */
+:root {
+  --k-bg: #0a0a0f;
+  --k-body-bg: #16171d;
+  --k-inset: #0f0f17;
+  --k-surface: #12121a;
+  --k-surface2: #1a1a2e;
+  --k-border: #2a2a35;
+  --k-border2: #3a3a45;
+  --k-text: #e8e8f0;
+  --k-text2: #c8c8d8;
+  --k-muted2: #a8a8b8;
+  --k-muted: #8888a0;
+  --k-faint: #6b6b8a;
+  --k-disabled: #3a2066;
+  --k-accent-deep: #1a1033;
+  --k-red-text: #ff8080;
+  --k-red-bg: #5a2a3a;
+  --k-red-border: #7a4a5a;
+  --k-accent: #7c3aed;
+  --k-accent-rgb: 124, 58, 237;
+  --k-accent-text: #a78bfa;
+  --k-accent-text-rgb: 167, 139, 250;
+  --k-ink-rgb: 255, 255, 255;
+  --k-bg-rgb: 10, 10, 15;
+  --k-inset-rgb: 15, 15, 23;
+  color-scheme: dark;
+
+  /* variables historiques du modèle Vite, reliées au thème */
+  --text: var(--k-muted2);
+  --text-h: var(--k-text);
+  --bg: var(--k-surface);
+  --border: var(--k-border);
+  --code-bg: var(--k-surface2);
+  --accent: var(--k-accent-text);
+}
+
+:root[data-theme="amoled"] {
+  --k-bg-rgb: 0, 0, 0;
+  --k-inset-rgb: 5, 5, 8;
+  --k-bg: #000000;
+  --k-body-bg: #000000;
+  --k-inset: #050508;
+  --k-surface: #08080c;
+  --k-surface2: #121220;
+  --k-border: #22222c;
+}
+
+:root[data-theme="light"] {
+  --k-bg: #f4f4f9;
+  --k-body-bg: #f4f4f9;
+  --k-inset: #eeeef5;
+  --k-surface: #ffffff;
+  --k-surface2: #ececf4;
+  --k-border: #d8d8e4;
+  --k-border2: #c2c2d2;
+  --k-text: #17172a;
+  --k-text2: #34344a;
+  --k-muted2: #4d4d64;
+  --k-muted: #62627c;
+  --k-faint: #7b7b94;
+  --k-disabled: #cbbdf0;
+  --k-accent-deep: #ece6fb;
+  --k-red-text: #b91c1c;
+  --k-red-bg: #fde2e4;
+  --k-red-border: #f2b3bb;
+  --k-ink-rgb: 0, 0, 0;
+  --k-bg-rgb: 244, 244, 249;
+  --k-inset-rgb: 238, 238, 245;
+  color-scheme: light;
+}
+
+/* Contraste élevé : bordures et textes plus marqués */
+:root[data-contrast="high"] {
+  --k-border: #6a6a80;
+  --k-border2: #8a8aa0;
+  --k-muted: var(--k-muted2);
+  --k-faint: var(--k-muted2);
+}
+:root[data-theme="light"][data-contrast="high"] {
+  --k-border: #5a5a70;
+  --k-border2: #3a3a50;
+  --k-text: #000000;
+  --k-muted2: #2a2a3c;
+}
+:root[data-contrast="high"] a { text-decoration: underline; }
+
+/* Animations réduites */
+:root[data-motion="reduced"] *,
+:root[data-motion="reduced"] *::before,
+:root[data-motion="reduced"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Police */
+:root[data-font="serif"] body,
+:root[data-font="serif"] input,
+:root[data-font="serif"] button,
+:root[data-font="serif"] textarea,
+:root[data-font="serif"] select { font-family: Georgia, "Times New Roman", serif; }
+:root[data-font="readable"] body,
+:root[data-font="readable"] input,
+:root[data-font="readable"] button,
+:root[data-font="readable"] textarea,
+:root[data-font="readable"] select {
+  font-family: Verdana, Tahoma, "Trebuchet MS", sans-serif;
+  letter-spacing: 0.02em;
+}
+
+body { background: var(--k-body-bg); }

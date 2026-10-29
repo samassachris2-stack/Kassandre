@@ -38,8 +38,8 @@ export default function EmbedMarket() {
   }, [id, isMulti]);
 
   const c = light
-    ? { bg: "#ffffff", fg: "#14141c", mute: "#6b6b80", border: "#e2e2ec", track: "#ececf4" }
-    : { bg: "#0f0f17", fg: "#e8e8f0", mute: "#8888a0", border: "rgba(124,58,237,0.3)", track: "#1d1d2b" };
+    ? { bg: "#ffffff", fg: "var(--k-surface)", mute: "var(--k-faint)", border: "var(--k-text)", track: "var(--k-text)" }
+    : { bg: "var(--k-inset)", fg: "var(--k-text)", mute: "var(--k-muted)", border: "rgba(var(--k-accent-rgb),0.3)", track: "var(--k-surface2)" };
 
   const link = `https://kassandre.app/market/${id}`;
   const wrap = { boxSizing: "border-box", minHeight: "100vh", padding: "14px 16px", background: c.bg, color: c.fg, fontFamily: "system-ui, -apple-system, Segoe UI, sans-serif", border: `1px solid ${c.border}`, borderRadius: "12px", display: "flex", flexDirection: "column", gap: "10px", textAlign: "left" };
@@ -68,16 +68,16 @@ export default function EmbedMarket() {
         <div key={r.label}>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", marginBottom: "4px" }}>
             <span style={{ color: c.mute }}>{r.label}</span>
-            <span style={{ fontWeight: 700, color: "#7c3aed" }}>{r.pct}%</span>
+            <span style={{ fontWeight: 700, color: "var(--k-accent)" }}>{r.pct}%</span>
           </div>
           <div style={{ height: "8px", borderRadius: "4px", background: c.track, overflow: "hidden" }}>
-            <div style={{ width: `${r.pct}%`, height: "100%", background: "#7c3aed" }} />
+            <div style={{ width: `${r.pct}%`, height: "100%", background: "var(--k-accent)" }} />
           </div>
         </div>
       ))}
       <div style={{ marginTop: "auto", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "12px", color: c.mute }}>
         <span>{STATUS[market.status] || ""}</span>
-        <a href={link} target="_blank" rel="noopener" style={{ color: "#7c3aed", textDecoration: "none", fontWeight: 600 }}>
+        <a href={link} target="_blank" rel="noopener" style={{ color: "var(--k-accent)", textDecoration: "none", fontWeight: 600 }}>
           Kassandre, marché de prédiction
         </a>
       </div>

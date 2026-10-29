@@ -66,32 +66,32 @@ export default function Soumettre() {
           placeholder="Ta question (ex: Mbappé marquera-t-il avant juillet 2026 ?)"
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
-          style={{ padding: "10px", borderRadius: "8px", border: "1px solid #e5e7eb", fontSize: "14px" }}
+          style={{ padding: "10px", borderRadius: "8px", border: "1px solid var(--k-text)", fontSize: "14px" }}
         />
         <textarea
           placeholder="Description ou contexte (optionnel)"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          style={{ padding: "10px", borderRadius: "8px", border: "1px solid #e5e7eb", minHeight: "80px", fontSize: "14px" }}
+          style={{ padding: "10px", borderRadius: "8px", border: "1px solid var(--k-text)", minHeight: "80px", fontSize: "14px" }}
         />
         <input
           type="date"
           value={resolutionDate}
           onChange={(e) => setResolutionDate(e.target.value)}
-          style={{ padding: "10px", borderRadius: "8px", border: "1px solid #e5e7eb", fontSize: "14px" }}
+          style={{ padding: "10px", borderRadius: "8px", border: "1px solid var(--k-text)", fontSize: "14px" }}
         />
         <input
           placeholder="Source de résolution (URL qui permettra de trancher)"
           value={resolutionSource}
           onChange={(e) => setResolutionSource(e.target.value)}
-          style={{ padding: "10px", borderRadius: "8px", border: "1px solid #e5e7eb", fontSize: "14px" }}
+          style={{ padding: "10px", borderRadius: "8px", border: "1px solid var(--k-text)", fontSize: "14px" }}
         />
         <button
           onClick={handleSubmit}
           disabled={loading || !question || !resolutionDate || !resolutionSource}
           style={{
             padding: "12px",
-            background: question && resolutionDate && resolutionSource ? "#000" : "#e5e7eb",
+            background: question && resolutionDate && resolutionSource ? "#000" : "var(--k-text)",
             color: question && resolutionDate && resolutionSource ? "#fff" : "#aaa",
             borderRadius: "8px",
             border: "none",

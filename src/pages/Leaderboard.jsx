@@ -66,8 +66,8 @@ export default function Leaderboard() {
 
   return (
     <div style={{ maxWidth: "640px", margin: "40px auto", padding: "0 16px" }}>
-      <h1 style={{ fontSize: "24px", marginBottom: "8px", color: "#e8e8f0" }}>Classement</h1>
-      <p style={{ color: "#8888a0", fontSize: "14px", marginBottom: "24px" }}>
+      <h1 style={{ fontSize: "24px", marginBottom: "8px", color: "var(--k-text)" }}>Classement</h1>
+      <p style={{ color: "var(--k-muted)", fontSize: "14px", marginBottom: "24px" }}>
         Les meilleurs prévisionnistes de Kassandre.
       </p>
 
@@ -79,9 +79,9 @@ export default function Leaderboard() {
             style={{
               padding: "8px 16px",
               borderRadius: "8px",
-              border: tab === t.id ? "1px solid #7c3aed" : "1px solid #2a2a3e",
-              background: tab === t.id ? "rgba(124,58,237,0.15)" : "transparent",
-              color: tab === t.id ? "#a78bfa" : "#8888a0",
+              border: tab === t.id ? "1px solid var(--k-accent)" : "1px solid var(--k-border)",
+              background: tab === t.id ? "rgba(var(--k-accent-rgb),0.15)" : "transparent",
+              color: tab === t.id ? "var(--k-accent-text)" : "var(--k-muted)",
               fontSize: "13px",
               fontWeight: "600",
               cursor: "pointer",
@@ -101,9 +101,9 @@ export default function Leaderboard() {
               style={{
                 padding: "6px 14px",
                 borderRadius: "20px",
-                border: category === cat ? "1px solid #7c3aed" : "1px solid #2a2a3e",
-                background: category === cat ? "#7c3aed" : "transparent",
-                color: category === cat ? "#fff" : "#8888a0",
+                border: category === cat ? "1px solid var(--k-accent)" : "1px solid var(--k-border)",
+                background: category === cat ? "var(--k-accent)" : "transparent",
+                color: category === cat ? "#fff" : "var(--k-muted)",
                 fontSize: "12px",
                 fontWeight: "600",
                 cursor: "pointer",
@@ -116,13 +116,13 @@ export default function Leaderboard() {
       )}
 
       {loading && (
-        <p style={{ color: "#6b6b8a", fontSize: "13px", textAlign: "center", padding: "40px 0" }}>
+        <p style={{ color: "var(--k-faint)", fontSize: "13px", textAlign: "center", padding: "40px 0" }}>
           Chargement du classement...
         </p>
       )}
 
       {!loading && sortedUsers.length === 0 && (
-        <p style={{ color: "#6b6b8a", fontSize: "13px", textAlign: "center", padding: "40px 0" }}>
+        <p style={{ color: "var(--k-faint)", fontSize: "13px", textAlign: "center", padding: "40px 0" }}>
           {tab === "category"
             ? `Personne n'a encore de pari résolu en ${category}.`
             : "Aucun classement disponible pour le moment."}
@@ -142,7 +142,7 @@ export default function Leaderboard() {
               alignItems: "center",
               gap: "16px",
               padding: "14px 12px",
-              borderBottom: "1px solid #1e1e2e",
+              borderBottom: "1px solid var(--k-border)",
               cursor: "pointer",
               borderRadius: "8px",
               transition: "background 0.15s",
@@ -152,7 +152,7 @@ export default function Leaderboard() {
                 fontWeight: "700",
                 width: "28px",
                 textAlign: "center",
-                color: index === 0 ? "#f59e0b" : index === 1 ? "#9ca3af" : index === 2 ? "#b45309" : "#6b6b8a",
+                color: index === 0 ? "#f59e0b" : index === 1 ? "var(--k-muted2)" : index === 2 ? "#b45309" : "var(--k-faint)",
               }}>
                 {index + 1}
               </span>
@@ -160,13 +160,13 @@ export default function Leaderboard() {
                 src={user.avatarUrl}
                 width={36}
                 height={36}
-                style={{ borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "1px solid #2a2a3e" }}
+                style={{ borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "1px solid var(--k-border)" }}
               />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontWeight: "600", marginBottom: "2px", color: "#e8e8f0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                <p style={{ fontWeight: "600", marginBottom: "2px", color: "var(--k-text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                   {user.pseudo || user.displayName}
                 </p>
-                <p style={{ fontSize: "12px", color: "#6b6b8a" }}>
+                <p style={{ fontSize: "12px", color: "var(--k-faint)" }}>
                   {user.totalBets || 0} paris
                   {accuracy !== null && ` · ${accuracy}% de précision`}
                 </p>
@@ -174,7 +174,7 @@ export default function Leaderboard() {
               <span style={{
                 fontWeight: "700",
                 fontSize: "15px",
-                color: tab === "global" ? "#e8e8f0" : tab === "category" ? "#a78bfa" : (user._sortValue >= 0 ? "#22c55e" : "#ef4444"),
+                color: tab === "global" ? "var(--k-text)" : tab === "category" ? "var(--k-accent-text)" : (user._sortValue >= 0 ? "#22c55e" : "#ef4444"),
                 flexShrink: 0,
                 textAlign: "right",
               }}>

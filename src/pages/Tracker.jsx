@@ -15,7 +15,7 @@ const signed = (v, unit = "") => {
 const signedPts = (v) => (v === null || v === undefined ? "n.d." : `${v > 0 ? "+" : ""}${(v * 100).toFixed(1)} pts`);
 const GREEN = "#22c55e";
 const RED = "#ef4444";
-const tone = (v) => (v === null || v === undefined || v === 0 ? "#e8e8f0" : v > 0 ? GREEN : RED);
+const tone = (v) => (v === null || v === undefined || v === 0 ? "var(--k-text)" : v > 0 ? GREEN : RED);
 
 export default function Tracker() {
   const { uid } = useParams();
@@ -64,21 +64,21 @@ function TrackerView({ uid }) {
   return (
     <div style={{ maxWidth: "860px", margin: "32px auto", padding: "0 16px" }}>
       {seo}
-      <Link to={`/profil/${uid}`} style={{ color: "#a78bfa", textDecoration: "none", fontSize: "14px" }}>← Profil</Link>
-      <h1 style={{ fontSize: "26px", color: "#e8e8f0", margin: "10px 0 4px" }}>
+      <Link to={`/profil/${uid}`} style={{ color: "var(--k-accent-text)", textDecoration: "none", fontSize: "14px" }}>← Profil</Link>
+      <h1 style={{ fontSize: "26px", color: "var(--k-text)", margin: "10px 0 4px" }}>
         Tracker de prévisions{!mine ? ` de ${name}` : ""}
       </h1>
-      <p style={{ color: "#8888a0", fontSize: "14px", margin: "0 0 24px" }}>
+      <p style={{ color: "var(--k-muted)", fontSize: "14px", margin: "0 0 24px" }}>
         Ce que disent les paris sur la qualité des prévisions. Chiffres calculés sur les marchés résolus.
       </p>
 
       {error && <p style={{ color: RED }}>{error}</p>}
-      {!stats && !error && <p style={{ color: "#8888a0" }}>{progress}</p>}
+      {!stats && !error && <p style={{ color: "var(--k-muted)" }}>{progress}</p>}
 
       {stats && stats.resolvedCount === 0 && (
         <div style={card}>
-          <p style={{ margin: 0, color: "#e8e8f0" }}>Aucun marché résolu pour le moment.</p>
-          <p style={{ margin: "6px 0 0", color: "#8888a0", fontSize: "14px" }}>
+          <p style={{ margin: 0, color: "var(--k-text)" }}>Aucun marché résolu pour le moment.</p>
+          <p style={{ margin: "6px 0 0", color: "var(--k-muted)", fontSize: "14px" }}>
             {stats.openMarkets > 0
               ? `${stats.openMarkets} marché${stats.openMarkets > 1 ? "s" : ""} en cours : le tracker se remplira à leur résolution.`
               : "Place un premier pari pour commencer à te mesurer."}
@@ -91,7 +91,7 @@ function TrackerView({ uid }) {
           {!stats.reliable && (
             <div style={{ ...card, borderColor: "#f59e0b", marginBottom: "16px" }}>
               <span style={{ color: "#f59e0b", fontWeight: 600 }}>Échantillon faible. </span>
-              <span style={{ color: "#c8c8d8", fontSize: "14px" }}>
+              <span style={{ color: "var(--k-text2)", fontSize: "14px" }}>
                 {stats.heldCount} position{stats.heldCount > 1 ? "s" : ""} analysée{stats.heldCount > 1 ? "s" : ""} : en dessous de {MIN_SAMPLE}, la chance pèse plus que le talent. Lis ces chiffres avec prudence.
               </span>
             </div>
@@ -117,16 +117,16 @@ function TrackerView({ uid }) {
           <div style={{ ...card, display: "flex", flexDirection: "column", gap: "12px" }}>
             {stats.calibration.map((b) => (
               <div key={b.label} style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                <span style={{ width: "72px", fontSize: "13px", color: "#a0a0b0" }}>{b.label}</span>
-                <div style={{ flex: 1, position: "relative", height: "14px", background: "#1d1d2b", borderRadius: "7px" }}>
+                <span style={{ width: "72px", fontSize: "13px", color: "var(--k-muted2)" }}>{b.label}</span>
+                <div style={{ flex: 1, position: "relative", height: "14px", background: "var(--k-surface2)", borderRadius: "7px" }}>
                   {b.observed !== null && (
-                    <div style={{ width: `${b.observed * 100}%`, height: "100%", background: "#7c3aed", borderRadius: "7px" }} />
+                    <div style={{ width: `${b.observed * 100}%`, height: "100%", background: "var(--k-accent)", borderRadius: "7px" }} />
                   )}
                   {b.expected !== null && (
                     <div style={{ position: "absolute", left: `${b.expected * 100}%`, top: "-3px", width: "2px", height: "20px", background: "#fff" }} />
                   )}
                 </div>
-                <span style={{ width: "92px", textAlign: "right", fontSize: "13px", color: "#e8e8f0" }}>
+                <span style={{ width: "92px", textAlign: "right", fontSize: "13px", color: "var(--k-text)" }}>
                   {b.n ? `${pct(b.observed)} (${b.n})` : "aucune"}
                 </span>
               </div>
@@ -185,14 +185,14 @@ function TrackerView({ uid }) {
             {rows.slice(0, shown).map((p, i) => (
               <Link key={`${p.marketId}${p.choice}${i}`} to={`/market/${p.marketId}`} style={row}>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ color: "#e8e8f0", fontSize: "14px", lineHeight: 1.35, overflow: "hidden", textOverflow: "ellipsis", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{p.question}</div>
-                  <div style={{ color: "#8888a0", fontSize: "12px", marginTop: "4px" }}>
+                  <div style={{ color: "var(--k-text)", fontSize: "14px", lineHeight: 1.35, overflow: "hidden", textOverflow: "ellipsis", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{p.question}</div>
+                  <div style={{ color: "var(--k-muted)", fontSize: "12px", marginTop: "4px" }}>
                     {p.choice}{p.entry !== null ? ` à ${Math.round(p.entry * 100)} %` : ""}
                     {p.resolvedAt ? ` · ${new Date(p.resolvedAt).toLocaleDateString("fr-FR")}` : ""}
                   </div>
                 </div>
                 <div style={{ textAlign: "right", flexShrink: 0 }}>
-                  <div style={{ fontWeight: 700, color: p.closedEarly ? "#a0a0b0" : p.won ? GREEN : RED, fontSize: "13px" }}>
+                  <div style={{ fontWeight: 700, color: p.closedEarly ? "var(--k-muted2)" : p.won ? GREEN : RED, fontSize: "13px" }}>
                     {p.closedEarly ? "Clôturé avant" : p.won ? "Gagné" : "Perdu"}
                   </div>
                   <div style={{ color: tone(p.pnl), fontSize: "13px" }}>{signed(p.pnl, " pts")}</div>
@@ -216,21 +216,21 @@ function TrackerView({ uid }) {
   );
 }
 
-function Kpi({ label, value, sub, color = "#e8e8f0" }) {
+function Kpi({ label, value, sub, color = "var(--k-text)" }) {
   return (
     <div style={card}>
-      <div style={{ fontSize: "12px", color: "#8888a0", marginBottom: "6px" }}>{label}</div>
+      <div style={{ fontSize: "12px", color: "var(--k-muted)", marginBottom: "6px" }}>{label}</div>
       <div style={{ fontSize: "24px", fontWeight: 800, color }}>{value}</div>
-      {sub && <div style={{ fontSize: "12px", color: "#8888a0", marginTop: "4px" }}>{sub}</div>}
+      {sub && <div style={{ fontSize: "12px", color: "var(--k-muted)", marginTop: "4px" }}>{sub}</div>}
     </div>
   );
 }
 
 function Section({ title, text }) {
   return (
-    <div style={{ ...card, margin: "16px 0 8px", background: "rgba(124,58,237,0.07)" }}>
-      <div style={{ fontWeight: 600, color: "#a78bfa", fontSize: "14px", marginBottom: "4px" }}>{title}</div>
-      <div style={{ fontSize: "13px", color: "#c8c8d8", lineHeight: 1.5 }}>{text}</div>
+    <div style={{ ...card, margin: "16px 0 8px", background: "rgba(var(--k-accent-rgb),0.07)" }}>
+      <div style={{ fontWeight: 600, color: "var(--k-accent-text)", fontSize: "14px", marginBottom: "4px" }}>{title}</div>
+      <div style={{ fontSize: "13px", color: "var(--k-text2)", lineHeight: 1.5 }}>{text}</div>
     </div>
   );
 }
@@ -238,8 +238,8 @@ function Section({ title, text }) {
 function Highlight({ title, p }) {
   return (
     <Link to={`/market/${p.marketId}`} style={{ ...card, textDecoration: "none", display: "block" }}>
-      <div style={{ fontSize: "12px", color: "#8888a0", marginBottom: "6px" }}>{title}</div>
-      <div style={{ fontSize: "14px", color: "#e8e8f0", lineHeight: 1.35, marginBottom: "6px" }}>{p.question}</div>
+      <div style={{ fontSize: "12px", color: "var(--k-muted)", marginBottom: "6px" }}>{title}</div>
+      <div style={{ fontSize: "14px", color: "var(--k-text)", lineHeight: 1.35, marginBottom: "6px" }}>{p.question}</div>
       <div style={{ fontWeight: 700, color: tone(p.pnl) }}>{signed(p.pnl, " pts")}</div>
     </Link>
   );
@@ -256,22 +256,22 @@ function Curve({ points }) {
   const last = points[points.length - 1].v;
   return (
     <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label="Résultat cumulé">
-      <line x1={PAD} x2={W - PAD} y1={y(0)} y2={y(0)} stroke="#3a3a48" strokeDasharray="4 4" />
+      <line x1={PAD} x2={W - PAD} y1={y(0)} y2={y(0)} stroke="var(--k-border2)" strokeDasharray="4 4" />
       <path d={d} fill="none" stroke={last >= 0 ? GREEN : RED} strokeWidth="2.5" strokeLinejoin="round" />
     </svg>
   );
 }
 
-const card = { background: "#0f0f17", border: "0.5px solid rgba(124,58,237,0.25)", borderRadius: "12px", padding: "16px" };
+const card = { background: "var(--k-inset)", border: "0.5px solid rgba(var(--k-accent-rgb),0.25)", borderRadius: "12px", padding: "16px" };
 const grid = { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(190px, 1fr))", gap: "12px" };
-const h2 = { fontSize: "18px", color: "#e8e8f0", margin: "28px 0 6px" };
-const muted = { color: "#8888a0", fontSize: "13px", margin: "0 0 12px", lineHeight: 1.5 };
+const h2 = { fontSize: "18px", color: "var(--k-text)", margin: "28px 0 6px" };
+const muted = { color: "var(--k-muted)", fontSize: "13px", margin: "0 0 12px", lineHeight: 1.5 };
 const table = { width: "100%", borderCollapse: "collapse", fontSize: "14px" };
-const th = { textAlign: "left", padding: "10px 14px", color: "#8888a0", fontWeight: 600, fontSize: "12px", borderBottom: "1px solid #22222d" };
-const td = { padding: "10px 14px", color: "#e8e8f0", borderBottom: "1px solid #1a1a24" };
-const row = { display: "flex", gap: "14px", alignItems: "center", textDecoration: "none", background: "#0f0f17", border: "0.5px solid rgba(124,58,237,0.2)", borderRadius: "10px", padding: "12px 14px" };
+const th = { textAlign: "left", padding: "10px 14px", color: "var(--k-muted)", fontWeight: 600, fontSize: "12px", borderBottom: "1px solid var(--k-surface2)" };
+const td = { padding: "10px 14px", color: "var(--k-text)", borderBottom: "1px solid var(--k-border)" };
+const row = { display: "flex", gap: "14px", alignItems: "center", textDecoration: "none", background: "var(--k-inset)", border: "0.5px solid rgba(var(--k-accent-rgb),0.2)", borderRadius: "10px", padding: "12px 14px" };
 const chip = (active) => ({
   fontSize: "13px", padding: "6px 14px", borderRadius: "20px", cursor: "pointer",
-  border: active ? "1px solid #7c3aed" : "1px solid #2a2a35",
-  background: active ? "rgba(124,58,237,0.18)" : "transparent", color: active ? "#a78bfa" : "#a0a0b0",
+  border: active ? "1px solid var(--k-accent)" : "1px solid var(--k-border)",
+  background: active ? "rgba(var(--k-accent-rgb),0.18)" : "transparent", color: active ? "var(--k-accent-text)" : "var(--k-muted2)",
 });

@@ -38,20 +38,20 @@ const S = {
   tag: {
     fontSize: "11px",
     fontWeight: "500",
-    background: "rgba(124,58,237,0.12)",
-    color: "#a78bfa",
+    background: "rgba(var(--k-accent-rgb),0.12)",
+    color: "var(--k-accent-text)",
     borderRadius: "6px",
     padding: "2px 9px",
-    border: "0.5px solid rgba(124,58,237,0.3)",
+    border: "0.5px solid rgba(var(--k-accent-rgb),0.3)",
   },
   statusDot: {
     fontSize: "11px",
-    color: "#8888a0",
+    color: "var(--k-muted)",
   },
   title: {
     fontSize: "20px",
     fontWeight: "600",
-    color: "#e8e8f0",
+    color: "var(--k-text)",
     lineHeight: "1.4",
     marginBottom: "0",
     flex: 1,
@@ -60,8 +60,8 @@ const S = {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    background: "rgba(124,58,237,0.12)",
-    border: "0.5px solid rgba(124,58,237,0.3)",
+    background: "rgba(var(--k-accent-rgb),0.12)",
+    border: "0.5px solid rgba(var(--k-accent-rgb),0.3)",
     borderRadius: "10px",
     padding: "6px 14px",
     minWidth: "62px",
@@ -70,12 +70,12 @@ const S = {
   headerProbBadgeNumber: {
     fontSize: "22px",
     fontWeight: "600",
-    color: "#a78bfa",
+    color: "var(--k-accent-text)",
     lineHeight: 1,
   },
   headerProbBadgeLabel: {
     fontSize: "10px",
-    color: "#8888a0",
+    color: "var(--k-muted)",
     marginTop: "2px",
     letterSpacing: "0.05em",
   },
@@ -89,7 +89,7 @@ const S = {
   bigProb: {
     fontSize: "42px",
     fontWeight: "700",
-    color: "#a78bfa",
+    color: "var(--k-accent-text)",
     lineHeight: "1",
   },
   probInfo: {
@@ -100,7 +100,7 @@ const S = {
   },
   probSubtitle: {
     fontSize: "13px",
-    color: "#8888a0",
+    color: "var(--k-muted)",
   },
   bidAskRow: {
     fontSize: "11px",
@@ -129,8 +129,8 @@ const S = {
     marginBottom: "28px",
   },
   statCard: {
-    background: "#13131a",
-    border: "0.5px solid rgba(124,58,237,0.15)",
+    background: "var(--k-surface)",
+    border: "0.5px solid rgba(var(--k-accent-rgb),0.15)",
     borderRadius: "10px",
     padding: "10px 14px",
     display: "flex",
@@ -140,11 +140,11 @@ const S = {
   statValue: {
     fontSize: "15px",
     fontWeight: "600",
-    color: "#e8e8f0",
+    color: "var(--k-text)",
   },
   statLabel: {
     fontSize: "11px",
-    color: "#8888a0",
+    color: "var(--k-muted)",
   },
   // ── Chart ─────────────────────────────────────────────
   chartWrap: {
@@ -152,7 +152,7 @@ const S = {
   },
   chartLabel: {
     fontSize: "12px",
-    color: "#8888a0",
+    color: "var(--k-muted)",
     marginBottom: "10px",
     fontWeight: "500",
     letterSpacing: "0.05em",
@@ -171,8 +171,8 @@ const S = {
   },
   // ── Bet panel ─────────────────────────────────────────
   betPanel: {
-    background: "#13131a",
-    border: "0.5px solid rgba(124,58,237,0.2)",
+    background: "var(--k-surface)",
+    border: "0.5px solid rgba(var(--k-accent-rgb),0.2)",
     borderRadius: "14px",
     padding: "20px",
     marginBottom: "24px",
@@ -180,34 +180,34 @@ const S = {
   betTitle: {
     fontSize: "14px",
     fontWeight: "600",
-    color: "#e8e8f0",
+    color: "var(--k-text)",
     marginBottom: "14px",
   },
   modeToggle: {
     display: "flex",
     gap: "6px",
     marginBottom: "14px",
-    background: "#0a0a0f",
+    background: "var(--k-bg)",
     borderRadius: "10px",
     padding: "4px",
   },
   modeBtn: (active, isSell) => ({
     flex: 1, padding: "7px", borderRadius: "8px", border: "none",
     fontWeight: "600", fontSize: "13px", cursor: "pointer",
-    background: active ? (isSell ? "rgba(239,68,68,0.15)" : "rgba(124,58,237,0.2)") : "transparent",
-    color: active ? (isSell ? "#ef4444" : "#a78bfa") : "#8888a0",
+    background: active ? (isSell ? "rgba(239,68,68,0.15)" : "rgba(var(--k-accent-rgb),0.2)") : "transparent",
+    color: active ? (isSell ? "#ef4444" : "var(--k-accent-text)") : "var(--k-muted)",
     transition: "all 0.15s",
   }),
   positionBox: {
-    background: "#0a0a0f",
-    border: "0.5px solid rgba(124,58,237,0.12)",
+    background: "var(--k-bg)",
+    border: "0.5px solid rgba(var(--k-accent-rgb),0.12)",
     borderRadius: "10px",
     padding: "12px 14px",
     marginBottom: "14px",
   },
   positionLabel: {
     fontSize: "11px",
-    color: "#8888a0",
+    color: "var(--k-muted)",
     marginBottom: "4px",
     fontWeight: "500",
     textTransform: "uppercase",
@@ -223,35 +223,35 @@ const S = {
     background: "rgba(34,197,94,0.15)", color: "#22c55e", fontWeight: "600", cursor: "pointer", fontSize: "14px",
   },
   btnYesInactive: {
-    flex: 1, padding: "10px", borderRadius: "10px", border: "0.5px solid rgba(124,58,237,0.15)",
-    background: "transparent", color: "#8888a0", fontWeight: "600", cursor: "pointer", fontSize: "14px",
+    flex: 1, padding: "10px", borderRadius: "10px", border: "0.5px solid rgba(var(--k-accent-rgb),0.15)",
+    background: "transparent", color: "var(--k-muted)", fontWeight: "600", cursor: "pointer", fontSize: "14px",
   },
   btnNoActive: {
     flex: 1, padding: "10px", borderRadius: "10px", border: "0.5px solid rgba(239,68,68,0.4)",
     background: "rgba(239,68,68,0.15)", color: "#ef4444", fontWeight: "600", cursor: "pointer", fontSize: "14px",
   },
   btnNoInactive: {
-    flex: 1, padding: "10px", borderRadius: "10px", border: "0.5px solid rgba(124,58,237,0.15)",
-    background: "transparent", color: "#8888a0", fontWeight: "600", cursor: "pointer", fontSize: "14px",
+    flex: 1, padding: "10px", borderRadius: "10px", border: "0.5px solid rgba(var(--k-accent-rgb),0.15)",
+    background: "transparent", color: "var(--k-muted)", fontWeight: "600", cursor: "pointer", fontSize: "14px",
   },
   amountInput: {
     width: "100%",
     padding: "10px 14px",
     borderRadius: "10px",
-    border: "0.5px solid rgba(124,58,237,0.2)",
-    background: "#0a0a0f",
-    color: "#e8e8f0",
+    border: "0.5px solid rgba(var(--k-accent-rgb),0.2)",
+    background: "var(--k-bg)",
+    color: "var(--k-text)",
     marginBottom: "12px",
     boxSizing: "border-box",
     fontSize: "15px",
     outline: "none",
   },
   previewBox: {
-    background: "#0a0a0f",
+    background: "var(--k-bg)",
     borderRadius: "10px",
     padding: "12px 14px",
     marginBottom: "14px",
-    border: "0.5px solid rgba(124,58,237,0.12)",
+    border: "0.5px solid rgba(var(--k-accent-rgb),0.12)",
   },
   previewRow: {
     display: "flex",
@@ -259,12 +259,12 @@ const S = {
     fontSize: "13px",
     padding: "3px 0",
   },
-  previewLabel: { color: "#8888a0" },
-  previewValue: { fontWeight: "600", color: "#e8e8f0" },
+  previewLabel: { color: "var(--k-muted)" },
+  previewValue: { fontWeight: "600", color: "var(--k-text)" },
   betCta: {
     width: "100%",
     padding: "12px",
-    background: "#7c3aed",
+    background: "var(--k-accent)",
     color: "#fff",
     borderRadius: "10px",
     border: "none",
@@ -275,8 +275,8 @@ const S = {
   betCtaDisabled: {
     width: "100%",
     padding: "12px",
-    background: "#3a2066",
-    color: "#8888a0",
+    background: "var(--k-disabled)",
+    color: "var(--k-muted)",
     borderRadius: "10px",
     border: "none",
     cursor: "not-allowed",
@@ -286,11 +286,11 @@ const S = {
   successMsg: {
     marginTop: "12px",
     padding: "10px 14px",
-    background: "rgba(124,58,237,0.1)",
-    border: "0.5px solid rgba(124,58,237,0.3)",
+    background: "rgba(var(--k-accent-rgb),0.1)",
+    border: "0.5px solid rgba(var(--k-accent-rgb),0.3)",
     borderRadius: "10px",
     fontSize: "13px",
-    color: "#a78bfa",
+    color: "var(--k-accent-text)",
     marginBottom: "10px",
   },
   shareBtn: {
@@ -310,16 +310,16 @@ const S = {
   },
   footer: {
     fontSize: "12px",
-    color: "#4a4a5a",
+    color: "var(--k-border2)",
     marginTop: "4px",
   },
-  footerLink: { color: "#7c3aed" },
+  footerLink: { color: "var(--k-accent)" },
   notLoggedIn: {
     fontSize: "14px",
-    color: "#8888a0",
+    color: "var(--k-muted)",
     padding: "16px 20px",
-    background: "#13131a",
-    border: "0.5px solid rgba(124,58,237,0.15)",
+    background: "var(--k-surface)",
+    border: "0.5px solid rgba(var(--k-accent-rgb),0.15)",
     borderRadius: "12px",
     marginBottom: "24px",
   },
@@ -515,7 +515,7 @@ export default function Market() {
       : side === "yes"
         ? Math.round((market.poolNo / (market.poolYes + market.poolNo)) * 100)
         : Math.round((market.poolYes / (market.poolYes + market.poolNo)) * 100);
-    const sideColor = isMulti ? "#7c3aed" : (side === "yes" ? "#22c55e" : "#ef4444");
+    const sideColor = isMulti ? "var(--k-accent)" : (side === "yes" ? "#22c55e" : "#ef4444");
 
     const blob = await generateBetCardImage({
       question: market.question,
@@ -562,7 +562,7 @@ export default function Market() {
     url: `/market/${id}`,
   });
 
-  if (!market) return <>{seo}<p style={{ padding: "40px", color: "#8888a0" }}>Chargement...</p></>;
+  if (!market) return <>{seo}<p style={{ padding: "40px", color: "var(--k-muted)" }}>Chargement...</p></>;
 
   const isMulti = market.type === "multi";
   const total = isMulti ? 0 : market.poolYes + market.poolNo;
@@ -600,8 +600,8 @@ export default function Market() {
           onClick={shareMarket}
           style={{
             display: "flex", alignItems: "center", gap: "6px",
-            background: "rgba(124,58,237,0.1)", border: "0.5px solid rgba(124,58,237,0.3)",
-            color: "#a78bfa", borderRadius: "8px", padding: "6px 12px",
+            background: "rgba(var(--k-accent-rgb),0.1)", border: "0.5px solid rgba(var(--k-accent-rgb),0.3)",
+            color: "var(--k-accent-text)", borderRadius: "8px", padding: "6px 12px",
             fontSize: "13px", fontWeight: "500", cursor: "pointer",
           }}
         >
@@ -635,7 +635,7 @@ export default function Market() {
               <span style={S.probSubtitle}>de chance que OUI</span>
               <span style={S.bidAskRow}>
                 <span style={{ color: "#22c55e" }}>Achat {ask.toFixed(2)} pts</span>
-                <span style={{ color: "#8888a0", margin: "0 4px" }}>·</span>
+                <span style={{ color: "var(--k-muted)", margin: "0 4px" }}>·</span>
                 <span style={{ color: "#ef4444" }}>Vente {bid.toFixed(2)} pts</span>
               </span>
             </div>
@@ -695,11 +695,11 @@ export default function Market() {
             <div style={S.probDisplay}>
               <span style={S.bigProb}>{leaderPct}%</span>
               <div style={S.probInfo}>
-                <span style={{ fontSize: "15px", fontWeight: "600", color: "#e8e8f0" }}>{leader.label}</span>
+                <span style={{ fontSize: "15px", fontWeight: "600", color: "var(--k-text)" }}>{leader.label}</span>
                 <span style={S.probSubtitle}>favori actuel</span>
                 <span style={S.bidAskRow}>
                   <span style={{ color: "#22c55e" }}>Achat {leaderAsk.toFixed(2)} pts</span>
-                  <span style={{ color: "#8888a0", margin: "0 4px" }}>·</span>
+                  <span style={{ color: "var(--k-muted)", margin: "0 4px" }}>·</span>
                   <span style={{ color: "#ef4444" }}>Vente {leaderBid.toFixed(2)} pts</span>
                 </span>
               </div>
@@ -713,10 +713,10 @@ export default function Market() {
                 return (
                   <div key={opt.id} style={S.multiOption}>
                     <div style={S.multiOptRow}>
-                      <span style={{ color: "#e8e8f0" }}>{opt.label}</span>
+                      <span style={{ color: "var(--k-text)" }}>{opt.label}</span>
                       <span style={{ color, fontWeight: "600" }}>{pct}%</span>
                     </div>
-                    <div style={{ background: "rgba(124,58,237,0.1)", borderRadius: "99px", height: "5px" }}>
+                    <div style={{ background: "rgba(var(--k-accent-rgb),0.1)", borderRadius: "99px", height: "5px" }}>
                       <div style={{ width: `${pct}%`, background: color, borderRadius: "99px", height: "5px" }} />
                     </div>
                   </div>
@@ -799,9 +799,9 @@ export default function Market() {
                       <button key={opt.id} onClick={() => setSelectedOption(opt.id)} style={{
                         padding: "10px 12px", borderRadius: "10px", cursor: "pointer",
                         fontSize: "13px", fontWeight: "600", textAlign: "left",
-                        border: isActive ? `0.5px solid ${color}55` : "0.5px solid rgba(124,58,237,0.2)",
+                        border: isActive ? `0.5px solid ${color}55` : "0.5px solid rgba(var(--k-accent-rgb),0.2)",
                         background: isActive ? `${color}18` : "transparent",
-                        color: isActive ? color : "#8888a0", transition: "all 0.15s",
+                        color: isActive ? color : "var(--k-muted)", transition: "all 0.15s",
                       }}>
                         {opt.label}
                         <span style={{ display: "block", fontSize: "11px", fontWeight: "400", marginTop: "2px", opacity: 0.75 }}>{pct}%</span>
@@ -819,7 +819,7 @@ export default function Market() {
                 return (
                   <div style={S.positionBox}>
                     <p style={S.positionLabel}>Ta position</p>
-                    <p style={{ fontSize: "15px", fontWeight: "600", color: "#e8e8f0" }}>
+                    <p style={{ fontSize: "15px", fontWeight: "600", color: "var(--k-text)" }}>
                       {heldShares.toFixed(2)} parts {!isMulti ? (side === "yes" ? "OUI" : "NON") : ""}
                     </p>
                   </div>
@@ -885,7 +885,7 @@ export default function Market() {
                           disabled={loading || sellAmount <= 0 || sellAmount > heldShares}
                           style={{
                             ...S.betCta,
-                            background: loading || sellAmount <= 0 || sellAmount > heldShares ? "#3a2066" : "rgba(239,68,68,0.8)",
+                            background: loading || sellAmount <= 0 || sellAmount > heldShares ? "var(--k-disabled)" : "rgba(239,68,68,0.8)",
                             cursor: loading || sellAmount <= 0 || sellAmount > heldShares ? "not-allowed" : "pointer",
                           }}
                         >
@@ -893,7 +893,7 @@ export default function Market() {
                         </button>
                       </>
                     ) : (
-                      <p style={{ fontSize: "13px", color: "#8888a0", textAlign: "center", padding: "12px 0" }}>
+                      <p style={{ fontSize: "13px", color: "var(--k-muted)", textAlign: "center", padding: "12px 0" }}>
                         Tu n'as aucune position {!isMulti ? (side === "yes" ? "OUI" : "NON") : ""} à vendre.
                       </p>
                     )}
@@ -935,11 +935,11 @@ export default function Market() {
               <span>Connecte-toi pour parier.</span>
               <button
                 onClick={login}
-                style={{ background: "#7c3aed", border: "none", color: "#fff", fontSize: "15px", fontWeight: "600", padding: "12px 24px", borderRadius: "10px", cursor: "pointer" }}
+                style={{ background: "var(--k-accent)", border: "none", color: "#fff", fontSize: "15px", fontWeight: "600", padding: "12px 24px", borderRadius: "10px", cursor: "pointer" }}
               >
                 Connexion Google
               </button>
-              <span style={{ fontSize: "12px", color: "#8888a0" }}>Gratuit, points virtuels, sans argent réel.</span>
+              <span style={{ fontSize: "12px", color: "var(--k-muted)" }}>Gratuit, points virtuels, sans argent réel.</span>
             </div>
           )}
         </div>

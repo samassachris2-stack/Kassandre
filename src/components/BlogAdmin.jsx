@@ -288,12 +288,12 @@ export default function BlogAdmin() {
                           ...styles.status,
                           backgroundColor:
                             article.status === "published"
-                              ? "rgba(124, 58, 237, 0.2)"
+                              ? "rgba(var(--k-accent-rgb), 0.2)"
                               : "rgba(160, 160, 176, 0.2)",
                           color:
                             article.status === "published"
-                              ? "#7c3aed"
-                              : "#a0a0b0",
+                              ? "var(--k-accent)"
+                              : "var(--k-muted2)",
                         }}
                       >
                         {article.status === "published" ? "Publié" : "Brouillon"}
@@ -330,7 +330,7 @@ export default function BlogAdmin() {
 const styles = {
   container: {
     padding: "20px",
-    backgroundColor: "#0a0a0f",
+    backgroundColor: "var(--k-bg)",
     borderRadius: "8px",
     marginBottom: "20px",
   },
@@ -342,18 +342,18 @@ const styles = {
   },
   title: {
     fontSize: "1.5rem",
-    color: "#e8e8f0",
+    color: "var(--k-text)",
     margin: 0,
   },
   subtitle: {
     fontSize: "1.2rem",
-    color: "#e8e8f0",
+    color: "var(--k-text)",
     margin: "0 0 16px 0",
   },
   newButton: {
     padding: "10px 20px",
-    backgroundColor: "#7c3aed",
-    color: "#e8e8f0",
+    backgroundColor: "var(--k-accent)",
+    color: "var(--k-text)",
     border: "none",
     borderRadius: "6px",
     cursor: "pointer",
@@ -361,27 +361,27 @@ const styles = {
     fontSize: "1rem",
   },
   form: {
-    backgroundColor: "#1a1a22",
+    backgroundColor: "var(--k-surface2)",
     padding: "20px",
     borderRadius: "8px",
     marginBottom: "30px",
-    border: "1px solid #2a2a35",
+    border: "1px solid var(--k-border)",
   },
   formGroup: {
     marginBottom: "20px",
   },
   label: {
     display: "block",
-    color: "#e8e8f0",
+    color: "var(--k-text)",
     marginBottom: "8px",
     fontWeight: "500",
   },
   input: {
     width: "100%",
     padding: "10px 12px",
-    backgroundColor: "#0a0a0f",
-    color: "#e8e8f0",
-    border: "1px solid #2a2a35",
+    backgroundColor: "var(--k-bg)",
+    color: "var(--k-text)",
+    border: "1px solid var(--k-border)",
     borderRadius: "6px",
     fontSize: "1rem",
     fontFamily: "inherit",
@@ -394,8 +394,8 @@ const styles = {
   },
   submitButton: {
     padding: "10px 20px",
-    backgroundColor: "#7c3aed",
-    color: "#e8e8f0",
+    backgroundColor: "var(--k-accent)",
+    color: "var(--k-text)",
     border: "none",
     borderRadius: "6px",
     cursor: "pointer",
@@ -403,17 +403,17 @@ const styles = {
   },
   cancelButton: {
     padding: "10px 20px",
-    backgroundColor: "#2a2a35",
-    color: "#e8e8f0",
-    border: "1px solid #3a3a45",
+    backgroundColor: "var(--k-border)",
+    color: "var(--k-text)",
+    border: "1px solid var(--k-border2)",
     borderRadius: "6px",
     cursor: "pointer",
   },
   articlesTable: {
-    backgroundColor: "#1a1a22",
+    backgroundColor: "var(--k-surface2)",
     padding: "20px",
     borderRadius: "8px",
-    border: "1px solid #2a2a35",
+    border: "1px solid var(--k-border)",
   },
   tableWrapper: {
     overflowX: "auto",
@@ -423,19 +423,19 @@ const styles = {
     borderCollapse: "collapse",
   },
   th: {
-    backgroundColor: "#0a0a0f",
-    color: "#e8e8f0",
+    backgroundColor: "var(--k-bg)",
+    color: "var(--k-text)",
     padding: "12px",
     textAlign: "left",
     fontWeight: "500",
-    borderBottom: "1px solid #2a2a35",
+    borderBottom: "1px solid var(--k-border)",
   },
   tr: {
-    borderBottom: "1px solid #2a2a35",
+    borderBottom: "1px solid var(--k-border)",
   },
   td: {
     padding: "12px",
-    color: "#d0d0e0",
+    color: "var(--k-text)",
   },
   status: {
     display: "inline-block",
@@ -450,8 +450,8 @@ const styles = {
   },
   actionButton: {
     padding: "6px 12px",
-    backgroundColor: "#7c3aed",
-    color: "#e8e8f0",
+    backgroundColor: "var(--k-accent)",
+    color: "var(--k-text)",
     border: "none",
     borderRadius: "4px",
     cursor: "pointer",
@@ -459,20 +459,20 @@ const styles = {
   },
   deleteButton: {
     padding: "6px 12px",
-    backgroundColor: "#5a2a3a",
-    color: "#ff8080",
-    border: "1px solid #7a4a5a",
+    backgroundColor: "var(--k-red-bg)",
+    color: "var(--k-red-text)",
+    border: "1px solid var(--k-red-border)",
     borderRadius: "4px",
     cursor: "pointer",
     fontSize: "0.9rem",
   },
   loading: {
-    color: "#a0a0b0",
+    color: "var(--k-muted2)",
     textAlign: "center",
     padding: "20px",
   },
   empty: {
-    color: "#a0a0b0",
+    color: "var(--k-muted2)",
     textAlign: "center",
     padding: "20px",
   },

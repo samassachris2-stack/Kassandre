@@ -116,10 +116,10 @@ function FeaturedCarousel({ markets }) {
           borderRadius: "18px",
           overflow: "hidden",
           minHeight: "220px",
-          border: "0.5px solid rgba(124,58,237,0.2)",
+          border: "0.5px solid rgba(var(--k-accent-rgb),0.2)",
           background: market.coverImageUrl
-            ? `linear-gradient(to right, rgba(10,10,15,0.92), rgba(10,10,15,0.55)), ${cssUrl(market.coverImageUrl)} center / cover no-repeat`
-            : "linear-gradient(135deg, #1a1a2e, #13131a)",
+            ? `linear-gradient(to right, rgba(var(--k-bg-rgb),0.92), rgba(var(--k-bg-rgb),0.55)), ${cssUrl(market.coverImageUrl)} center / cover no-repeat`
+            : "linear-gradient(135deg, var(--k-surface2), var(--k-surface))",
           padding: "28px 32px",
           display: "flex",
           flexDirection: "column",
@@ -140,8 +140,8 @@ function FeaturedCarousel({ markets }) {
             </h2>
             {(Array.isArray(market.categories) ? market.categories : (market.category ? [market.category] : [])).map((cat) => (
               <span key={cat} style={{
-                fontSize: "12px", fontWeight: "500", color: "#c4b5fd",
-                background: "rgba(124,58,237,0.2)", borderRadius: "6px",
+                fontSize: "12px", fontWeight: "500", color: "var(--k-accent-text)",
+                background: "rgba(var(--k-accent-rgb),0.2)", borderRadius: "6px",
                 padding: "2px 9px", marginRight: "6px",
               }}>{cat}</span>
             ))}
@@ -150,13 +150,13 @@ function FeaturedCarousel({ markets }) {
           <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
             {!isMulti ? (
               <div>
-                <span style={{ fontSize: "42px", fontWeight: "800", color: "#a78bfa", lineHeight: 1 }}>{pctYes}%</span>
-                <span style={{ fontSize: "15px", color: "#d4d4d8", marginLeft: "10px" }}>de chance que OUI</span>
+                <span style={{ fontSize: "42px", fontWeight: "800", color: "var(--k-accent-text)", lineHeight: 1 }}>{pctYes}%</span>
+                <span style={{ fontSize: "15px", color: "var(--k-text)", marginLeft: "10px" }}>de chance que OUI</span>
               </div>
             ) : (
-              <span style={{ fontSize: "15px", color: "#d4d4d8" }}>Multi-choix</span>
+              <span style={{ fontSize: "15px", color: "var(--k-text)" }}>Multi-choix</span>
             )}
-            <span style={{ fontSize: "13px", color: "#a8a8b8" }}>Résolution : {market.resolutionDate}</span>
+            <span style={{ fontSize: "13px", color: "var(--k-muted2)" }}>Résolution : {market.resolutionDate}</span>
           </div>
         </div>
       </Link>
@@ -170,7 +170,7 @@ function FeaturedCarousel({ markets }) {
               style={{
                 width: i === index ? "20px" : "7px", height: "7px", borderRadius: "4px",
                 border: "none", cursor: "pointer", padding: 0,
-                background: i === index ? "#7c3aed" : "rgba(124,58,237,0.25)",
+                background: i === index ? "var(--k-accent)" : "rgba(var(--k-accent-rgb),0.25)",
                 transition: "width 0.2s",
               }}
               aria-label={`Marché à la une ${i + 1}`}
@@ -202,13 +202,13 @@ function BlogPreviewSection() {
   return (
     <div style={{ marginBottom: "32px" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "14px" }}>
-        <h2 style={{ fontSize: "18px", fontWeight: "700", color: "#e8e8f0", margin: 0 }}>
+        <h2 style={{ fontSize: "18px", fontWeight: "700", color: "var(--k-text)", margin: 0 }}>
           Analyses et actualités
         </h2>
         <Link
           to="/blog"
           style={{
-            fontSize: "13px", fontWeight: "600", color: "#a78bfa",
+            fontSize: "13px", fontWeight: "600", color: "var(--k-accent-text)",
             textDecoration: "none", whiteSpace: "nowrap",
           }}
         >
@@ -225,7 +225,7 @@ function BlogPreviewSection() {
           {[0, 1, 2].map((i) => (
             <div key={i} style={{
               height: "160px", borderRadius: "14px",
-              background: "#13131a", border: "0.5px solid rgba(124,58,237,0.1)",
+              background: "var(--k-surface)", border: "0.5px solid rgba(var(--k-accent-rgb),0.1)",
             }} />
           ))}
         </div>
@@ -244,22 +244,22 @@ function BlogPreviewSection() {
               <div
                 className="kassandre-market-card"
                 style={{
-                  border: "0.5px solid rgba(124,58,237,0.15)",
+                  border: "0.5px solid rgba(var(--k-accent-rgb),0.15)",
                   borderRadius: "14px",
                   overflow: "hidden",
                   cursor: "pointer",
-                  background: "#13131a",
+                  background: "var(--k-surface)",
                   transition: "border-color 0.15s, filter 0.15s",
                   height: "100%",
                   display: "flex",
                   flexDirection: "column",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = "rgba(124,58,237,0.35)";
+                  e.currentTarget.style.borderColor = "rgba(var(--k-accent-rgb),0.35)";
                   e.currentTarget.style.filter = "brightness(1.08)";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = "rgba(124,58,237,0.15)";
+                  e.currentTarget.style.borderColor = "rgba(var(--k-accent-rgb),0.15)";
                   e.currentTarget.style.filter = "brightness(1)";
                 }}
               >
@@ -271,15 +271,15 @@ function BlogPreviewSection() {
                 ) : (
                   <div style={{
                     height: "110px",
-                    background: "linear-gradient(135deg, #1a1a2e, #13131a)",
+                    background: "linear-gradient(135deg, var(--k-surface2), var(--k-surface))",
                   }} />
                 )}
                 <div style={{ padding: "14px", display: "flex", flexDirection: "column", flex: 1 }}>
-                  <span style={{ fontSize: "11px", color: "#7c3aed", fontWeight: "600", marginBottom: "6px" }}>
+                  <span style={{ fontSize: "11px", color: "var(--k-accent)", fontWeight: "600", marginBottom: "6px" }}>
                     {formatDate(article.publishedAt)}
                   </span>
                   <p style={{
-                    fontSize: "14px", fontWeight: "600", color: "#e8e8f0", lineHeight: "1.35",
+                    fontSize: "14px", fontWeight: "600", color: "var(--k-text)", lineHeight: "1.35",
                     margin: 0,
                     display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden",
                   }}>
@@ -336,7 +336,7 @@ function MultiLeaderGauge({ marketId }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0, gap: "2px" }}>
       <svg width="56" height="56" viewBox="0 0 64 64">
-        <circle cx="32" cy="32" r="26" fill="none" stroke="rgba(124,58,237,0.15)" strokeWidth="6" />
+        <circle cx="32" cy="32" r="26" fill="none" stroke="rgba(var(--k-accent-rgb),0.15)" strokeWidth="6" />
         <circle
           cx="32" cy="32" r="26" fill="none" stroke={color} strokeWidth="6"
           strokeDasharray={circumference}
@@ -344,8 +344,8 @@ function MultiLeaderGauge({ marketId }) {
           strokeLinecap="round"
           transform="rotate(-90 32 32)"
         />
-        <text x="32" y="29" textAnchor="middle" fontSize="15" fontWeight="600" fill="#e8e8f0">{pct}%</text>
-        <text x="32" y="42" textAnchor="middle" fontSize="7" fill="#8888a0">{leader.label?.slice(0, 8) || "—"}</text>
+        <text x="32" y="29" textAnchor="middle" fontSize="15" fontWeight="600" fill="var(--k-text)">{pct}%</text>
+        <text x="32" y="42" textAnchor="middle" fontSize="7" fill="var(--k-muted)">{leader.label?.slice(0, 8) || "—"}</text>
       </svg>
     </div>
   );
@@ -394,15 +394,15 @@ function QuickBetModal({ market, side, onClose }) {
     >
       <div
         style={{
-          background: "#13131a", border: "0.5px solid rgba(124,58,237,0.25)",
+          background: "var(--k-surface)", border: "0.5px solid rgba(var(--k-accent-rgb),0.25)",
           borderRadius: "16px", padding: "24px", maxWidth: "360px", width: "100%",
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <p style={{ fontSize: "13px", color: "#8888a0", marginBottom: "6px" }}>
+        <p style={{ fontSize: "13px", color: "var(--k-muted)", marginBottom: "6px" }}>
           Parier sur
         </p>
-        <p style={{ fontSize: "15px", fontWeight: "600", color: "#e8e8f0", marginBottom: "16px", lineHeight: 1.4 }}>
+        <p style={{ fontSize: "15px", fontWeight: "600", color: "var(--k-text)", marginBottom: "16px", lineHeight: 1.4 }}>
           {market.question}
         </p>
 
@@ -422,24 +422,24 @@ function QuickBetModal({ market, side, onClose }) {
           autoFocus
           style={{
             width: "100%", padding: "10px 14px", borderRadius: "10px",
-            border: "0.5px solid rgba(124,58,237,0.2)", background: "#0a0a0f",
-            color: "#e8e8f0", marginBottom: "12px", boxSizing: "border-box",
+            border: "0.5px solid rgba(var(--k-accent-rgb),0.2)", background: "var(--k-bg)",
+            color: "var(--k-text)", marginBottom: "12px", boxSizing: "border-box",
             fontSize: "15px", outline: "none",
           }}
         />
 
         {preview && (
           <div style={{
-            background: "#0a0a0f", borderRadius: "10px", padding: "12px 14px",
-            marginBottom: "14px", border: "0.5px solid rgba(124,58,237,0.12)",
+            background: "var(--k-bg)", borderRadius: "10px", padding: "12px 14px",
+            marginBottom: "14px", border: "0.5px solid rgba(var(--k-accent-rgb),0.12)",
           }}>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", padding: "3px 0" }}>
-              <span style={{ color: "#8888a0" }}>Parts reçues</span>
-              <span style={{ fontWeight: "600", color: "#e8e8f0" }}>{preview.shares.toFixed(2)}</span>
+              <span style={{ color: "var(--k-muted)" }}>Parts reçues</span>
+              <span style={{ fontWeight: "600", color: "var(--k-text)" }}>{preview.shares.toFixed(2)}</span>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", padding: "3px 0" }}>
-              <span style={{ color: "#8888a0" }}>Prix par part</span>
-              <span style={{ fontWeight: "600", color: "#e8e8f0" }}>{(preview.pricePerShare * 100).toFixed(1)}%</span>
+              <span style={{ color: "var(--k-muted)" }}>Prix par part</span>
+              <span style={{ fontWeight: "600", color: "var(--k-text)" }}>{(preview.pricePerShare * 100).toFixed(1)}%</span>
             </div>
           </div>
         )}
@@ -450,7 +450,7 @@ function QuickBetModal({ market, side, onClose }) {
 
         {success ? (
           <div style={{
-            textAlign: "center", padding: "10px", color: "#a78bfa",
+            textAlign: "center", padding: "10px", color: "var(--k-accent-text)",
             fontSize: "14px", fontWeight: "600",
           }}>
             Pari placé avec succès ✓
@@ -461,8 +461,8 @@ function QuickBetModal({ market, side, onClose }) {
               onClick={onClose}
               style={{
                 flex: 1, padding: "12px", borderRadius: "10px",
-                border: "0.5px solid rgba(124,58,237,0.2)", background: "transparent",
-                color: "#8888a0", fontWeight: "600", cursor: "pointer", fontSize: "14px",
+                border: "0.5px solid rgba(var(--k-accent-rgb),0.2)", background: "transparent",
+                color: "var(--k-muted)", fontWeight: "600", cursor: "pointer", fontSize: "14px",
               }}
             >
               Annuler
@@ -472,7 +472,7 @@ function QuickBetModal({ market, side, onClose }) {
               disabled={loading}
               style={{
                 flex: 2, padding: "12px", borderRadius: "10px", border: "none",
-                background: loading ? "#3a2066" : "#7c3aed", color: "#fff",
+                background: loading ? "var(--k-disabled)" : "var(--k-accent)", color: "#fff",
                 fontWeight: "600", cursor: loading ? "not-allowed" : "pointer", fontSize: "14px",
               }}
             >
@@ -651,27 +651,27 @@ export default function Feed({ hub }) {
         display: flex; align-items: center; justify-content: space-between; gap: 10px;
         width: 100%; padding: 9px 12px; margin-bottom: 3px;
         border: 1px solid transparent; border-radius: 10px; cursor: pointer; text-align: left;
-        background: transparent; color: #a8a8b8; font-size: 14px; font-weight: 500;
+        background: transparent; color: var(--k-muted2); font-size: 14px; font-weight: 500;
         transition: background .15s, color .15s, border-color .15s;
       }
-      .k-tag:hover { background: rgba(124,58,237,0.08); color: #d4d4e4; }
+      .k-tag:hover { background: rgba(var(--k-accent-rgb),0.08); color: var(--k-text); }
       .k-tag-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .k-tag-count {
         flex: none; min-width: 22px; padding: 1px 7px; border-radius: 999px; text-align: center;
-        font-size: 11px; font-weight: 600; color: #8a8aa8; background: rgba(255,255,255,0.06);
+        font-size: 11px; font-weight: 600; color: var(--k-muted); background: rgba(var(--k-ink-rgb),0.06);
       }
       .k-tag.is-active {
-        color: #fff; font-weight: 600; border-color: rgba(167,139,250,0.55);
-        background: linear-gradient(135deg, rgba(124,58,237,0.45), rgba(91,33,182,0.35));
-        box-shadow: 0 2px 12px rgba(124,58,237,0.25);
+        color: #fff; font-weight: 600; border-color: rgba(var(--k-accent-text-rgb),0.55);
+        background: linear-gradient(135deg, rgba(var(--k-accent-rgb),0.45), rgba(91,33,182,0.35));
+        box-shadow: 0 2px 12px rgba(var(--k-accent-rgb),0.25);
       }
       .k-tag.is-active .k-tag-count { color: #fff; background: rgba(255,255,255,0.2); }
       .k-tag-more {
         width: 100%; padding: 8px 12px; margin-top: 4px; border: none; border-radius: 10px;
-        cursor: pointer; text-align: left; background: transparent; color: #a78bfa;
+        cursor: pointer; text-align: left; background: transparent; color: var(--k-accent-text);
         font-weight: 600; font-size: 13px;
       }
-      .k-tag-more:hover { background: rgba(124,58,237,0.08); }
+      .k-tag-more:hover { background: rgba(var(--k-accent-rgb),0.08); }
       @media (max-width: 720px) {
         .kassandre-feed-layout { flex-direction: column; }
         /* Sur téléphone, les catégories deviennent une rangée défilante horizontale
@@ -698,15 +698,15 @@ export default function Feed({ hub }) {
         .kassandre-feed-sidebar > .k-tag, .kassandre-feed-sidebar > .k-tag-more {
           width: auto !important; flex: 0 0 auto; margin: 0 !important; white-space: nowrap;
           padding: 7px 8px 7px 13px !important; gap: 8px;
-          border: 1px solid rgba(124,58,237,0.22); border-radius: 999px !important;
-          background: #15151f;
+          border: 1px solid rgba(var(--k-accent-rgb),0.22); border-radius: 999px !important;
+          background: var(--k-surface);
         }
-        .kassandre-feed-sidebar > .k-tag.is-active { border-color: rgba(167,139,250,0.7); }
-        .kassandre-feed-sidebar > .k-tag-more { padding: 7px 13px !important; color: #a78bfa; border-style: dashed; }
+        .kassandre-feed-sidebar > .k-tag.is-active { border-color: rgba(var(--k-accent-text-rgb),0.7); }
+        .kassandre-feed-sidebar > .k-tag-more { padding: 7px 13px !important; color: var(--k-accent-text); border-style: dashed; }
         .kassandre-feed-sidebar > p { flex: 0 0 auto; white-space: nowrap; }
         .kassandre-tags-collapse-sticky {
           position: static !important;
-          border-color: rgba(124,58,237,0.5) !important;
+          border-color: rgba(var(--k-accent-rgb),0.5) !important;
         }
       }
     `}</style>
@@ -723,8 +723,8 @@ export default function Feed({ hub }) {
         style={{
           width: "100%", alignItems: "center", justifyContent: "space-between",
           padding: "10px 14px", marginBottom: "12px", borderRadius: "8px",
-          border: "0.5px solid rgba(124,58,237,0.3)", background: "#15151f",
-          color: "#a78bfa", fontWeight: "600", fontSize: "14px", cursor: "pointer",
+          border: "0.5px solid rgba(var(--k-accent-rgb),0.3)", background: "var(--k-surface)",
+          color: "var(--k-accent-text)", fontWeight: "600", fontSize: "14px", cursor: "pointer",
         }}
       >
         <span>{selectedTag ? `Tag : ${prettyTag(selectedTag)}` : "Filtrer par tag"}</span>
@@ -789,7 +789,7 @@ export default function Feed({ hub }) {
           </button>
         )}
         {tagsInCategory.length === 0 && (
-          <p style={{ fontSize: "12px", color: "#6b6b8a", padding: "10px 12px" }}>
+          <p style={{ fontSize: "12px", color: "var(--k-faint)", padding: "10px 12px" }}>
             {tagFromRoute
               ? "Aucun autre tag pour cette sélection."
               : catFromRoute
@@ -800,7 +800,7 @@ export default function Feed({ hub }) {
       </aside>
 
       <div ref={contentColRef} style={{ flex: 1, minWidth: 0 }}>
-      <h1 style={{ fontSize: "24px", marginBottom: "20px", color: "#e8e8f0" }}>
+      <h1 style={{ fontSize: "24px", marginBottom: "20px", color: "var(--k-text)" }}>
         {hubDef
           ? hubDef.h1
           : tagFromRoute
@@ -811,13 +811,13 @@ export default function Feed({ hub }) {
       </h1>
 
       {hubDef && (
-        <p style={{ color: "#a0a0b8", lineHeight: 1.6, maxWidth: "720px", margin: "0 auto 24px", textAlign: "center", fontSize: "0.95rem" }}>
+        <p style={{ color: "var(--k-muted2)", lineHeight: 1.6, maxWidth: "720px", margin: "0 auto 24px", textAlign: "center", fontSize: "0.95rem" }}>
           {hubDef.intro}
         </p>
       )}
 
       {seoCat && !tagFromRoute && CATEGORY_INTROS[seoCat] && (
-        <p style={{ color: "#a0a0b8", lineHeight: 1.6, maxWidth: "720px", margin: "0 auto 24px", textAlign: "center", fontSize: "0.95rem" }}>
+        <p style={{ color: "var(--k-muted2)", lineHeight: 1.6, maxWidth: "720px", margin: "0 auto 24px", textAlign: "center", fontSize: "0.95rem" }}>
           {CATEGORY_INTROS[seoCat]}
         </p>
       )}
@@ -840,14 +840,14 @@ export default function Feed({ hub }) {
             ? {
                 position: "fixed", top: "118px", left: searchBarRect.left, width: searchBarRect.width,
                 zIndex: 51, padding: "11px 16px", borderRadius: "10px",
-                border: "0.5px solid rgba(124,58,237,0.2)", background: "#0f0f17",
-                color: "#e8e8f0", fontSize: "14px", outline: "none",
+                border: "0.5px solid rgba(var(--k-accent-rgb),0.2)", background: "var(--k-inset)",
+                color: "var(--k-text)", fontSize: "14px", outline: "none",
                 boxSizing: "border-box",
               }
             : {
                 width: "100%", padding: "11px 16px", borderRadius: "10px",
-                border: "0.5px solid rgba(124,58,237,0.2)", background: "#0f0f17",
-                color: "#e8e8f0", fontSize: "14px", outline: "none",
+                border: "0.5px solid rgba(var(--k-accent-rgb),0.2)", background: "var(--k-inset)",
+                color: "var(--k-text)", fontSize: "14px", outline: "none",
                 boxSizing: "border-box", marginBottom: "14px",
               }
         }
@@ -874,9 +874,9 @@ export default function Feed({ hub }) {
                 style={{
                   padding: "6px 13px", borderRadius: "20px", cursor: "pointer",
                   fontSize: "13px", fontWeight: "500",
-                  border: active ? "0.5px solid rgba(124,58,237,0.5)" : "0.5px solid rgba(124,58,237,0.15)",
-                  background: active ? "rgba(124,58,237,0.18)" : "transparent",
-                  color: active ? "#a78bfa" : "#8888a0",
+                  border: active ? "0.5px solid rgba(var(--k-accent-rgb),0.5)" : "0.5px solid rgba(var(--k-accent-rgb),0.15)",
+                  background: active ? "rgba(var(--k-accent-rgb),0.18)" : "transparent",
+                  color: active ? "var(--k-accent-text)" : "var(--k-muted)",
                   transition: "all 0.15s",
                 }}
               >
@@ -890,8 +890,8 @@ export default function Feed({ hub }) {
           onChange={(e) => setSortBy(e.target.value)}
           style={{
             padding: "7px 12px", borderRadius: "8px",
-            border: "0.5px solid rgba(124,58,237,0.15)", background: "#0f0f17",
-            color: "#a8a8b8", fontSize: "13px", outline: "none", cursor: "pointer",
+            border: "0.5px solid rgba(var(--k-accent-rgb),0.15)", background: "var(--k-inset)",
+            color: "var(--k-muted2)", fontSize: "13px", outline: "none", cursor: "pointer",
             flexShrink: 0,
           }}
         >
@@ -902,7 +902,7 @@ export default function Feed({ hub }) {
       </div>
 
       {visibleMarkets.length === 0 && (
-        <p style={{ color: "#6b6b8a" }}>{hubDef && markets.length > 0 && !searchTerm.trim() ? hubDef.empty : "Aucun marché ne correspond à ta recherche."}</p>
+        <p style={{ color: "var(--k-faint)" }}>{hubDef && markets.length > 0 && !searchTerm.trim() ? hubDef.empty : "Aucun marché ne correspond à ta recherche."}</p>
       )}
 
       <div style={{
@@ -926,13 +926,13 @@ export default function Feed({ hub }) {
               <div
                 className="kassandre-market-card"
                 style={{
-                  border: "0.5px solid rgba(124,58,237,0.15)",
+                  border: "0.5px solid rgba(var(--k-accent-rgb),0.15)",
                   borderRadius: "14px",
                   padding: "16px",
                   cursor: "pointer",
                   background: market.coverImageUrl
-                    ? `linear-gradient(160deg, rgba(10,10,15,0.78), rgba(10,10,15,0.94)), ${cssUrl(market.coverImageUrl)} center / cover no-repeat`
-                    : "#13131a",
+                    ? `linear-gradient(160deg, rgba(var(--k-bg-rgb),0.78), rgba(var(--k-bg-rgb),0.94)), ${cssUrl(market.coverImageUrl)} center / cover no-repeat`
+                    : "var(--k-surface)",
                   transition: "border-color 0.15s, filter 0.15s",
                   display: "flex",
                   flexDirection: "column",
@@ -940,18 +940,18 @@ export default function Feed({ hub }) {
                   boxSizing: "border-box",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = "rgba(124,58,237,0.35)";
+                  e.currentTarget.style.borderColor = "rgba(var(--k-accent-rgb),0.35)";
                   e.currentTarget.style.filter = "brightness(1.08)";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = "rgba(124,58,237,0.15)";
+                  e.currentTarget.style.borderColor = "rgba(var(--k-accent-rgb),0.15)";
                   e.currentTarget.style.filter = "brightness(1)";
                 }}
               >
                 {/* Top row: titre + gauge */}
                 <div style={{ display: "flex", alignItems: "flex-start", gap: "10px", marginBottom: "10px" }}>
                   <p style={{
-                    fontWeight: "500", fontSize: "14px", color: "#e8e8f0", lineHeight: "1.35",
+                    fontWeight: "500", fontSize: "14px", color: "var(--k-text)", lineHeight: "1.35",
                     flex: 1, margin: 0,
                     display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden",
                   }}>
@@ -962,15 +962,15 @@ export default function Feed({ hub }) {
                     const offset = circumference * (1 - pctYes / 100);
                     return (
                       <svg width="42" height="42" viewBox="0 0 44 44" style={{ flexShrink: 0 }}>
-                        <circle cx="22" cy="22" r="18" fill="none" stroke="rgba(124,58,237,0.15)" strokeWidth="4" />
+                        <circle cx="22" cy="22" r="18" fill="none" stroke="rgba(var(--k-accent-rgb),0.15)" strokeWidth="4" />
                         <circle
-                          cx="22" cy="22" r="18" fill="none" stroke="#7c3aed" strokeWidth="4"
+                          cx="22" cy="22" r="18" fill="none" stroke="var(--k-accent)" strokeWidth="4"
                           strokeDasharray={circumference}
                           strokeDashoffset={offset}
                           strokeLinecap="round"
                           transform="rotate(-90 22 22)"
                         />
-                        <text x="22" y="26" textAnchor="middle" fontSize="11" fontWeight="600" fill="#e8e8f0">{pctYes}%</text>
+                        <text x="22" y="26" textAnchor="middle" fontSize="11" fontWeight="600" fill="var(--k-text)">{pctYes}%</text>
                       </svg>
                     );
                   })()}
@@ -994,8 +994,8 @@ export default function Feed({ hub }) {
                             navigate(`/${encodeURIComponent(cat)}/${encodeURIComponent(tag)}`);
                           }}
                           style={{
-                            fontSize: "11px", fontWeight: "500", color: "#a78bfa",
-                            background: "rgba(124,58,237,0.12)", border: "0.5px solid rgba(124,58,237,0.25)",
+                            fontSize: "11px", fontWeight: "500", color: "var(--k-accent-text)",
+                            background: "rgba(var(--k-accent-rgb),0.12)", border: "0.5px solid rgba(var(--k-accent-rgb),0.25)",
                             borderRadius: "6px", padding: "2px 8px", cursor: "pointer",
                           }}
                         >
@@ -1043,13 +1043,13 @@ export default function Feed({ hub }) {
                 )}
 
                 {isMulti && (
-                  <p style={{ fontSize: "11px", color: "#8888a0", marginTop: "auto", marginBottom: "10px" }}>
+                  <p style={{ fontSize: "11px", color: "var(--k-muted)", marginTop: "auto", marginBottom: "10px" }}>
                     Multi-choix
                   </p>
                 )}
 
                 {/* Footer meta : volume + résolution */}
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: "11px", color: "#8888a0" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: "11px", color: "var(--k-muted)" }}>
                   <span>{volume} pts Vol.</span>
                   <span>Résolution : {market.resolutionDate}</span>
                 </div>
@@ -1065,8 +1065,8 @@ export default function Feed({ hub }) {
             onClick={() => setPageState({ key: filterKey, n: shownCount + PAGE_SIZE })}
             style={{
               padding: "11px 26px", borderRadius: "10px", cursor: "pointer",
-              border: "0.5px solid rgba(124,58,237,0.4)", background: "rgba(124,58,237,0.12)",
-              color: "#c4b5fd", fontSize: "14px", fontWeight: 600,
+              border: "0.5px solid rgba(var(--k-accent-rgb),0.4)", background: "rgba(var(--k-accent-rgb),0.12)",
+              color: "var(--k-accent-text)", fontSize: "14px", fontWeight: 600,
             }}
           >
             Voir plus de marchés ({visibleMarkets.length - shownCount} restants)

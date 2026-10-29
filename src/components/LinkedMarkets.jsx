@@ -41,8 +41,8 @@ export default function LinkedMarkets({ ids }) {
   if (!items || items.length === 0) return null;
 
   return (
-    <section style={{ borderTop: "1px solid #2a2a35", paddingTop: "22px", marginTop: "8px" }}>
-      <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "#e8e8f0", margin: "0 0 12px" }}>
+    <section style={{ borderTop: "1px solid var(--k-border)", paddingTop: "22px", marginTop: "8px" }}>
+      <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "var(--k-text)", margin: "0 0 12px" }}>
         Donnez votre pronostic
       </h3>
       <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -68,7 +68,7 @@ function Card({ market }) {
         {opts.map((o) => {
           const pct = Math.round((o.price ?? 0) * 100);
           return (
-            <div key={o.id} style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#c8c8d8" }}>
+            <div key={o.id} style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "var(--k-text2)" }}>
               <span style={{ flex: "0 0 38%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{o.label}</span>
               <div style={{ flex: 1 }}><Bar pct={pct} color={o.color} /></div>
               <span style={{ width: "34px", textAlign: "right", fontWeight: 700, color: o.color }}>{pct}%</span>
@@ -82,7 +82,7 @@ function Card({ market }) {
     const yes = total > 0 ? Math.round(((market.poolNo || 0) / total) * 100) : 50;
     stat = (
       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-        <span style={{ fontSize: "12px", color: "#8888a0" }}>OUI</span>
+        <span style={{ fontSize: "12px", color: "var(--k-muted)" }}>OUI</span>
         <div style={{ flex: 1 }}><Bar pct={yes} color="#22c55e" track="rgba(239,68,68,0.55)" /></div>
         <span style={{ fontSize: "15px", fontWeight: 800, color: "#22c55e", minWidth: "38px", textAlign: "right" }}>{yes}%</span>
       </div>
@@ -94,22 +94,22 @@ function Card({ market }) {
       to={`/market/${market.id}`}
       style={{
         textDecoration: "none", display: "block", borderRadius: "10px",
-        border: "0.5px solid rgba(124,58,237,0.3)", background: "#0f0f17", padding: "12px 14px",
+        border: "0.5px solid rgba(var(--k-accent-rgb),0.3)", background: "var(--k-inset)", padding: "12px 14px",
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "10px", marginBottom: "10px" }}>
         <span style={{
-          fontSize: "14px", fontWeight: 600, color: "#f3f4f6", lineHeight: 1.35,
+          fontSize: "14px", fontWeight: 600, color: "var(--k-text)", lineHeight: 1.35,
           display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
         }}>
           {market.question}
         </span>
-        <span style={{ flexShrink: 0, fontSize: "12px", fontWeight: 700, color: "#fff", background: "#7c3aed", borderRadius: "6px", padding: "5px 10px" }}>
+        <span style={{ flexShrink: 0, fontSize: "12px", fontWeight: 700, color: "#fff", background: "var(--k-accent)", borderRadius: "6px", padding: "5px 10px" }}>
           {open ? "Parier" : "Voir"}
         </span>
       </div>
       {stat}
-      <div style={{ fontSize: "11px", color: "#8888a0", marginTop: "8px" }}>
+      <div style={{ fontSize: "11px", color: "var(--k-muted)", marginTop: "8px" }}>
         {cats[0] ? `${cats[0]} · ` : ""}
         {!open ? (market.status === "resolved" ? "Résolu" : "Fermé") : market.resolutionDate ? `Résolution ${market.resolutionDate}` : ""}
       </div>
@@ -117,7 +117,7 @@ function Card({ market }) {
   );
 }
 
-function Bar({ pct, color, track = "#1d1d2b" }) {
+function Bar({ pct, color, track = "var(--k-surface2)" }) {
   return (
     <div style={{ height: "6px", borderRadius: "3px", background: track, overflow: "hidden" }}>
       <div style={{ width: `${Math.max(2, Math.min(100, pct))}%`, height: "100%", background: color }} />

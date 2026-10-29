@@ -58,7 +58,7 @@ export default function NotificationBell() {
 
   return (
     <div ref={box} style={{ position: "relative" }}>
-      <button onClick={toggle} aria-label="Notifications" style={{ background: "transparent", border: "none", cursor: "pointer", color: "#a8a8b8", padding: "4px", position: "relative", display: "flex" }}>
+      <button onClick={toggle} aria-label="Notifications" style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--k-muted2)", padding: "4px", position: "relative", display: "flex" }}>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
         </svg>
@@ -74,7 +74,7 @@ export default function NotificationBell() {
             .kassandre-notif-panel {
               position: absolute; right: 0; top: 36px;
               width: min(340px, 90vw); max-height: 420px; overflow-y: auto;
-              background: #0f0f17; border: 0.5px solid rgba(124,58,237,0.3);
+              background: var(--k-inset); border: 0.5px solid rgba(var(--k-accent-rgb),0.3);
               border-radius: 10px; z-index: 60; box-shadow: 0 8px 30px rgba(0,0,0,0.5);
             }
             .kassandre-notif-head { display: none; }
@@ -90,21 +90,21 @@ export default function NotificationBell() {
           <div className="kassandre-notif-panel" role="dialog" aria-label="Notifications">
             <div className="kassandre-notif-head" style={{
               alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0,
-              padding: "12px 14px", background: "#0f0f17", borderBottom: "0.5px solid rgba(124,58,237,0.2)",
+              padding: "12px 14px", background: "var(--k-inset)", borderBottom: "0.5px solid rgba(var(--k-accent-rgb),0.2)",
             }}>
-              <span style={{ fontSize: "15px", fontWeight: 600, color: "#e8e8f0" }}>Notifications</span>
+              <span style={{ fontSize: "15px", fontWeight: 600, color: "var(--k-text)" }}>Notifications</span>
               <button type="button" onClick={toggle} aria-label="Fermer" style={{
-                background: "transparent", border: "none", color: "#8888a0", fontSize: "24px",
+                background: "transparent", border: "none", color: "var(--k-muted)", fontSize: "24px",
                 lineHeight: 1, cursor: "pointer", padding: "0 6px",
               }}>×</button>
             </div>
             {items.length === 0 ? (
-              <p style={{ color: "#8888a0", fontSize: "14px", padding: "18px 16px", margin: 0, lineHeight: 1.5 }}>
+              <p style={{ color: "var(--k-muted)", fontSize: "14px", padding: "18px 16px", margin: 0, lineHeight: 1.5 }}>
                 Aucune alerte. Suivez un marché avec le bouton Suivre pour être prévenu.
               </p>
             ) : items.map((n) => (
               <Link key={n.id} to={n.marketId ? `/market/${n.marketId}` : "/settings"} onClick={toggle}
-                style={{ display: "block", padding: "14px 16px", textDecoration: "none", color: "#e8e8f0", fontSize: "14px", lineHeight: 1.5, borderBottom: "0.5px solid rgba(124,58,237,0.12)", background: n.read ? "transparent" : "rgba(124,58,237,0.08)" }}>
+                style={{ display: "block", padding: "14px 16px", textDecoration: "none", color: "var(--k-text)", fontSize: "14px", lineHeight: 1.5, borderBottom: "0.5px solid rgba(var(--k-accent-rgb),0.12)", background: n.read ? "transparent" : "rgba(var(--k-accent-rgb),0.08)" }}>
                 {describe(n)}
               </Link>
             ))}

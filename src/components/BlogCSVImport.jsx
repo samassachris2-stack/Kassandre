@@ -178,9 +178,9 @@ export default function BlogCSVImport({ onImportComplete }) {
                   <span style={{
                     ...styles.previewBadge,
                     backgroundColor: article.status === 'published'
-                      ? 'rgba(124, 58, 237, 0.2)'
+                      ? 'rgba(var(--k-accent-rgb), 0.2)'
                       : 'rgba(160, 160, 176, 0.2)',
-                    color: article.status === 'published' ? '#7c3aed' : '#a0a0b0',
+                    color: article.status === 'published' ? 'var(--k-accent)' : 'var(--k-muted2)',
                   }}>
                     {article.status === 'published' ? 'Publié' : 'Brouillon'}
                   </span>
@@ -225,8 +225,8 @@ export default function BlogCSVImport({ onImportComplete }) {
 const styles = {
   container: {
     padding: '20px',
-    backgroundColor: '#1a1a22',
-    border: '1px solid #2a2a35',
+    backgroundColor: 'var(--k-surface2)',
+    border: '1px solid var(--k-border)',
     borderRadius: '8px',
     marginBottom: '20px',
   },
@@ -236,45 +236,45 @@ const styles = {
     gap: '12px',
   },
   uploadLabel: {
-    color: '#e8e8f0',
+    color: 'var(--k-text)',
     fontWeight: '600',
     fontSize: '0.95rem',
   },
   uploadButton: {
     padding: '12px',
-    backgroundColor: '#0a0a0f',
-    color: '#a0a0b0',
-    border: '1px dashed #3a3a45',
+    backgroundColor: 'var(--k-bg)',
+    color: 'var(--k-muted2)',
+    border: '1px dashed var(--k-border2)',
     borderRadius: '8px',
     cursor: 'pointer',
     fontSize: '0.95rem',
     fontWeight: '500',
   },
   help: {
-    color: '#a0a0b0',
+    color: 'var(--k-muted2)',
     fontSize: '0.85rem',
     margin: '8px 0 0 0',
     fontStyle: 'italic',
   },
   errorsSection: {
     padding: '16px',
-    backgroundColor: '#5a2a2a',
+    backgroundColor: 'var(--k-red-bg)',
     border: '1px solid #7a4a4a',
     borderRadius: '6px',
     marginBottom: '16px',
   },
   errorTitle: {
-    color: '#ff8080',
+    color: 'var(--k-red-text)',
     marginTop: 0,
     marginBottom: '12px',
   },
   errorItem: {
     marginBottom: '12px',
-    color: '#ffb0b0',
+    color: 'var(--k-red-text)',
   },
   errorList: {
     margin: '6px 0 0 20px',
-    color: '#ffb0b0',
+    color: 'var(--k-red-text)',
   },
   previewSection: {
     display: 'flex',
@@ -282,7 +282,7 @@ const styles = {
     gap: '16px',
   },
   previewTitle: {
-    color: '#e8e8f0',
+    color: 'var(--k-text)',
     margin: 0,
     fontSize: '1.1rem',
   },
@@ -295,8 +295,8 @@ const styles = {
   },
   previewItem: {
     padding: '12px',
-    backgroundColor: '#0a0a0f',
-    border: '1px solid #2a2a35',
+    backgroundColor: 'var(--k-bg)',
+    border: '1px solid var(--k-border)',
     borderRadius: '6px',
   },
   previewHeader: {
@@ -306,7 +306,7 @@ const styles = {
     marginBottom: '8px',
   },
   previewTitle2: {
-    color: '#e8e8f0',
+    color: 'var(--k-text)',
     fontWeight: '600',
   },
   previewBadge: {
@@ -317,12 +317,12 @@ const styles = {
     fontWeight: '500',
   },
   previewSlug: {
-    color: '#a0a0b0',
+    color: 'var(--k-muted2)',
     fontSize: '0.85rem',
     margin: '4px 0',
   },
   previewExcerpt: {
-    color: '#d0d0e0',
+    color: 'var(--k-text)',
     fontSize: '0.9rem',
     margin: '4px 0',
   },
@@ -335,8 +335,8 @@ const styles = {
   tag: {
     display: 'inline-block',
     padding: '3px 8px',
-    backgroundColor: 'rgba(124, 58, 237, 0.15)',
-    color: '#a78bfa',
+    backgroundColor: 'rgba(var(--k-accent-rgb), 0.15)',
+    color: 'var(--k-accent-text)',
     borderRadius: '4px',
     fontSize: '0.75rem',
     fontWeight: '500',
@@ -348,8 +348,8 @@ const styles = {
   importButton: {
     flex: 1,
     padding: '12px 24px',
-    backgroundColor: '#7c3aed',
-    color: '#e8e8f0',
+    backgroundColor: 'var(--k-accent)',
+    color: 'var(--k-text)',
     border: 'none',
     borderRadius: '6px',
     cursor: 'pointer',
@@ -358,9 +358,9 @@ const styles = {
   },
   cancelButton: {
     padding: '12px 24px',
-    backgroundColor: '#2a2a35',
-    color: '#e8e8f0',
-    border: '1px solid #3a3a45',
+    backgroundColor: 'var(--k-border)',
+    color: 'var(--k-text)',
+    border: '1px solid var(--k-border2)',
     borderRadius: '6px',
     cursor: 'pointer',
     fontWeight: '600',

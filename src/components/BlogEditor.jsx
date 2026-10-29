@@ -30,7 +30,7 @@ function ToolButton({ onClick, active, disabled, children, title }) {
       title={title}
       style={{
         ...styles.toolButton,
-        backgroundColor: active ? "#7c3aed" : "#1a1a22",
+        backgroundColor: active ? "var(--k-accent)" : "var(--k-surface2)",
         opacity: disabled ? 0.4 : 1,
         cursor: disabled ? "not-allowed" : "pointer",
       }}
@@ -88,7 +88,7 @@ export default function BlogEditor({ content, onChange }) {
       }),
       Link.configure({
         openOnClick: false,
-        HTMLAttributes: { style: "color: #a78bfa; text-decoration: underline;" },
+        HTMLAttributes: { style: "color: var(--k-accent-text); text-decoration: underline;" },
       }),
       TextAlign.configure({
         types: ["heading", "paragraph"],
@@ -178,13 +178,13 @@ export default function BlogEditor({ content, onChange }) {
         .blog-editor-content .ProseMirror h2 {
           font-size: 1.6rem;
           font-weight: 700;
-          color: #e8e8f0;
+          color: var(--k-text);
           margin: 24px 0 12px 0;
         }
         .blog-editor-content .ProseMirror h3 {
           font-size: 1.3rem;
           font-weight: 700;
-          color: #e8e8f0;
+          color: var(--k-text);
           margin: 20px 0 10px 0;
         }
         .blog-editor-content .ProseMirror p {
@@ -196,29 +196,29 @@ export default function BlogEditor({ content, onChange }) {
           margin: 0 0 14px 0;
         }
         .blog-editor-content .ProseMirror blockquote {
-          border-left: 3px solid #7c3aed;
+          border-left: 3px solid var(--k-accent);
           margin: 16px 0;
           padding: 4px 16px;
-          color: #a0a0b0;
+          color: var(--k-muted2);
           font-style: italic;
         }
         .blog-editor-content .ProseMirror pre {
-          background: #0a0a0f;
-          border: 1px solid #2a2a35;
+          background: var(--k-bg);
+          border: 1px solid var(--k-border);
           border-radius: 6px;
           padding: 12px 16px;
           overflow-x: auto;
           margin: 16px 0;
         }
         .blog-editor-content .ProseMirror code {
-          background: #0a0a0f;
+          background: var(--k-bg);
           padding: 2px 6px;
           border-radius: 4px;
           font-size: 0.9em;
         }
         .blog-editor-content .ProseMirror hr {
           border: none;
-          border-top: 1px solid #2a2a35;
+          border-top: 1px solid var(--k-border);
           margin: 24px 0;
         }
         .blog-editor-content .ProseMirror::after {
@@ -231,7 +231,7 @@ export default function BlogEditor({ content, onChange }) {
         }
         .blog-editor-content .ProseMirror p.is-editor-empty:first-child::before {
           content: 'Écris ton article ici...';
-          color: #5a5a6a;
+          color: var(--k-faint);
           float: left;
           height: 0;
           pointer-events: none;
@@ -413,7 +413,7 @@ export default function BlogEditor({ content, onChange }) {
           <button
             type="button"
             onClick={() => setShowLinkInput(false)}
-            style={{ ...styles.addButton, backgroundColor: "#2a2a35" }}
+            style={{ ...styles.addButton, backgroundColor: "var(--k-border)" }}
           >
             Annuler
           </button>
@@ -457,7 +457,7 @@ export default function BlogEditor({ content, onChange }) {
           <button
             type="button"
             onClick={() => setShowImageMenu(false)}
-            style={{ ...styles.addButton, backgroundColor: "#2a2a35" }}
+            style={{ ...styles.addButton, backgroundColor: "var(--k-border)" }}
           >
             Annuler
           </button>
@@ -472,9 +472,9 @@ export default function BlogEditor({ content, onChange }) {
 
 const styles = {
   container: {
-    backgroundColor: "#1a1a22",
+    backgroundColor: "var(--k-surface2)",
     borderRadius: "8px",
-    border: "1px solid #2a2a35",
+    border: "1px solid var(--k-border)",
     // "clip" arrondit les coins sans créer de conteneur de défilement,
     // ce qui laisse la barre d'outils collante fonctionner.
     overflow: "clip",
@@ -487,22 +487,22 @@ const styles = {
     display: "flex",
     gap: "6px",
     padding: "10px 12px",
-    borderBottom: "1px solid #2a2a35",
+    borderBottom: "1px solid var(--k-border)",
     flexWrap: "wrap",
     alignItems: "center",
-    backgroundColor: "#0a0a0f",
+    backgroundColor: "var(--k-bg)",
   },
   separator: {
     width: "1px",
     height: "22px",
-    backgroundColor: "#2a2a35",
+    backgroundColor: "var(--k-border)",
     margin: "0 4px",
   },
   toolButton: {
     padding: "7px 12px",
-    backgroundColor: "#1a1a22",
-    color: "#e8e8f0",
-    border: "1px solid #2a2a35",
+    backgroundColor: "var(--k-surface2)",
+    color: "var(--k-text)",
+    border: "1px solid var(--k-border)",
     borderRadius: "4px",
     fontSize: "0.85rem",
     fontWeight: "500",
@@ -514,28 +514,28 @@ const styles = {
     gap: "8px",
     alignItems: "center",
     padding: "12px",
-    borderBottom: "1px solid #2a2a35",
-    backgroundColor: "#0a0a0f",
+    borderBottom: "1px solid var(--k-border)",
+    backgroundColor: "var(--k-bg)",
     flexWrap: "wrap",
   },
   orText: {
-    color: "#6b6b8a",
+    color: "var(--k-faint)",
     fontSize: "0.85rem",
   },
   input: {
     flex: 1,
     minWidth: "180px",
     padding: "8px 12px",
-    backgroundColor: "#1a1a22",
-    color: "#e8e8f0",
-    border: "1px solid #2a2a35",
+    backgroundColor: "var(--k-surface2)",
+    color: "var(--k-text)",
+    border: "1px solid var(--k-border)",
     borderRadius: "4px",
     fontSize: "0.9rem",
   },
   addButton: {
     padding: "8px 16px",
-    backgroundColor: "#7c3aed",
-    color: "#e8e8f0",
+    backgroundColor: "var(--k-accent)",
+    color: "var(--k-text)",
     border: "none",
     borderRadius: "4px",
     cursor: "pointer",
@@ -544,7 +544,7 @@ const styles = {
   },
   editor: {
     padding: "20px",
-    color: "#d0d0e0",
+    color: "var(--k-text)",
     fontSize: "1rem",
     lineHeight: "1.6",
     cursor: "text",

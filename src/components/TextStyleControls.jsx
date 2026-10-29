@@ -3,9 +3,9 @@ import { FONT_SIZES, FONT_FAMILIES } from "../lib/tiptapTextStyle";
 
 const controlStyle = {
   padding: "6px 8px",
-  backgroundColor: "#1a1a22",
-  color: "#e8e8f0",
-  border: "1px solid #2a2a35",
+  backgroundColor: "var(--k-surface2)",
+  color: "var(--k-text)",
+  border: "1px solid var(--k-border)",
   borderRadius: "4px",
   fontSize: "0.85rem",
   height: "34px",
@@ -69,7 +69,7 @@ export default function TextStyleControls({ editor }) {
       <input
         type="color"
         title="Couleur du texte"
-        value={color || "#e8e8f0"}
+        value={color || "var(--k-text)"}
         onChange={(e) => editor.chain().focus().setColor(e.target.value).run()}
         style={{ ...controlStyle, width: "42px", padding: "3px", cursor: "pointer" }}
       />

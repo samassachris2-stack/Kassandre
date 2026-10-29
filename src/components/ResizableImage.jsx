@@ -69,7 +69,7 @@ function ResizableImageView({ node, updateAttributes, selected }) {
         style={{
           position: "relative",
           display: "inline-block",
-          border: selected ? "2px solid #7c3aed" : "2px solid transparent",
+          border: selected ? "2px solid var(--k-accent)" : "2px solid transparent",
           borderRadius: "8px",
           padding: 0,
         }}
@@ -118,7 +118,7 @@ function ResizableImageView({ node, updateAttributes, selected }) {
               >
                 ➡
               </button>
-              <span style={{ width: "1px", background: "#2a2a35", margin: "0 2px" }} />
+              <span style={{ width: "1px", background: "var(--k-border)", margin: "0 2px" }} />
               <button
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
@@ -139,8 +139,8 @@ function ResizableImageView({ node, updateAttributes, selected }) {
                 width: "14px",
                 height: "14px",
                 borderRadius: "50%",
-                background: "#7c3aed",
-                border: "2px solid #0a0a0f",
+                background: "var(--k-accent)",
+                border: "2px solid var(--k-bg)",
                 cursor: "nwse-resize",
                 zIndex: 5,
               }}
@@ -161,8 +161,8 @@ const toolbarStyle = {
   display: "flex",
   gap: "2px",
   padding: "4px",
-  background: "#0a0a0f",
-  border: "1px solid #2a2a35",
+  background: "var(--k-bg)",
+  border: "1px solid var(--k-border)",
   borderRadius: "6px",
   zIndex: 10,
   whiteSpace: "nowrap",
@@ -171,8 +171,8 @@ const toolbarStyle = {
 function miniBtn(active) {
   return {
     padding: "4px 8px",
-    background: active ? "#7c3aed" : "transparent",
-    color: "#e8e8f0",
+    background: active ? "var(--k-accent)" : "transparent",
+    color: "var(--k-text)",
     border: "none",
     borderRadius: "4px",
     cursor: "pointer",

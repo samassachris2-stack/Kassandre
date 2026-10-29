@@ -61,7 +61,7 @@ export default function MarketPicker({ value, onChange }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-      <div style={{ fontSize: "0.85rem", color: "#8888a0" }}>
+      <div style={{ fontSize: "0.85rem", color: "var(--k-muted)" }}>
         {ids.length} / {MAX} marchés liés. Ils s'affichent sous l'article, dans l'ordre ci-dessous.
       </div>
 
@@ -71,14 +71,14 @@ export default function MarketPicker({ value, onChange }) {
         return (
           <div key={id} style={{
             display: "flex", alignItems: "center", gap: "10px", padding: "10px 12px", borderRadius: "8px",
-            background: "#0a0a0f", border: `1px solid ${unknown ? "#f59e0b" : "#2a2a35"}`,
+            background: "var(--k-bg)", border: `1px solid ${unknown ? "#f59e0b" : "var(--k-border)"}`,
           }}>
-            <span style={{ color: "#a78bfa", fontWeight: 700 }}>{i + 1}</span>
+            <span style={{ color: "var(--k-accent-text)", fontWeight: 700 }}>{i + 1}</span>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ color: "#e8e8f0", fontSize: "0.92rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              <div style={{ color: "var(--k-text)", fontSize: "0.92rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {m ? m.question : unknown ? "Marché introuvable ou déjà fermé" : "Chargement..."}
               </div>
-              <div style={{ color: "#8888a0", fontSize: "0.75rem", wordBreak: "break-all" }}>{id}</div>
+              <div style={{ color: "var(--k-muted)", fontSize: "0.75rem", wordBreak: "break-all" }}>{id}</div>
             </div>
             <button type="button" onClick={() => move(id, -1)} disabled={i === 0} style={btn} aria-label="Monter">↑</button>
             <button type="button" onClick={() => move(id, 1)} disabled={i === ids.length - 1} style={btn} aria-label="Descendre">↓</button>
@@ -97,21 +97,21 @@ export default function MarketPicker({ value, onChange }) {
             style={input}
           />
           {results.length > 0 && (
-            <div style={{ display: "flex", flexDirection: "column", border: "1px solid #2a2a35", borderRadius: "8px", overflow: "hidden" }}>
+            <div style={{ display: "flex", flexDirection: "column", border: "1px solid var(--k-border)", borderRadius: "8px", overflow: "hidden" }}>
               {results.map((m) => (
                 <button
                   key={m.id} type="button"
                   onClick={() => { add(m.id); setSearch(""); }}
-                  style={{ textAlign: "left", padding: "10px 12px", background: "#12121a", color: "#e8e8f0", border: "none", borderBottom: "1px solid #22222d", cursor: "pointer", fontSize: "0.9rem" }}
+                  style={{ textAlign: "left", padding: "10px 12px", background: "var(--k-surface)", color: "var(--k-text)", border: "none", borderBottom: "1px solid var(--k-surface2)", cursor: "pointer", fontSize: "0.9rem" }}
                 >
                   {m.question}
-                  <span style={{ color: "#8888a0", fontSize: "0.75rem", marginLeft: "8px" }}>{m.type === "multi" ? "choix multiples" : "oui / non"}</span>
+                  <span style={{ color: "var(--k-muted)", fontSize: "0.75rem", marginLeft: "8px" }}>{m.type === "multi" ? "choix multiples" : "oui / non"}</span>
                 </button>
               ))}
             </div>
           )}
           {search.trim() && markets && results.length === 0 && (
-            <div style={{ fontSize: "0.85rem", color: "#8888a0" }}>Aucun marché ouvert ne correspond.</div>
+            <div style={{ fontSize: "0.85rem", color: "var(--k-muted)" }}>Aucun marché ouvert ne correspond.</div>
           )}
           <div style={{ display: "flex", gap: "8px" }}>
             <input
@@ -130,10 +130,10 @@ export default function MarketPicker({ value, onChange }) {
 }
 
 const input = {
-  padding: "12px", backgroundColor: "#0a0a0f", color: "#e8e8f0", border: "1px solid #2a2a35",
+  padding: "12px", backgroundColor: "var(--k-bg)", color: "var(--k-text)", border: "1px solid var(--k-border)",
   borderRadius: "6px", fontSize: "1rem", boxSizing: "border-box", width: "100%",
 };
 const btn = {
-  background: "#12121a", border: "1px solid #2a2a35", color: "#e8e8f0", borderRadius: "6px",
+  background: "var(--k-surface)", border: "1px solid var(--k-border)", color: "var(--k-text)", borderRadius: "6px",
   padding: "6px 10px", cursor: "pointer", fontSize: "0.9rem",
 };

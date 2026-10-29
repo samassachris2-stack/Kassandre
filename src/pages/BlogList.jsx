@@ -174,8 +174,8 @@ export default function BlogList() {
         <section className="bl-hero" aria-label="À la une">
           <Link to={`/blog/${hero.slug}`} className="bl-hero-main" style={{
             background: hero.coverImageUrl
-              ? `linear-gradient(to top, rgba(10,10,15,0.96) 12%, rgba(10,10,15,0.35) 70%), ${cssUrl(hero.coverImageUrl)} center / cover no-repeat`
-              : "linear-gradient(135deg, #1a1033, #0a0a0f)",
+              ? `linear-gradient(to top, rgba(var(--k-bg-rgb),0.96) 12%, rgba(var(--k-bg-rgb),0.35) 70%), ${cssUrl(hero.coverImageUrl)} center / cover no-repeat`
+              : "linear-gradient(135deg, var(--k-accent-deep), var(--k-bg))",
           }}>
             <div style={S.heroBody}>
               <div style={S.heroBadges}>
@@ -193,7 +193,7 @@ export default function BlogList() {
               <Link key={a.id} to={`/blog/${a.slug}`} className="bl-side-item">
                 {a.coverImageUrl
                   ? <img src={a.coverImageUrl} alt="" loading="lazy" decoding="async" style={S.sideImg} />
-                  : <div style={{ ...S.sideImg, background: "linear-gradient(135deg,#1a1033,#0f0f17)" }} />}
+                  : <div style={{ ...S.sideImg, background: "linear-gradient(135deg,var(--k-accent-deep),var(--k-inset))" }} />}
                 <div style={{ minWidth: 0 }}>
                   <div style={S.sideItemTitle}>{a.title}</div>
                   <div style={S.metaSmall}>{dateLabel(a.publishedAt)} · {minutesOf(a)} min</div>
@@ -210,7 +210,7 @@ export default function BlogList() {
           <div className="bl-grid">
             {g.items.map((a) => (
               <Link key={a.id} to={`/blog/${a.slug}`} className="bl-card">
-                <div className="bl-cover" style={{ background: a.coverImageUrl ? undefined : "linear-gradient(135deg,#1a1033,#0f0f17)" }}>
+                <div className="bl-cover" style={{ background: a.coverImageUrl ? undefined : "linear-gradient(135deg,var(--k-accent-deep),var(--k-inset))" }}>
                   {a.coverImageUrl && <img src={a.coverImageUrl} alt="" loading="lazy" decoding="async" />}
                   {isOpinion(a) && <span style={S.cardBadge}>Tribune</span>}
                 </div>
@@ -243,19 +243,19 @@ export default function BlogList() {
 
 const CSS = `
   .bl-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
-  .bl-card { display: flex; flex-direction: column; background: #14141c; border: 1px solid #2a2a35; border-radius: 12px; overflow: hidden; text-decoration: none; transition: border-color .2s, transform .2s; }
-  .bl-card:hover { border-color: #7c3aed; transform: translateY(-2px); }
+  .bl-card { display: flex; flex-direction: column; background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 12px; overflow: hidden; text-decoration: none; transition: border-color .2s, transform .2s; }
+  .bl-card:hover { border-color: var(--k-accent); transform: translateY(-2px); }
   .bl-cover { position: relative; aspect-ratio: 16 / 9; overflow: hidden; }
   .bl-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .bl-skel { height: 280px; border-radius: 12px; background: linear-gradient(90deg,#14141c,#1c1c27,#14141c); background-size: 200% 100%; animation: blskel 1.4s infinite; }
+  .bl-skel { height: 280px; border-radius: 12px; background: linear-gradient(90deg,var(--k-surface),var(--k-surface2),var(--k-surface)); background-size: 200% 100%; animation: blskel 1.4s infinite; }
   @keyframes blskel { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
   .bl-hero { display: grid; grid-template-columns: 1.7fr 1fr; gap: 18px; margin-bottom: 40px; }
-  .bl-hero-main { display: flex; align-items: flex-end; min-height: 380px; border-radius: 14px; overflow: hidden; text-decoration: none; border: 1px solid #2a2a35; }
-  .bl-hero-main:hover { border-color: #7c3aed; }
-  .bl-side { display: flex; flex-direction: column; gap: 4px; background: #14141c; border: 1px solid #2a2a35; border-radius: 14px; padding: 16px; }
-  .bl-side-item { display: flex; gap: 12px; padding: 10px 0; border-top: 1px solid #22222d; text-decoration: none; align-items: center; }
+  .bl-hero-main { display: flex; align-items: flex-end; min-height: 380px; border-radius: 14px; overflow: hidden; text-decoration: none; border: 1px solid var(--k-border); }
+  .bl-hero-main:hover { border-color: var(--k-accent); }
+  .bl-side { display: flex; flex-direction: column; gap: 4px; background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 14px; padding: 16px; }
+  .bl-side-item { display: flex; gap: 12px; padding: 10px 0; border-top: 1px solid var(--k-surface2); text-decoration: none; align-items: center; }
   .bl-side-item:first-of-type { border-top: none; }
-  .bl-side-item:hover div:first-child { color: #a78bfa; }
+  .bl-side-item:hover div:first-child { color: var(--k-accent-text); }
   .bl-pills { overflow-x: auto; }
   @media (max-width: 900px) {
     .bl-grid { grid-template-columns: repeat(2, 1fr); }
@@ -274,42 +274,42 @@ const CSS = `
 const S = {
   container: { maxWidth: "1100px", margin: "0 auto", padding: "40px 20px", minHeight: "calc(100vh - 200px)" },
   header: { marginBottom: "32px", textAlign: "center" },
-  title: { fontSize: "2.5rem", fontWeight: "bold", color: "#e8e8f0", marginBottom: "10px" },
-  subtitle: { fontSize: "1.05rem", color: "#a0a0b0", margin: 0 },
-  headerMeta: { display: "flex", justifyContent: "center", gap: "14px", marginTop: "12px", fontSize: "0.85rem", color: "#8888a0" },
-  rss: { color: "#a78bfa", textDecoration: "none" },
+  title: { fontSize: "2.5rem", fontWeight: "bold", color: "var(--k-text)", marginBottom: "10px" },
+  subtitle: { fontSize: "1.05rem", color: "var(--k-muted2)", margin: 0 },
+  headerMeta: { display: "flex", justifyContent: "center", gap: "14px", marginTop: "12px", fontSize: "0.85rem", color: "var(--k-muted)" },
+  rss: { color: "var(--k-accent-text)", textDecoration: "none" },
   toolbar: { display: "flex", flexDirection: "column", gap: "14px", marginBottom: "32px" },
   searchRow: { display: "flex", gap: "10px" },
   search: {
     flex: 1, minWidth: 0, boxSizing: "border-box", padding: "12px 16px", borderRadius: "10px",
-    border: "1px solid #2a2a35", background: "#12121a", color: "#e8e8f0", fontSize: "15px",
+    border: "1px solid var(--k-border)", background: "var(--k-surface)", color: "var(--k-text)", fontSize: "15px",
   },
   select: {
-    padding: "0 12px", borderRadius: "10px", border: "1px solid #2a2a35", background: "#12121a",
-    color: "#e8e8f0", fontSize: "14px",
+    padding: "0 12px", borderRadius: "10px", border: "1px solid var(--k-border)", background: "var(--k-surface)",
+    color: "var(--k-text)", fontSize: "14px",
   },
   pills: { display: "flex", flexWrap: "wrap", gap: "8px" },
   pill: (active) => ({
     fontSize: "0.85rem", padding: "6px 14px", borderRadius: "20px", cursor: "pointer",
-    border: active ? "1px solid #7c3aed" : "1px solid #2a2a35",
-    background: active ? "rgba(124,58,237,0.18)" : "transparent",
-    color: active ? "#a78bfa" : "#a0a0b0",
+    border: active ? "1px solid var(--k-accent)" : "1px solid var(--k-border)",
+    background: active ? "rgba(var(--k-accent-rgb),0.18)" : "transparent",
+    color: active ? "var(--k-accent-text)" : "var(--k-muted2)",
   }),
   pillMore: {
     fontSize: "0.85rem", padding: "6px 14px", borderRadius: "20px", cursor: "pointer",
-    border: "1px dashed #3a3a48", background: "transparent", color: "#8888a0",
+    border: "1px dashed var(--k-border2)", background: "transparent", color: "var(--k-muted)",
   },
   pillCount: { opacity: 0.6, marginLeft: "6px" },
-  empty: { color: "#a0a0b0", textAlign: "center", padding: "40px 0" },
-  resultCount: { fontSize: "0.9rem", color: "#8888a0", marginBottom: "20px" },
+  empty: { color: "var(--k-muted2)", textAlign: "center", padding: "40px 0" },
+  resultCount: { fontSize: "0.9rem", color: "var(--k-muted)", marginBottom: "20px" },
   reset: {
-    marginLeft: "12px", background: "none", border: "none", color: "#a78bfa", cursor: "pointer",
+    marginLeft: "12px", background: "none", border: "none", color: "var(--k-accent-text)", cursor: "pointer",
     fontSize: "0.9rem", textDecoration: "underline",
   },
   heroBody: { padding: "28px", width: "100%", boxSizing: "border-box" },
   heroBadges: { display: "flex", gap: "8px", marginBottom: "12px" },
   badge: {
-    fontSize: "0.72rem", fontWeight: 700, color: "#fff", background: "#7c3aed", borderRadius: "6px",
+    fontSize: "0.72rem", fontWeight: 700, color: "#fff", background: "var(--k-accent)", borderRadius: "6px",
     padding: "3px 10px", textTransform: "uppercase", letterSpacing: "0.06em",
   },
   badgeOpinion: {
@@ -318,36 +318,36 @@ const S = {
   },
   heroTitle: { fontSize: "1.9rem", fontWeight: "bold", color: "#fff", margin: "0 0 10px", lineHeight: 1.25 },
   heroExcerpt: {
-    fontSize: "1rem", color: "#c8c8d8", margin: "0 0 12px", lineHeight: 1.55,
+    fontSize: "1rem", color: "var(--k-text2)", margin: "0 0 12px", lineHeight: 1.55,
     display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden",
   },
-  meta: { fontSize: "0.85rem", color: "#a0a0b0" },
-  sideTitle: { fontSize: "0.8rem", fontWeight: 700, color: "#a78bfa", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "6px" },
+  meta: { fontSize: "0.85rem", color: "var(--k-muted2)" },
+  sideTitle: { fontSize: "0.8rem", fontWeight: 700, color: "var(--k-accent-text)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "6px" },
   sideImg: { width: "84px", height: "64px", objectFit: "cover", borderRadius: "8px", flexShrink: 0 },
   sideItemTitle: {
-    fontSize: "0.92rem", fontWeight: 600, color: "#e8e8f0", lineHeight: 1.35, marginBottom: "4px",
+    fontSize: "0.92rem", fontWeight: 600, color: "var(--k-text)", lineHeight: 1.35, marginBottom: "4px",
     display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden",
   },
-  metaSmall: { fontSize: "0.78rem", color: "#8888a0" },
-  month: { fontSize: "1.1rem", fontWeight: 700, color: "#e8e8f0", margin: "0 0 14px", paddingBottom: "8px", borderBottom: "1px solid #22222d" },
+  metaSmall: { fontSize: "0.78rem", color: "var(--k-muted)" },
+  month: { fontSize: "1.1rem", fontWeight: 700, color: "var(--k-text)", margin: "0 0 14px", paddingBottom: "8px", borderBottom: "1px solid var(--k-surface2)" },
   cardBadge: {
     position: "absolute", top: "10px", left: "10px", fontSize: "0.7rem", fontWeight: 700, color: "#f59e0b",
-    background: "rgba(10,10,15,0.85)", borderRadius: "6px", padding: "3px 9px", textTransform: "uppercase", letterSpacing: "0.06em",
+    background: "rgba(var(--k-bg-rgb),0.85)", borderRadius: "6px", padding: "3px 9px", textTransform: "uppercase", letterSpacing: "0.06em",
   },
   cardBody: { padding: "14px 16px 16px", display: "flex", flexDirection: "column", gap: "8px", flex: 1 },
   cardTitle: {
-    fontSize: "1.05rem", fontWeight: 700, color: "#e8e8f0", margin: 0, lineHeight: 1.35,
+    fontSize: "1.05rem", fontWeight: 700, color: "var(--k-text)", margin: 0, lineHeight: 1.35,
     display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden",
   },
   cardExcerpt: {
-    fontSize: "0.88rem", color: "#a8a8b8", margin: 0, lineHeight: 1.5,
+    fontSize: "0.88rem", color: "var(--k-muted2)", margin: 0, lineHeight: 1.5,
     display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden",
   },
   cardTags: { display: "flex", gap: "6px", flexWrap: "wrap", marginTop: "auto", paddingTop: "4px" },
-  tag: { fontSize: "0.74rem", color: "#a0a0b0", background: "#0a0a0f", padding: "3px 10px", borderRadius: "4px", border: "1px solid #2a2a35" },
+  tag: { fontSize: "0.74rem", color: "var(--k-muted2)", background: "var(--k-bg)", padding: "3px 10px", borderRadius: "4px", border: "1px solid var(--k-border)" },
   moreBtn: {
     display: "block", margin: "28px auto 0", padding: "12px 28px", borderRadius: "10px",
-    background: "transparent", border: "1px solid #7c3aed", color: "#a78bfa",
+    background: "transparent", border: "1px solid var(--k-accent)", color: "var(--k-accent-text)",
     fontSize: "0.95rem", fontWeight: 600, cursor: "pointer",
   },
 };

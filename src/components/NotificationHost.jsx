@@ -5,7 +5,7 @@ const COLORS = {
   success: { bar: "#22c55e", icon: "✓" },
   error: { bar: "#ef4444", icon: "!" },
   warning: { bar: "#f59e0b", icon: "!" },
-  info: { bar: "#7c3aed", icon: "i" },
+  info: { bar: "var(--k-accent)", icon: "i" },
 };
 
 const S = {
@@ -29,9 +29,9 @@ const S = {
     width: "100%",
     maxWidth: "380px",
     padding: "12px 14px",
-    background: "#14141f",
-    color: "#e8e8f0",
-    border: "1px solid #2a2a3d",
+    background: "var(--k-surface)",
+    color: "var(--k-text)",
+    border: "1px solid var(--k-border)",
     borderRadius: "12px",
     boxShadow: "0 8px 30px rgba(0,0,0,0.45)",
     fontSize: "0.92rem",
@@ -47,13 +47,13 @@ const S = {
     justifyContent: "center",
     fontSize: "0.8rem",
     fontWeight: 700,
-    color: "#0a0a0f",
+    color: "var(--k-bg)",
   },
   close: {
     marginLeft: "auto",
     background: "none",
     border: "none",
-    color: "#8888a0",
+    color: "var(--k-muted)",
     cursor: "pointer",
     fontSize: "1.1rem",
     lineHeight: 1,
@@ -72,9 +72,9 @@ const S = {
   dialog: {
     width: "100%",
     maxWidth: "420px",
-    background: "#14141f",
-    color: "#e8e8f0",
-    border: "1px solid #2a2a3d",
+    background: "var(--k-surface)",
+    color: "var(--k-text)",
+    border: "1px solid var(--k-border)",
     borderRadius: "14px",
     padding: "22px",
     boxShadow: "0 12px 40px rgba(0,0,0,0.55)",
@@ -83,9 +83,9 @@ const S = {
   btn: {
     padding: "9px 16px",
     borderRadius: "8px",
-    border: "1px solid #2a2a3d",
+    border: "1px solid var(--k-border)",
     background: "transparent",
-    color: "#e8e8f0",
+    color: "var(--k-text)",
     cursor: "pointer",
     fontSize: "0.92rem",
   },
@@ -133,7 +133,7 @@ export default function NotificationHost() {
                 style={{
                   ...S.btn,
                   border: "none",
-                  background: confirm.danger ? "#ef4444" : "#7c3aed",
+                  background: confirm.danger ? "#ef4444" : "var(--k-accent)",
                   color: "#fff",
                   fontWeight: 600,
                 }}

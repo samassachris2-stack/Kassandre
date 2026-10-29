@@ -35,29 +35,29 @@ export default function CookieBanner() {
         alignItems: "center",
         gap: "12px",
         padding: "14px 16px",
-        backgroundColor: "#0f0f17",
-        border: "1px solid rgba(124,58,237,0.4)",
+        backgroundColor: "var(--k-inset)",
+        border: "1px solid rgba(var(--k-accent-rgb),0.4)",
         borderRadius: "10px",
         boxShadow: "0 8px 24px rgba(0,0,0,0.5)",
       }}
     >
-      <p style={{ flex: "1 1 280px", margin: 0, fontSize: "13px", color: "#a8a8b8", lineHeight: 1.5 }}>
+      <p style={{ flex: "1 1 280px", margin: 0, fontSize: "13px", color: "var(--k-muted2)", lineHeight: 1.5 }}>
         Kassandre utilise des cookies de mesure d'audience pour améliorer le site. Tu peux accepter
         ou refuser. Plus de détails dans la{" "}
-        <Link to="/confidentialite" style={{ color: "#a78bfa" }}>politique de confidentialité</Link>.
+        <Link to="/confidentialite" style={{ color: "var(--k-accent-text)" }}>politique de confidentialité</Link>.
       </p>
       <div style={{ display: "flex", gap: "8px" }}>
         <button
           type="button"
           onClick={() => choose("refused")}
-          style={{ padding: "8px 14px", background: "transparent", color: "#8888a0", border: "1px solid #2a2a35", borderRadius: "6px", cursor: "pointer", fontSize: "13px" }}
+          style={{ padding: "8px 14px", background: "transparent", color: "var(--k-muted)", border: "1px solid var(--k-border)", borderRadius: "6px", cursor: "pointer", fontSize: "13px" }}
         >
           Refuser
         </button>
         <button
           type="button"
           onClick={() => choose("accepted")}
-          style={{ padding: "8px 14px", background: "#7c3aed", color: "#fff", border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "13px", fontWeight: 600 }}
+          style={{ padding: "8px 14px", background: "var(--k-accent)", color: "#fff", border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "13px", fontWeight: 600 }}
         >
           Accepter
         </button>

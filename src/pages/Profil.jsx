@@ -27,7 +27,7 @@ const S = {
     height: "76px",
     borderRadius: "50%",
     objectFit: "cover",
-    border: "0.5px solid rgba(124,58,237,0.3)",
+    border: "0.5px solid rgba(var(--k-accent-rgb),0.3)",
   },
   avatarEditBtn: {
     position: "absolute",
@@ -36,8 +36,8 @@ const S = {
     width: "26px",
     height: "26px",
     borderRadius: "50%",
-    background: "#7c3aed",
-    border: "2px solid #0a0a0f",
+    background: "var(--k-accent)",
+    border: "2px solid var(--k-bg)",
     color: "#fff",
     fontSize: "12px",
     cursor: "pointer",
@@ -55,25 +55,25 @@ const S = {
   displayName: {
     fontSize: "21px",
     fontWeight: "600",
-    color: "#e8e8f0",
+    color: "var(--k-text)",
     margin: 0,
   },
   editIconBtn: {
     background: "transparent",
     border: "none",
-    color: "#8888a0",
+    color: "var(--k-muted)",
     cursor: "pointer",
     fontSize: "13px",
     padding: "2px 6px",
     borderRadius: "6px",
   },
   betsCount: {
-    color: "#8888a0",
+    color: "var(--k-muted)",
     fontSize: "13px",
     margin: 0,
   },
   bioText: {
-    color: "#a8a8b8",
+    color: "var(--k-muted2)",
     fontSize: "13px",
     marginTop: "6px",
     lineHeight: "1.4",
@@ -86,24 +86,24 @@ const S = {
   balanceValue: {
     fontSize: "24px",
     fontWeight: "700",
-    color: "#a78bfa",
+    color: "var(--k-accent-text)",
     margin: 0,
   },
   balanceLabel: {
     fontSize: "12px",
-    color: "#8888a0",
+    color: "var(--k-muted)",
     margin: 0,
   },
   editPanel: {
-    background: "#13131a",
-    border: "0.5px solid rgba(124,58,237,0.2)",
+    background: "var(--k-surface)",
+    border: "0.5px solid rgba(var(--k-accent-rgb),0.2)",
     borderRadius: "12px",
     padding: "16px",
     marginBottom: "24px",
   },
   fieldLabel: {
     fontSize: "11px",
-    color: "#8888a0",
+    color: "var(--k-muted)",
     fontWeight: "500",
     textTransform: "uppercase",
     letterSpacing: "0.06em",
@@ -114,9 +114,9 @@ const S = {
     width: "100%",
     padding: "9px 12px",
     borderRadius: "8px",
-    border: "0.5px solid rgba(124,58,237,0.2)",
-    background: "#0a0a0f",
-    color: "#e8e8f0",
+    border: "0.5px solid rgba(var(--k-accent-rgb),0.2)",
+    background: "var(--k-bg)",
+    color: "var(--k-text)",
     fontSize: "14px",
     outline: "none",
     boxSizing: "border-box",
@@ -126,9 +126,9 @@ const S = {
     width: "100%",
     padding: "9px 12px",
     borderRadius: "8px",
-    border: "0.5px solid rgba(124,58,237,0.2)",
-    background: "#0a0a0f",
-    color: "#e8e8f0",
+    border: "0.5px solid rgba(var(--k-accent-rgb),0.2)",
+    background: "var(--k-bg)",
+    color: "var(--k-text)",
     fontSize: "14px",
     outline: "none",
     boxSizing: "border-box",
@@ -140,25 +140,25 @@ const S = {
   editActions: { display: "flex", gap: "8px" },
   saveBtn: {
     flex: 1, padding: "9px", borderRadius: "8px", border: "none",
-    background: "#7c3aed", color: "#fff", fontWeight: "600",
+    background: "var(--k-accent)", color: "#fff", fontWeight: "600",
     cursor: "pointer", fontSize: "13px",
   },
   cancelBtn: {
     flex: 1, padding: "9px", borderRadius: "8px",
-    border: "0.5px solid rgba(124,58,237,0.2)", background: "transparent",
-    color: "#8888a0", fontWeight: "600", cursor: "pointer", fontSize: "13px",
+    border: "0.5px solid rgba(var(--k-accent-rgb),0.2)", background: "transparent",
+    color: "var(--k-muted)", fontWeight: "600", cursor: "pointer", fontSize: "13px",
   },
   sectionTitle: {
     fontSize: "15px",
     fontWeight: "600",
-    color: "#e8e8f0",
+    color: "var(--k-text)",
     marginBottom: "14px",
     marginTop: "8px",
   },
-  emptyText: { color: "#8888a0", fontSize: "13px" },
+  emptyText: { color: "var(--k-muted)", fontSize: "13px" },
   posCard: {
-    background: "#13131a",
-    border: "0.5px solid rgba(124,58,237,0.15)",
+    background: "var(--k-surface)",
+    border: "0.5px solid rgba(var(--k-accent-rgb),0.15)",
     borderRadius: "10px",
     padding: "12px 14px",
     marginBottom: "8px",
@@ -167,15 +167,15 @@ const S = {
     alignItems: "center",
     gap: "10px",
   },
-  posLabel: { fontSize: "13px", fontWeight: "500", color: "#e8e8f0" },
-  posSub: { fontSize: "11px", color: "#8888a0", marginTop: "2px" },
-  posShares: { fontSize: "14px", fontWeight: "600", color: "#a78bfa", flexShrink: 0 },
+  posLabel: { fontSize: "13px", fontWeight: "500", color: "var(--k-text)" },
+  posSub: { fontSize: "11px", color: "var(--k-muted)", marginTop: "2px" },
+  posShares: { fontSize: "14px", fontWeight: "600", color: "var(--k-accent-text)", flexShrink: 0 },
   betRow: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
     padding: "12px 0",
-    borderBottom: "0.5px solid rgba(124,58,237,0.1)",
+    borderBottom: "0.5px solid rgba(var(--k-accent-rgb),0.1)",
     fontSize: "13px",
   },
   betBadgeYes: {
@@ -190,11 +190,11 @@ const S = {
   },
   betBadgeSell: {
     display: "inline-block", padding: "2px 9px", borderRadius: "6px",
-    background: "rgba(124,58,237,0.12)", color: "#a78bfa",
+    background: "rgba(var(--k-accent-rgb),0.12)", color: "var(--k-accent-text)",
     fontWeight: "600", marginRight: "8px", fontSize: "11px",
   },
-  betLabelText: { color: "#a8a8b8" },
-  betAmount: { fontWeight: "600", color: "#e8e8f0" },
+  betLabelText: { color: "var(--k-muted2)" },
+  betAmount: { fontWeight: "600", color: "var(--k-text)" },
 };
 
 export default function Profil() {
@@ -302,7 +302,7 @@ export default function Profil() {
     setUploadingAvatar(false);
   }
 
-  if (!profile) return <p style={{ padding: "40px", color: "#8888a0" }}>Chargement...</p>;
+  if (!profile) return <p style={{ padding: "40px", color: "var(--k-muted)" }}>Chargement...</p>;
 
   const displayName = profile.pseudo || profile.displayName || "Utilisateur";
 
@@ -340,7 +340,7 @@ export default function Profil() {
             )}
           </div>
           <p style={S.betsCount}>{profile.totalBets || 0} paris placés</p>
-          <Link to={`/tracker/${uid}`} style={{ display: "inline-block", marginTop: "6px", fontSize: "13px", fontWeight: 600, color: "#a78bfa", textDecoration: "none" }}>
+          <Link to={`/tracker/${uid}`} style={{ display: "inline-block", marginTop: "6px", fontSize: "13px", fontWeight: 600, color: "var(--k-accent-text)", textDecoration: "none" }}>
             Voir le tracker de prévisions →
           </Link>
           {profile.bio && !editing && <p style={S.bioText}>{profile.bio}</p>}

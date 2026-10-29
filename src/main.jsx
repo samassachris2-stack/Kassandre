@@ -4,6 +4,10 @@ import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "./context/AuthContext";
 import App from "./App";
 import "./index.css";
+import "./theme.css";
+import { initAppearance } from "./lib/appearance";
+
+initAppearance();
 
 // Après un déploiement, un onglet resté ouvert réclame des fichiers dont le nom
 // a changé. Vite signale alors l'échec : on recharge la page une seule fois

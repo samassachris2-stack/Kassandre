@@ -38,7 +38,7 @@ function MultiResolveButtons({ marketId }) {
         <button
           key={opt.id}
           onClick={() => handleResolve(opt.id, opt.label)}
-          style={{ padding: "8px 16px", background: "#7c3aed", color: "#fff", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: "600", fontSize: "13px" }}
+          style={{ padding: "8px 16px", background: "var(--k-accent)", color: "#fff", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: "600", fontSize: "13px" }}
         >
           Résoudre : {opt.label}
         </button>
@@ -165,13 +165,13 @@ function ImageCropper({ file, onConfirm, onCancel }) {
       position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)",
       display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "20px",
     }}>
-      <div style={{ background: "#13131a", border: "1px solid #2a2a3e", borderRadius: "16px", padding: "20px", maxWidth: "640px", width: "100%" }}>
-        <p style={{ fontSize: "14px", fontWeight: "600", color: "#e8e8f0", marginBottom: "12px" }}>
+      <div style={{ background: "var(--k-surface)", border: "1px solid var(--k-border)", borderRadius: "16px", padding: "20px", maxWidth: "640px", width: "100%" }}>
+        <p style={{ fontSize: "14px", fontWeight: "600", color: "var(--k-text)", marginBottom: "12px" }}>
           Ajuste le cadrage de l'image
         </p>
 
         {!imgLoaded ? (
-          <p style={{ color: "#8888a0", fontSize: "13px", padding: "40px 0", textAlign: "center" }}>Chargement de l'image...</p>
+          <p style={{ color: "var(--k-muted)", fontSize: "13px", padding: "40px 0", textAlign: "center" }}>Chargement de l'image...</p>
         ) : (
           <>
             <canvas
@@ -185,14 +185,14 @@ function ImageCropper({ file, onConfirm, onCancel }) {
               onPointerLeave={handlePointerUp}
             />
             <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "14px" }}>
-              <span style={{ fontSize: "12px", color: "#8888a0" }}>Zoom</span>
+              <span style={{ fontSize: "12px", color: "var(--k-muted)" }}>Zoom</span>
               <input
                 type="range" min="0" max="100" defaultValue="0"
                 onChange={handleZoomChange}
                 style={{ flex: 1 }}
               />
             </div>
-            <p style={{ fontSize: "11px", color: "#6b6b80", marginTop: "6px" }}>
+            <p style={{ fontSize: "11px", color: "var(--k-faint)", marginTop: "6px" }}>
               Glisse l'image pour la repositionner.
             </p>
           </>
@@ -201,14 +201,14 @@ function ImageCropper({ file, onConfirm, onCancel }) {
         <div style={{ display: "flex", gap: "8px", marginTop: "16px" }}>
           <button
             onClick={onCancel}
-            style={{ flex: 1, padding: "10px", borderRadius: "8px", border: "1px solid #2a2a3e", background: "transparent", color: "#8888a0", cursor: "pointer", fontWeight: "600", fontSize: "13px" }}
+            style={{ flex: 1, padding: "10px", borderRadius: "8px", border: "1px solid var(--k-border)", background: "transparent", color: "var(--k-muted)", cursor: "pointer", fontWeight: "600", fontSize: "13px" }}
           >
             Annuler
           </button>
           <button
             onClick={handleConfirm}
             disabled={!imgLoaded}
-            style={{ flex: 2, padding: "10px", borderRadius: "8px", border: "none", background: "#7c3aed", color: "#fff", cursor: "pointer", fontWeight: "600", fontSize: "13px" }}
+            style={{ flex: 2, padding: "10px", borderRadius: "8px", border: "none", background: "var(--k-accent)", color: "#fff", cursor: "pointer", fontWeight: "600", fontSize: "13px" }}
           >
             Valider le cadrage
           </button>
@@ -285,14 +285,14 @@ function FeaturedSettings({ market }) {
 
   return (
     <>
-    <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "10px", paddingTop: "10px", borderTop: "1px solid #2a2a3e" }}>
+    <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "10px", paddingTop: "10px", borderTop: "1px solid var(--k-border)" }}>
       {market.coverImageUrl && (
         <img loading="lazy" decoding="async" src={market.coverImageUrl} alt="" style={{ width: "44px", height: "44px", borderRadius: "8px", objectFit: "cover" }} />
       )}
       <button
         onClick={() => fileInputRef.current?.click()}
         disabled={uploading}
-        style={{ padding: "6px 12px", background: "#1a1a2e", color: "#a78bfa", borderRadius: "6px", border: "1px solid #7c3aed", cursor: "pointer", fontSize: "12px", fontWeight: "600" }}
+        style={{ padding: "6px 12px", background: "var(--k-surface2)", color: "var(--k-accent-text)", borderRadius: "6px", border: "1px solid var(--k-accent)", cursor: "pointer", fontSize: "12px", fontWeight: "600" }}
       >
         {uploading ? "Envoi..." : market.coverImageUrl ? "Changer l'image" : "+ Image de couverture"}
       </button>
@@ -310,9 +310,9 @@ function FeaturedSettings({ market }) {
         onClick={togglePin}
         style={{
           padding: "6px 12px", borderRadius: "6px", border: "1px solid",
-          borderColor: market.pinnedFeatured ? "#f59e0b" : "#2a2a3e",
-          background: market.pinnedFeatured ? "rgba(245,158,11,0.15)" : "#1a1a2e",
-          color: market.pinnedFeatured ? "#f59e0b" : "#8888a0",
+          borderColor: market.pinnedFeatured ? "#f59e0b" : "var(--k-border)",
+          background: market.pinnedFeatured ? "rgba(245,158,11,0.15)" : "var(--k-surface2)",
+          color: market.pinnedFeatured ? "#f59e0b" : "var(--k-muted)",
           cursor: "pointer", fontSize: "12px", fontWeight: "600", marginLeft: "auto",
         }}
       >
@@ -324,15 +324,15 @@ function FeaturedSettings({ market }) {
       {currentTags.map((tag) => (
         <span key={tag} style={{
           display: "flex", alignItems: "center", gap: "5px",
-          fontSize: "11px", fontWeight: "500", color: "#a78bfa",
-          background: "rgba(124,58,237,0.12)", borderRadius: "6px",
-          padding: "3px 6px 3px 9px", border: "0.5px solid rgba(124,58,237,0.25)",
+          fontSize: "11px", fontWeight: "500", color: "var(--k-accent-text)",
+          background: "rgba(var(--k-accent-rgb),0.12)", borderRadius: "6px",
+          padding: "3px 6px 3px 9px", border: "0.5px solid rgba(var(--k-accent-rgb),0.25)",
         }}>
           {tag}
           <button
             onClick={() => removeTag(tag)}
             aria-label={`Retirer le tag ${tag}`}
-            style={{ background: "none", border: "none", color: "#a78bfa", cursor: "pointer", padding: 0, fontSize: "13px", lineHeight: 1 }}
+            style={{ background: "none", border: "none", color: "var(--k-accent-text)", cursor: "pointer", padding: 0, fontSize: "13px", lineHeight: 1 }}
           >
             ×
           </button>
@@ -346,7 +346,7 @@ function FeaturedSettings({ market }) {
         placeholder="+ tag (ex: Trump)"
         style={{
           fontSize: "12px", padding: "5px 9px", borderRadius: "6px",
-          border: "1px solid #2a2a3e", background: "#12121a", color: "#e8e8f0",
+          border: "1px solid var(--k-border)", background: "var(--k-surface)", color: "var(--k-text)",
           width: "120px",
         }}
       />
@@ -514,7 +514,7 @@ function CsvImport({ onAddToQueue }) {
   }
 
   return (
-    <div style={{ border: "1px solid #2a2a3e", borderRadius: "12px", padding: "20px", marginBottom: "32px" }}>
+    <div style={{ border: "1px solid var(--k-border)", borderRadius: "12px", padding: "20px", marginBottom: "32px" }}>
       <h3 style={{ fontSize: "16px", marginBottom: "12px" }}>Import CSV</h3>
 
       <div style={{ display: "flex", gap: "8px", marginBottom: "12px" }}>
@@ -522,7 +522,7 @@ function CsvImport({ onAddToQueue }) {
           onClick={() => { setCsvType("binary"); setParsed(null); }}
           style={{
             padding: "6px 16px", borderRadius: "8px", border: "none", cursor: "pointer",
-            background: csvType === "binary" ? "#7c3aed" : "#1a1a2e", color: "#e8e8f0", fontWeight: "600", fontSize: "13px",
+            background: csvType === "binary" ? "var(--k-accent)" : "var(--k-surface2)", color: "var(--k-text)", fontWeight: "600", fontSize: "13px",
           }}
         >
           Format Oui/Non
@@ -531,14 +531,14 @@ function CsvImport({ onAddToQueue }) {
           onClick={() => { setCsvType("multi"); setParsed(null); }}
           style={{
             padding: "6px 16px", borderRadius: "8px", border: "none", cursor: "pointer",
-            background: csvType === "multi" ? "#7c3aed" : "#1a1a2e", color: "#e8e8f0", fontWeight: "600", fontSize: "13px",
+            background: csvType === "multi" ? "var(--k-accent)" : "var(--k-surface2)", color: "var(--k-text)", fontWeight: "600", fontSize: "13px",
           }}
         >
           Format Multi-choix
         </button>
       </div>
 
-      <p style={{ fontSize: "12px", color: "#6b6b8a", marginBottom: "10px", lineHeight: "1.6" }}>
+      <p style={{ fontSize: "12px", color: "var(--k-faint)", marginBottom: "10px", lineHeight: "1.6" }}>
         Le type (Oui/Non ou multi-choix) est détecté automatiquement d'après la colonne <code>options</code>.
         <br />
         Colonnes attendues : <code>question,description,categories,resolutionDate,resolutionSource{csvType === "multi" ? ",options" : ""}</code>
@@ -551,13 +551,13 @@ function CsvImport({ onAddToQueue }) {
       <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "12px" }}>
         <button
           onClick={() => fileInputRef.current?.click()}
-          style={{ padding: "10px 16px", background: "#1a1a2e", color: "#a78bfa", borderRadius: "8px", border: "1px solid #7c3aed", cursor: "pointer", fontWeight: "600", fontSize: "13px" }}
+          style={{ padding: "10px 16px", background: "var(--k-surface2)", color: "var(--k-accent-text)", borderRadius: "8px", border: "1px solid var(--k-accent)", cursor: "pointer", fontWeight: "600", fontSize: "13px" }}
         >
           Choisir un fichier .csv
         </button>
         <button
           onClick={handlePasteFromClipboard}
-          style={{ padding: "10px 16px", background: "#1a1a2e", color: "#a78bfa", borderRadius: "8px", border: "1px solid #7c3aed", cursor: "pointer", fontWeight: "600", fontSize: "13px" }}
+          style={{ padding: "10px 16px", background: "var(--k-surface2)", color: "var(--k-accent-text)", borderRadius: "8px", border: "1px solid var(--k-accent)", cursor: "pointer", fontWeight: "600", fontSize: "13px" }}
         >
           Coller le CSV copié
         </button>
@@ -565,7 +565,7 @@ function CsvImport({ onAddToQueue }) {
         {rawText && (
           <button
             onClick={() => buildPreview()}
-            style={{ padding: "10px 16px", background: "#7c3aed", color: "#fff", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: "600", fontSize: "13px" }}
+            style={{ padding: "10px 16px", background: "var(--k-accent)", color: "#fff", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: "600", fontSize: "13px" }}
           >
             Prévisualiser
           </button>
@@ -576,7 +576,7 @@ function CsvImport({ onAddToQueue }) {
         placeholder="Ou colle directement le contenu CSV ici..."
         value={rawText}
         onChange={(e) => { setRawText(e.target.value); setParsed(null); }}
-        style={{ width: "100%", minHeight: "100px", padding: "10px", borderRadius: "8px", border: "1px solid #2a2a3e", background: "#12121a", color: "#e8e8f0", fontFamily: "monospace", fontSize: "12px", boxSizing: "border-box" }}
+        style={{ width: "100%", minHeight: "100px", padding: "10px", borderRadius: "8px", border: "1px solid var(--k-border)", background: "var(--k-surface)", color: "var(--k-text)", fontFamily: "monospace", fontSize: "12px", boxSizing: "border-box" }}
       />
 
       {parsed !== null && (
@@ -597,9 +597,9 @@ function CsvImport({ onAddToQueue }) {
             <>
               <div style={{ maxHeight: "240px", overflowY: "auto", marginBottom: "12px" }}>
                 {parsed.map((item, i) => (
-                  <div key={i} style={{ padding: "8px 12px", background: "#12121a", borderRadius: "8px", marginBottom: "6px", fontSize: "13px" }}>
+                  <div key={i} style={{ padding: "8px 12px", background: "var(--k-surface)", borderRadius: "8px", marginBottom: "6px", fontSize: "13px" }}>
                     <p style={{ fontWeight: "600", marginBottom: "2px" }}>{item.question}</p>
-                    <p style={{ fontSize: "11px", color: "#6b6b8a" }}>
+                    <p style={{ fontSize: "11px", color: "var(--k-faint)" }}>
                       {item.marketType === "multi" ? `Multi (${item.options.join(", ")})` : "Oui/Non"} · {item.categories.join(", ")}{item.tags?.length > 0 && ` · #${item.tags.join(" #")}`} · {item.resolutionDate}
                     </p>
                   </div>
@@ -959,15 +959,15 @@ export default function Admin() {
     setSelectedToDelete([]);
   }
 
-  if (!user) return <p style={{ padding: "40px", color: "#8888a0" }}>Connecte-toi pour continuer.</p>;
-  if (!user.isAdmin) return <p style={{ padding: "40px", color: "#8888a0" }}>Page introuvable.</p>;
+  if (!user) return <p style={{ padding: "40px", color: "var(--k-muted)" }}>Connecte-toi pour continuer.</p>;
+  if (!user.isAdmin) return <p style={{ padding: "40px", color: "var(--k-muted)" }}>Page introuvable.</p>;
 
   return (
     <div style={{ maxWidth: "700px", margin: "40px auto", padding: "0 16px" }}>
       <h1 style={{ fontSize: "24px", marginBottom: "16px" }}>Admin</h1>
       <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "28px" }}>
-        <Link to="/admin/resolutions" style={{ padding: "10px 16px", borderRadius: "10px", background: "#7c3aed", color: "#fff", fontWeight: 600, fontSize: "14px", textDecoration: "none" }}>Résolutions</Link>
-        <Link to="/admin/blog" style={{ padding: "10px 16px", borderRadius: "10px", background: "#1a1a2e", border: "1px solid #2a2a3e", color: "#e8e8f0", fontWeight: 600, fontSize: "14px", textDecoration: "none" }}>Blog</Link>
+        <Link to="/admin/resolutions" style={{ padding: "10px 16px", borderRadius: "10px", background: "var(--k-accent)", color: "#fff", fontWeight: 600, fontSize: "14px", textDecoration: "none" }}>Résolutions</Link>
+        <Link to="/admin/blog" style={{ padding: "10px 16px", borderRadius: "10px", background: "var(--k-surface2)", border: "1px solid var(--k-border)", color: "var(--k-text)", fontWeight: 600, fontSize: "14px", textDecoration: "none" }}>Blog</Link>
       </div>
 
       <CsvImport
@@ -976,27 +976,27 @@ export default function Admin() {
 
       <button
         onClick={exportMarketsCsv}
-        style={{ padding: "8px 16px", borderRadius: "8px", border: "1px solid #2a2a3e", background: "#1a1a2e", color: "#e8e8f0", cursor: "pointer", fontWeight: "600", marginBottom: "24px" }}
+        style={{ padding: "8px 16px", borderRadius: "8px", border: "1px solid var(--k-border)", background: "var(--k-surface2)", color: "var(--k-text)", cursor: "pointer", fontWeight: "600", marginBottom: "24px" }}
       >
         Télécharger la liste des marchés ouverts (CSV)
       </button>
-      <details style={{ marginBottom: "24px", background: "#1a1a2e", border: "1px solid #2a2a3e", borderRadius: "8px", padding: "10px 14px" }}>
-        <summary style={{ cursor: "pointer", fontWeight: "600", color: "#e8e8f0" }}>Supprimer des marchés par identifiants</summary>
+      <details style={{ marginBottom: "24px", background: "var(--k-surface2)", border: "1px solid var(--k-border)", borderRadius: "8px", padding: "10px 14px" }}>
+        <summary style={{ cursor: "pointer", fontWeight: "600", color: "var(--k-text)" }}>Supprimer des marchés par identifiants</summary>
         <textarea
           value={idsText}
           onChange={(e) => setIdsText(e.target.value)}
           placeholder="Colle les identifiants (un par ligne, ou séparés par des espaces ou des virgules)"
           rows={6}
-          style={{ width: "100%", marginTop: "10px", padding: "10px", borderRadius: "8px", border: "1px solid #2a2a3e", background: "#0f0f1a", color: "#e8e8f0", fontFamily: "monospace", fontSize: "12px" }}
+          style={{ width: "100%", marginTop: "10px", padding: "10px", borderRadius: "8px", border: "1px solid var(--k-border)", background: "var(--k-inset)", color: "var(--k-text)", fontFamily: "monospace", fontSize: "12px" }}
         />
         {idsWanted.length > 0 && (
-          <div style={{ marginTop: "10px", fontSize: "13px", color: "#c8c8d8" }}>
+          <div style={{ marginTop: "10px", fontSize: "13px", color: "var(--k-text2)" }}>
             <div>{idsFound.length} marché(s) trouvé(s){idsMissing.length > 0 && `, ${idsMissing.length} introuvable(s) : ${idsMissing.join(", ")}`}</div>
             <ul style={{ margin: "8px 0", paddingLeft: "18px" }}>
               {idsFound.map((m) => {
                 const hasBets = (m.totalVolume || 0) > 0 || (m.betCount || 0) > 0;
                 return (
-                  <li key={m.id} style={{ color: hasBets ? "#f59e0b" : "#c8c8d8" }}>
+                  <li key={m.id} style={{ color: hasBets ? "#f59e0b" : "var(--k-text2)" }}>
                     {m.question}{hasBets ? " (a déjà des paris)" : ""}
                   </li>
                 );
@@ -1007,7 +1007,7 @@ export default function Admin() {
         <button
           onClick={handleDeleteByIds}
           disabled={deleting || idsFound.length === 0}
-          style={{ marginTop: "8px", padding: "8px 16px", background: deleting || idsFound.length === 0 ? "#7a2a2a" : "#ef4444", color: "#fff", borderRadius: "6px", border: "none", cursor: deleting || idsFound.length === 0 ? "not-allowed" : "pointer", fontWeight: "600" }}
+          style={{ marginTop: "8px", padding: "8px 16px", background: deleting || idsFound.length === 0 ? "var(--k-red-border)" : "#ef4444", color: "#fff", borderRadius: "6px", border: "none", cursor: deleting || idsFound.length === 0 ? "not-allowed" : "pointer", fontWeight: "600" }}
         >
           {deleting ? "Suppression..." : `Supprimer ${idsFound.length} marché(s)`}
         </button>
@@ -1020,8 +1020,8 @@ export default function Admin() {
           onClick={() => setMarketType("binary")}
           style={{
             padding: "8px 20px", borderRadius: "8px", border: "none", cursor: "pointer",
-            background: marketType === "binary" ? "#7c3aed" : "#1a1a2e",
-            color: "#e8e8f0", fontWeight: "600"
+            background: marketType === "binary" ? "var(--k-accent)" : "var(--k-surface2)",
+            color: "var(--k-text)", fontWeight: "600"
           }}
         >
           Oui / Non
@@ -1030,8 +1030,8 @@ export default function Admin() {
           onClick={() => setMarketType("multi")}
           style={{
             padding: "8px 20px", borderRadius: "8px", border: "none", cursor: "pointer",
-            background: marketType === "multi" ? "#7c3aed" : "#1a1a2e",
-            color: "#e8e8f0", fontWeight: "600"
+            background: marketType === "multi" ? "var(--k-accent)" : "var(--k-surface2)",
+            color: "var(--k-text)", fontWeight: "600"
           }}
         >
           Multi-choix
@@ -1043,16 +1043,16 @@ export default function Admin() {
           placeholder="Question"
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
-          style={{ padding: "10px", borderRadius: "8px", border: "1px solid #2a2a3e", background: "#12121a", color: "#e8e8f0" }}
+          style={{ padding: "10px", borderRadius: "8px", border: "1px solid var(--k-border)", background: "var(--k-surface)", color: "var(--k-text)" }}
         />
         <textarea
           placeholder="Description (optionnel)"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          style={{ padding: "10px", borderRadius: "8px", border: "1px solid #2a2a3e", background: "#12121a", color: "#e8e8f0", minHeight: "80px" }}
+          style={{ padding: "10px", borderRadius: "8px", border: "1px solid var(--k-border)", background: "var(--k-surface)", color: "var(--k-text)", minHeight: "80px" }}
         />
         <div>
-          <p style={{ fontSize: "13px", color: "#6b6b8a", marginBottom: "8px" }}>Thèmes (sélection multiple)</p>
+          <p style={{ fontSize: "13px", color: "var(--k-faint)", marginBottom: "8px" }}>Thèmes (sélection multiple)</p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
             {["Sport", "Politique", "Crypto", "Tech", "Économie", "International", "Culture", "Climat", "Autre"].map((cat) => {
               const active = categories.includes(cat);
@@ -1068,9 +1068,9 @@ export default function Admin() {
                   style={{
                     padding: "7px 14px", borderRadius: "20px", cursor: "pointer",
                     fontSize: "13px", fontWeight: "500",
-                    border: active ? "1px solid #7c3aed" : "1px solid #2a2a3e",
-                    background: active ? "rgba(124,58,237,0.2)" : "#12121a",
-                    color: active ? "#a78bfa" : "#8888a0",
+                    border: active ? "1px solid var(--k-accent)" : "1px solid var(--k-border)",
+                    background: active ? "rgba(var(--k-accent-rgb),0.2)" : "var(--k-surface)",
+                    color: active ? "var(--k-accent-text)" : "var(--k-muted)",
                   }}
                 >
                   {cat}
@@ -1083,24 +1083,24 @@ export default function Admin() {
           placeholder="Tags (ex: Trump, Midterms, Congrès — séparés par des virgules)"
           value={tagsInput}
           onChange={(e) => setTagsInput(e.target.value)}
-          style={{ padding: "10px", borderRadius: "8px", border: "1px solid #2a2a3e", background: "#12121a", color: "#e8e8f0" }}
+          style={{ padding: "10px", borderRadius: "8px", border: "1px solid var(--k-border)", background: "var(--k-surface)", color: "var(--k-text)" }}
         />
         <input
           type="date"
           value={resolutionDate}
           onChange={(e) => setResolutionDate(e.target.value)}
-          style={{ padding: "10px", borderRadius: "8px", border: "1px solid #2a2a3e", background: "#12121a", color: "#e8e8f0" }}
+          style={{ padding: "10px", borderRadius: "8px", border: "1px solid var(--k-border)", background: "var(--k-surface)", color: "var(--k-text)" }}
         />
         <input
           placeholder="Source de résolution"
           value={resolutionSource}
           onChange={(e) => setResolutionSource(e.target.value)}
-          style={{ padding: "10px", borderRadius: "8px", border: "1px solid #2a2a3e", background: "#12121a", color: "#e8e8f0" }}
+          style={{ padding: "10px", borderRadius: "8px", border: "1px solid var(--k-border)", background: "var(--k-surface)", color: "var(--k-text)" }}
         />
 
         {marketType === "multi" && (
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            <p style={{ fontSize: "13px", color: "#6b6b8a" }}>Options</p>
+            <p style={{ fontSize: "13px", color: "var(--k-faint)" }}>Options</p>
             {options.map((opt, i) => (
               <div key={i} style={{ display: "flex", gap: "8px" }}>
                 <input
@@ -1111,7 +1111,7 @@ export default function Admin() {
                     newOpts[i] = e.target.value;
                     setOptions(newOpts);
                   }}
-                  style={{ flex: 1, padding: "10px", borderRadius: "8px", border: "1px solid #2a2a3e", background: "#12121a", color: "#e8e8f0" }}
+                  style={{ flex: 1, padding: "10px", borderRadius: "8px", border: "1px solid var(--k-border)", background: "var(--k-surface)", color: "var(--k-text)" }}
                 />
                 {options.length > 2 && (
                   <button
@@ -1125,7 +1125,7 @@ export default function Admin() {
             ))}
             <button
               onClick={() => setOptions([...options, ""])}
-              style={{ padding: "8px", background: "#1a1a2e", color: "#7c3aed", borderRadius: "8px", border: "1px solid #7c3aed", cursor: "pointer" }}
+              style={{ padding: "8px", background: "var(--k-surface2)", color: "var(--k-accent)", borderRadius: "8px", border: "1px solid var(--k-accent)", cursor: "pointer" }}
             >
               + Ajouter une option
             </button>
@@ -1135,19 +1135,19 @@ export default function Admin() {
         <div style={{ display: "flex", gap: "8px" }}>
           <button
             onClick={addToQueue}
-            style={{ flex: 1, padding: "12px", background: "#1a1a2e", color: "#7c3aed", borderRadius: "8px", border: "1px solid #7c3aed", cursor: "pointer", fontWeight: "600" }}
+            style={{ flex: 1, padding: "12px", background: "var(--k-surface2)", color: "var(--k-accent)", borderRadius: "8px", border: "1px solid var(--k-accent)", cursor: "pointer", fontWeight: "600" }}
           >
             + Ajouter à la liste
           </button>
           <button
             onClick={createMarket}
             disabled={loading}
-            style={{ flex: 1, padding: "12px", background: "#7c3aed", color: "#fff", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: "600" }}
+            style={{ flex: 1, padding: "12px", background: "var(--k-accent)", color: "#fff", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: "600" }}
           >
             {loading ? "Création..." : "Créer directement"}
           </button>
         </div>
-        {success && <p style={{ color: "#7c3aed" }}>Marché(s) créé(s).</p>}
+        {success && <p style={{ color: "var(--k-accent)" }}>Marché(s) créé(s).</p>}
       </div>
 
       {queue.length > 0 && (
@@ -1158,11 +1158,11 @@ export default function Admin() {
           {queue.map((item) => (
             <div key={item._id} style={{
               display: "flex", justifyContent: "space-between", alignItems: "center",
-              border: "1px solid #2a2a3e", borderRadius: "10px", padding: "12px 16px", marginBottom: "8px",
+              border: "1px solid var(--k-border)", borderRadius: "10px", padding: "12px 16px", marginBottom: "8px",
             }}>
               <div>
                 <p style={{ fontWeight: "600", fontSize: "14px", marginBottom: "2px" }}>{item.question}</p>
-                <p style={{ fontSize: "12px", color: "#6b6b8a" }}>
+                <p style={{ fontSize: "12px", color: "var(--k-faint)" }}>
                   {item.marketType === "multi" ? `Multi-choix (${item.options.length} options)` : "Oui/Non"} · {item.categories.join(", ")}{item.tags?.length > 0 && ` · #${item.tags.join(" #")}`} · {item.resolutionDate}
                 </p>
               </div>
@@ -1179,7 +1179,7 @@ export default function Admin() {
             disabled={creatingQueue}
             style={{
               width: "100%", padding: "14px", marginTop: "8px",
-              background: creatingQueue ? "#3a2066" : "#7c3aed", color: "#fff",
+              background: creatingQueue ? "var(--k-disabled)" : "var(--k-accent)", color: "#fff",
               borderRadius: "8px", border: "none", cursor: creatingQueue ? "not-allowed" : "pointer", fontWeight: "600",
             }}
           >
@@ -1193,7 +1193,7 @@ export default function Admin() {
       <h2 style={{ fontSize: "18px", marginBottom: "16px" }}>Marchés ouverts ({filteredMarkets.length}/{markets.length})</h2>
 
       {/* Recherche, filtres et sélection restent visibles sous la navbar et la barre de catégories (60 + 60px) */}
-      <div style={{ position: "sticky", top: "120px", zIndex: 20, background: "#0a0a0f", paddingBottom: "4px" }}>
+      <div style={{ position: "sticky", top: "120px", zIndex: 20, background: "var(--k-bg)", paddingBottom: "4px" }}>
       <div style={{ display: "flex", gap: "10px", marginBottom: "16px", flexWrap: "wrap" }}>
         <input
           type="text"
@@ -1201,16 +1201,16 @@ export default function Admin() {
           onChange={(e) => setMarketSearch(e.target.value)}
           placeholder="🔍 Rechercher un marché par titre..."
           style={{
-            flex: "1 1 240px", padding: "10px 14px", background: "#1a1a2e",
-            border: "1px solid #2a2a3e", borderRadius: "8px", color: "#e8e8f0", fontSize: "13px",
+            flex: "1 1 240px", padding: "10px 14px", background: "var(--k-surface2)",
+            border: "1px solid var(--k-border)", borderRadius: "8px", color: "var(--k-text)", fontSize: "13px",
           }}
         />
         <select
           value={marketCatFilter}
           onChange={(e) => setMarketCatFilter(e.target.value)}
           style={{
-            padding: "10px 14px", background: "#1a1a2e", border: "1px solid #2a2a3e",
-            borderRadius: "8px", color: "#e8e8f0", fontSize: "13px", cursor: "pointer",
+            padding: "10px 14px", background: "var(--k-surface2)", border: "1px solid var(--k-border)",
+            borderRadius: "8px", color: "var(--k-text)", fontSize: "13px", cursor: "pointer",
           }}
         >
           <option value="Toutes">Toutes catégories</option>
@@ -1222,8 +1222,8 @@ export default function Admin() {
           value={marketSort}
           onChange={(e) => setMarketSort(e.target.value)}
           style={{
-            padding: "10px 14px", background: "#1a1a2e", border: "1px solid #2a2a3e",
-            borderRadius: "8px", color: "#e8e8f0", fontSize: "13px", cursor: "pointer",
+            padding: "10px 14px", background: "var(--k-surface2)", border: "1px solid var(--k-border)",
+            borderRadius: "8px", color: "var(--k-text)", fontSize: "13px", cursor: "pointer",
           }}
         >
           <option value="pinned">Épinglés en premier</option>
@@ -1233,8 +1233,8 @@ export default function Admin() {
           <button
             onClick={() => { setMarketSearch(""); setMarketCatFilter("Toutes"); setMarketSort("pinned"); }}
             style={{
-              padding: "10px 14px", background: "transparent", color: "#8888a0",
-              border: "1px solid #2a2a3e", borderRadius: "8px", cursor: "pointer", fontSize: "13px",
+              padding: "10px 14px", background: "transparent", color: "var(--k-muted)",
+              border: "1px solid var(--k-border)", borderRadius: "8px", cursor: "pointer", fontSize: "13px",
             }}
           >
             ✕ Réinitialiser
@@ -1251,13 +1251,13 @@ export default function Admin() {
           <button
             onClick={handleBulkDelete}
             disabled={deleting}
-            style={{ padding: "6px 14px", background: deleting ? "#7a2a2a" : "#ef4444", color: "#fff", borderRadius: "6px", border: "none", cursor: deleting ? "not-allowed" : "pointer", fontWeight: "600", fontSize: "13px" }}
+            style={{ padding: "6px 14px", background: deleting ? "var(--k-red-border)" : "#ef4444", color: "#fff", borderRadius: "6px", border: "none", cursor: deleting ? "not-allowed" : "pointer", fontWeight: "600", fontSize: "13px" }}
           >
             {deleting ? "Suppression..." : "Supprimer la sélection"}
           </button>
           <button
             onClick={() => setSelectedToDelete([])}
-            style={{ padding: "6px 14px", background: "transparent", color: "#8888a0", borderRadius: "6px", border: "1px solid #2a2a3e", cursor: "pointer", fontSize: "13px" }}
+            style={{ padding: "6px 14px", background: "transparent", color: "var(--k-muted)", borderRadius: "6px", border: "1px solid var(--k-border)", cursor: "pointer", fontSize: "13px" }}
           >
             Annuler la sélection
           </button>
@@ -1266,14 +1266,14 @@ export default function Admin() {
       </div>
 
       {filteredMarkets.length === 0 && (
-        <p style={{ color: "#6b6b8a", fontSize: "13px", textAlign: "center", padding: "30px 0" }}>
+        <p style={{ color: "var(--k-faint)", fontSize: "13px", textAlign: "center", padding: "30px 0" }}>
           Aucun marché ne correspond à ta recherche.
         </p>
       )}
 
       {filteredMarkets.map((market) => (
         <div key={market.id} style={{
-          border: selectedToDelete.includes(market.id) ? "1px solid #ef4444" : "1px solid #2a2a3e",
+          border: selectedToDelete.includes(market.id) ? "1px solid #ef4444" : "1px solid var(--k-border)",
           borderRadius: "12px", padding: "16px", marginBottom: "12px",
           background: selectedToDelete.includes(market.id) ? "rgba(239,68,68,0.05)" : "transparent",
         }}>
@@ -1289,7 +1289,7 @@ export default function Admin() {
               {market.question}
             </p>
           </div>
-          <p style={{ fontSize: "12px", color: "#6b6b8a", marginBottom: "12px", marginLeft: "26px" }}>
+          <p style={{ fontSize: "12px", color: "var(--k-faint)", marginBottom: "12px", marginLeft: "26px" }}>
             {market.type === "multi" ? "Multi-choix" : "Oui/Non"} · Résolution : {market.resolutionDate}
             {toCatArray(market.categories).length > 0 && ` · ${toCatArray(market.categories).join(", ")}`}
             {" "}<CopyIdButton id={market.id} style={{ marginLeft: "6px" }} />
@@ -1321,13 +1321,13 @@ export default function Admin() {
         Soumissions en attente ({submissions.length})
       </h2>
       {submissions.length === 0 && (
-        <p style={{ color: "#6b6b8a" }}>Aucune soumission en attente.</p>
+        <p style={{ color: "var(--k-faint)" }}>Aucune soumission en attente.</p>
       )}
       {submissions.map((sub) => (
-        <div key={sub.id} style={{ border: "1px solid #2a2a3e", borderRadius: "12px", padding: "16px", marginBottom: "12px" }}>
+        <div key={sub.id} style={{ border: "1px solid var(--k-border)", borderRadius: "12px", padding: "16px", marginBottom: "12px" }}>
           <p style={{ fontWeight: "600", marginBottom: "8px" }}>{sub.question}</p>
-          <p style={{ fontSize: "13px", color: "#6b6b8a", marginBottom: "4px" }}>Par : {sub.proposedByName}</p>
-          <p style={{ fontSize: "13px", color: "#6b6b8a", marginBottom: "16px" }}>Résolution : {sub.resolutionDate}</p>
+          <p style={{ fontSize: "13px", color: "var(--k-faint)", marginBottom: "4px" }}>Par : {sub.proposedByName}</p>
+          <p style={{ fontSize: "13px", color: "var(--k-faint)", marginBottom: "16px" }}>Résolution : {sub.resolutionDate}</p>
           <div style={{ display: "flex", gap: "8px" }}>
             <button
               onClick={() => approveSubmission(sub)}

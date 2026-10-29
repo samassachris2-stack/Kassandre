@@ -11,6 +11,21 @@
     <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin />
     <link rel="preconnect" href="https://firebasestorage.googleapis.com" crossorigin />
     <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com" />
+    <script>
+      // Applique le thème enregistré avant l'affichage, pour éviter un flash sombre.
+      (function () {
+        try {
+          var s = JSON.parse(localStorage.getItem("kassandre_appearance") || "null");
+          if (!s) return;
+          var t = s.theme === "auto" ? (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark") : s.theme;
+          var r = document.documentElement;
+          if (t) r.dataset.theme = t;
+          if (s.contrast) r.dataset.contrast = s.contrast;
+          if (s.motion) r.dataset.motion = s.motion;
+          if (s.font) r.dataset.font = s.font;
+        } catch (e) {}
+      })();
+    </script>
     <title>Kassandre | Marchés de prédiction francophone</title>
   </head>
   <body>

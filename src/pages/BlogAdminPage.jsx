@@ -214,7 +214,7 @@ export default function BlogAdminPage() {
               onClick={() => setPreviewMode(false)}
               style={{
                 ...styles.tabButton,
-                backgroundColor: !previewMode ? "#7c3aed" : "#1a1a22",
+                backgroundColor: !previewMode ? "var(--k-accent)" : "var(--k-surface2)",
               }}
             >
               Édition
@@ -224,7 +224,7 @@ export default function BlogAdminPage() {
               onClick={() => setPreviewMode(true)}
               style={{
                 ...styles.tabButton,
-                backgroundColor: previewMode ? "#7c3aed" : "#1a1a22",
+                backgroundColor: previewMode ? "var(--k-accent)" : "var(--k-surface2)",
               }}
             >
               Aperçu
@@ -358,12 +358,12 @@ export default function BlogAdminPage() {
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, publishedAt: "" })}
-                    style={{ background: "transparent", border: "1px solid #2a2a35", color: "#a0a0b0", borderRadius: "6px", padding: "10px 14px", cursor: "pointer" }}
+                    style={{ background: "transparent", border: "1px solid var(--k-border)", color: "var(--k-muted2)", borderRadius: "6px", padding: "10px 14px", cursor: "pointer" }}
                   >
                     Effacer
                   </button>
                 </div>
-                <span style={{ fontSize: "0.82rem", color: "#8888a0" }}>
+                <span style={{ fontSize: "0.82rem", color: "var(--k-muted)" }}>
                   Date affichée sur le blog, dans le flux RSS et pour Google, et qui sert à ranger les articles. Laisse vide pour utiliser la date de la première publication.
                 </span>
               </div>
@@ -388,17 +388,17 @@ export default function BlogAdminPage() {
           ) : (
             <div style={styles.preview}>
               <style>{`
-                .blog-preview-body h2 { font-size: 1.6rem; font-weight: 700; color: #e8e8f0; margin: 28px 0 14px 0; }
-                .blog-preview-body h3 { font-size: 1.3rem; font-weight: 700; color: #e8e8f0; margin: 24px 0 12px 0; }
+                .blog-preview-body h2 { font-size: 1.6rem; font-weight: 700; color: var(--k-text); margin: 28px 0 14px 0; }
+                .blog-preview-body h3 { font-size: 1.3rem; font-weight: 700; color: var(--k-text); margin: 24px 0 12px 0; }
                 .blog-preview-body p { margin: 0 0 16px 0; }
                 .blog-preview-body ul, .blog-preview-body ol { padding-left: 24px; margin: 0 0 16px 0; }
-                .blog-preview-body strong { color: #e8e8f0; font-weight: 700; }
+                .blog-preview-body strong { color: var(--k-text); font-weight: 700; }
                 .blog-preview-body u { text-decoration: underline; }
-                .blog-preview-body a { color: #a78bfa; text-decoration: underline; }
-                .blog-preview-body blockquote { border-left: 3px solid #7c3aed; margin: 20px 0; padding: 4px 20px; color: #a0a0b0; font-style: italic; }
-                .blog-preview-body pre { background: #0a0a0f; border: 1px solid #2a2a35; border-radius: 6px; padding: 14px 18px; overflow-x: auto; margin: 20px 0; }
-                .blog-preview-body code { background: #0a0a0f; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
-                .blog-preview-body hr { border: none; border-top: 1px solid #2a2a35; margin: 28px 0; }
+                .blog-preview-body a { color: var(--k-accent-text); text-decoration: underline; }
+                .blog-preview-body blockquote { border-left: 3px solid var(--k-accent); margin: 20px 0; padding: 4px 20px; color: var(--k-muted2); font-style: italic; }
+                .blog-preview-body pre { background: var(--k-bg); border: 1px solid var(--k-border); border-radius: 6px; padding: 14px 18px; overflow-x: auto; margin: 20px 0; }
+                .blog-preview-body code { background: var(--k-bg); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+                .blog-preview-body hr { border: none; border-top: 1px solid var(--k-border); margin: 28px 0; }
                 .blog-preview-body img { max-width: 100%; border-radius: 8px; }
                 .blog-preview-body img:not([width]) { width: min(640px, 100%); }
                 .blog-preview-body img[data-align="left"] { float: left; margin: 4px 20px 12px 0; }
@@ -455,12 +455,12 @@ export default function BlogAdminPage() {
                           ...styles.status,
                           backgroundColor:
                             article.status === "published"
-                              ? "rgba(124, 58, 237, 0.2)"
+                              ? "rgba(var(--k-accent-rgb), 0.2)"
                               : "rgba(160, 160, 176, 0.2)",
                           color:
                             article.status === "published"
-                              ? "#7c3aed"
-                              : "#a0a0b0",
+                              ? "var(--k-accent)"
+                              : "var(--k-muted2)",
                         }}
                       >
                         {article.status === "published" ? "Publié" : "Brouillon"}
@@ -512,13 +512,13 @@ const styles = {
   },
   title: {
     fontSize: "2rem",
-    color: "#e8e8f0",
+    color: "var(--k-text)",
     margin: 0,
   },
   newButton: {
     padding: "12px 24px",
-    backgroundColor: "#7c3aed",
-    color: "#e8e8f0",
+    backgroundColor: "var(--k-accent)",
+    color: "var(--k-text)",
     border: "none",
     borderRadius: "8px",
     cursor: "pointer",
@@ -526,8 +526,8 @@ const styles = {
     fontSize: "1rem",
   },
   formContainer: {
-    backgroundColor: "#1a1a22",
-    border: "1px solid #2a2a35",
+    backgroundColor: "var(--k-surface2)",
+    border: "1px solid var(--k-border)",
     borderRadius: "12px",
     marginBottom: "40px",
     overflow: "clip",
@@ -536,14 +536,14 @@ const styles = {
     display: "flex",
     gap: "8px",
     padding: "16px",
-    borderBottom: "1px solid #2a2a35",
-    backgroundColor: "#0a0a0f",
+    borderBottom: "1px solid var(--k-border)",
+    backgroundColor: "var(--k-bg)",
   },
   tabButton: {
     padding: "10px 20px",
-    backgroundColor: "#1a1a22",
-    color: "#e8e8f0",
-    border: "1px solid #2a2a35",
+    backgroundColor: "var(--k-surface2)",
+    color: "var(--k-text)",
+    border: "1px solid var(--k-border)",
     borderRadius: "6px",
     cursor: "pointer",
     fontWeight: "500",
@@ -564,24 +564,24 @@ const styles = {
     gap: "8px",
   },
   label: {
-    color: "#e8e8f0",
+    color: "var(--k-text)",
     fontWeight: "600",
     fontSize: "0.95rem",
   },
   input: {
     padding: "12px",
-    backgroundColor: "#0a0a0f",
-    color: "#e8e8f0",
-    border: "1px solid #2a2a35",
+    backgroundColor: "var(--k-bg)",
+    color: "var(--k-text)",
+    border: "1px solid var(--k-border)",
     borderRadius: "6px",
     fontSize: "1rem",
     fontFamily: "inherit",
   },
   coverUploadButton: {
     padding: "14px",
-    backgroundColor: "#0a0a0f",
-    color: "#a0a0b0",
-    border: "1px dashed #3a3a45",
+    backgroundColor: "var(--k-bg)",
+    color: "var(--k-muted2)",
+    border: "1px dashed var(--k-border2)",
     borderRadius: "8px",
     cursor: "pointer",
     fontSize: "0.95rem",
@@ -592,7 +592,7 @@ const styles = {
     position: "relative",
     borderRadius: "8px",
     overflow: "hidden",
-    border: "1px solid #2a2a35",
+    border: "1px solid var(--k-border)",
   },
   coverPreviewImg: {
     display: "block",
@@ -604,12 +604,12 @@ const styles = {
     display: "flex",
     gap: "8px",
     padding: "10px",
-    backgroundColor: "#0a0a0f",
+    backgroundColor: "var(--k-bg)",
   },
   coverChangeButton: {
     padding: "8px 16px",
-    backgroundColor: "#7c3aed",
-    color: "#e8e8f0",
+    backgroundColor: "var(--k-accent)",
+    color: "var(--k-text)",
     border: "none",
     borderRadius: "6px",
     cursor: "pointer",
@@ -619,8 +619,8 @@ const styles = {
   coverRemoveButton: {
     padding: "8px 16px",
     backgroundColor: "transparent",
-    color: "#ff8080",
-    border: "1px solid #5a2a3a",
+    color: "var(--k-red-text)",
+    border: "1px solid var(--k-red-bg)",
     borderRadius: "6px",
     cursor: "pointer",
     fontWeight: "500",
@@ -642,8 +642,8 @@ const styles = {
   submitButton: {
     flex: 1,
     padding: "12px 24px",
-    backgroundColor: "#7c3aed",
-    color: "#e8e8f0",
+    backgroundColor: "var(--k-accent)",
+    color: "var(--k-text)",
     border: "none",
     borderRadius: "6px",
     cursor: "pointer",
@@ -652,42 +652,42 @@ const styles = {
   },
   cancelButton: {
     padding: "12px 24px",
-    backgroundColor: "#2a2a35",
-    color: "#e8e8f0",
-    border: "1px solid #3a3a45",
+    backgroundColor: "var(--k-border)",
+    color: "var(--k-text)",
+    border: "1px solid var(--k-border2)",
     borderRadius: "6px",
     cursor: "pointer",
     fontWeight: "600",
   },
   preview: {
     padding: "40px",
-    backgroundColor: "#0a0a0f",
+    backgroundColor: "var(--k-bg)",
   },
   previewTitle: {
     fontSize: "2rem",
-    color: "#e8e8f0",
+    color: "var(--k-text)",
     marginBottom: "16px",
   },
   previewExcerpt: {
     fontSize: "1.1rem",
-    color: "#b0b0c0",
+    color: "var(--k-muted2)",
     fontStyle: "italic",
     marginBottom: "24px",
   },
   previewContent: {
-    color: "#d0d0e0",
+    color: "var(--k-text)",
     lineHeight: "1.8",
     fontSize: "1.05rem",
   },
   articlesSection: {
-    backgroundColor: "#1a1a22",
-    border: "1px solid #2a2a35",
+    backgroundColor: "var(--k-surface2)",
+    border: "1px solid var(--k-border)",
     borderRadius: "12px",
     padding: "24px",
   },
   subtitle: {
     fontSize: "1.3rem",
-    color: "#e8e8f0",
+    color: "var(--k-text)",
     margin: "0 0 20px 0",
   },
   tableWrapper: {
@@ -700,17 +700,17 @@ const styles = {
   th: {
     textAlign: "left",
     padding: "12px",
-    color: "#e8e8f0",
+    color: "var(--k-text)",
     fontWeight: "600",
-    borderBottom: "1px solid #2a2a35",
-    backgroundColor: "#0a0a0f",
+    borderBottom: "1px solid var(--k-border)",
+    backgroundColor: "var(--k-bg)",
   },
   tr: {
-    borderBottom: "1px solid #2a2a35",
+    borderBottom: "1px solid var(--k-border)",
   },
   td: {
     padding: "12px",
-    color: "#d0d0e0",
+    color: "var(--k-text)",
   },
   status: {
     display: "inline-block",
@@ -725,8 +725,8 @@ const styles = {
   },
   actionButton: {
     padding: "6px 12px",
-    backgroundColor: "#7c3aed",
-    color: "#e8e8f0",
+    backgroundColor: "var(--k-accent)",
+    color: "var(--k-text)",
     border: "none",
     borderRadius: "4px",
     cursor: "pointer",
@@ -734,20 +734,20 @@ const styles = {
   },
   deleteButton: {
     padding: "6px 12px",
-    backgroundColor: "#5a2a3a",
-    color: "#ff8080",
-    border: "1px solid #7a4a5a",
+    backgroundColor: "var(--k-red-bg)",
+    color: "var(--k-red-text)",
+    border: "1px solid var(--k-red-border)",
     borderRadius: "4px",
     cursor: "pointer",
     fontSize: "0.85rem",
   },
   loading: {
-    color: "#a0a0b0",
+    color: "var(--k-muted2)",
     textAlign: "center",
     padding: "20px",
   },
   empty: {
-    color: "#a0a0b0",
+    color: "var(--k-muted2)",
     textAlign: "center",
     padding: "20px",
   },

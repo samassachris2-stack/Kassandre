@@ -108,13 +108,13 @@ export default function BlogDetail() {
         .blog-article-body h2 {
           font-size: 1.6rem;
           font-weight: 700;
-          color: #e8e8f0;
+          color: var(--k-text);
           margin: 28px 0 14px 0;
         }
         .blog-article-body h3 {
           font-size: 1.3rem;
           font-weight: 700;
-          color: #e8e8f0;
+          color: var(--k-text);
           margin: 24px 0 12px 0;
         }
         .blog-article-body p {
@@ -125,34 +125,34 @@ export default function BlogDetail() {
           padding-left: 24px;
           margin: 0 0 16px 0;
         }
-        .blog-article-body strong { color: #e8e8f0; font-weight: 700; }
+        .blog-article-body strong { color: var(--k-text); font-weight: 700; }
         .blog-article-body em { font-style: italic; }
         .blog-article-body u { text-decoration: underline; }
-        .blog-article-body a { color: #a78bfa; text-decoration: underline; }
+        .blog-article-body a { color: var(--k-accent-text); text-decoration: underline; }
         .blog-article-body blockquote {
-          border-left: 3px solid #7c3aed;
+          border-left: 3px solid var(--k-accent);
           margin: 20px 0;
           padding: 4px 20px;
-          color: #a0a0b0;
+          color: var(--k-muted2);
           font-style: italic;
         }
         .blog-article-body pre {
-          background: #0a0a0f;
-          border: 1px solid #2a2a35;
+          background: var(--k-bg);
+          border: 1px solid var(--k-border);
           border-radius: 6px;
           padding: 14px 18px;
           overflow-x: auto;
           margin: 20px 0;
         }
         .blog-article-body code {
-          background: #0a0a0f;
+          background: var(--k-bg);
           padding: 2px 6px;
           border-radius: 4px;
           font-size: 0.9em;
         }
         .blog-article-body hr {
           border: none;
-          border-top: 1px solid #2a2a35;
+          border-top: 1px solid var(--k-border);
           margin: 28px 0;
         }
         .blog-article-body img {
@@ -215,7 +215,7 @@ export default function BlogDetail() {
           <div style={styles.meta}>
             <span style={styles.date}>
               {formatDate(article.publishedAt)}
-              <span style={{ color: "#8888a0", fontWeight: 400 }}> · {readingMinutes(article.content)} min de lecture</span>
+              <span style={{ color: "var(--k-muted)", fontWeight: 400 }}> · {readingMinutes(article.content)} min de lecture</span>
             </span>
             {article.tags && article.tags.length > 0 && (
               <div style={styles.tags}>
@@ -273,7 +273,7 @@ const styles = {
     minHeight: "calc(100vh - 200px)",
   },
   backLink: {
-    color: "#7c3aed",
+    color: "var(--k-accent)",
     textDecoration: "none",
     fontSize: "1rem",
     marginBottom: "40px",
@@ -281,20 +281,20 @@ const styles = {
     transition: "opacity 0.2s",
   },
   loading: {
-    color: "#a0a0b0",
+    color: "var(--k-muted2)",
     textAlign: "center",
     padding: "40px 0",
   },
   notFound: {
-    color: "#a0a0b0",
+    color: "var(--k-muted2)",
     textAlign: "center",
     padding: "40px 0",
   },
   article: {
-    backgroundColor: "#1a1a22",
+    backgroundColor: "var(--k-surface2)",
     padding: "40px",
     borderRadius: "12px",
-    border: "1px solid #2a2a35",
+    border: "1px solid var(--k-border)",
   },
   coverImage: {
     display: "block",
@@ -307,7 +307,7 @@ const styles = {
   header: {
     marginBottom: "40px",
     paddingBottom: "32px",
-    borderBottom: "1px solid #2a2a35",
+    borderBottom: "1px solid var(--k-border)",
   },
   meta: {
     display: "flex",
@@ -319,7 +319,7 @@ const styles = {
   },
   date: {
     fontSize: "1rem",
-    color: "#7c3aed",
+    color: "var(--k-accent)",
     fontWeight: "500",
   },
   tags: {
@@ -329,39 +329,39 @@ const styles = {
   },
   tag: {
     fontSize: "0.9rem",
-    color: "#a0a0b0",
-    backgroundColor: "#0a0a0f",
+    color: "var(--k-muted2)",
+    backgroundColor: "var(--k-bg)",
     padding: "6px 14px",
     borderRadius: "4px",
-    border: "1px solid #2a2a35",
+    border: "1px solid var(--k-border)",
   },
   title: {
     fontSize: "2.4rem",
     fontWeight: "bold",
-    color: "#e8e8f0",
+    color: "var(--k-text)",
     margin: "16px 0",
     lineHeight: "1.3",
   },
   excerpt: {
     fontSize: "1.15rem",
-    color: "#b0b0c0",
+    color: "var(--k-muted2)",
     margin: "16px 0 0 0",
     fontStyle: "italic",
   },
   content: {
     fontSize: "1.05rem",
     lineHeight: "1.8",
-    color: "#d0d0e0",
+    color: "var(--k-text)",
     marginBottom: "40px",
   },
   marketsSection: {
-    borderTop: "1px solid #2a2a35",
+    borderTop: "1px solid var(--k-border)",
     paddingTop: "32px",
   },
   marketsTitle: {
     fontSize: "1.3rem",
     fontWeight: "bold",
-    color: "#e8e8f0",
+    color: "var(--k-text)",
     marginBottom: "16px",
   },
   marketsList: {
@@ -370,13 +370,13 @@ const styles = {
     gap: "12px",
   },
   marketLink: {
-    color: "#7c3aed",
+    color: "var(--k-accent)",
     textDecoration: "none",
     fontSize: "1rem",
     padding: "12px",
-    backgroundColor: "#0a0a0f",
+    backgroundColor: "var(--k-bg)",
     borderRadius: "6px",
-    border: "1px solid #2a2a35",
+    border: "1px solid var(--k-border)",
     transition: "all 0.2s",
     display: "inline-block",
   },

@@ -13,32 +13,32 @@ function todayParis() {
 
 const S = {
   page: { maxWidth: "720px", margin: "24px auto", padding: "0 16px" },
-  title: { fontSize: "22px", color: "#e8e8f0", margin: "0 0 6px" },
-  sub: { fontSize: "13px", color: "#8888a0", margin: "0 0 18px", lineHeight: 1.5 },
+  title: { fontSize: "22px", color: "var(--k-text)", margin: "0 0 6px" },
+  sub: { fontSize: "13px", color: "var(--k-muted)", margin: "0 0 18px", lineHeight: 1.5 },
   tabs: { display: "flex", gap: "8px", marginBottom: "14px", flexWrap: "wrap" },
   tab: (on) => ({
     padding: "9px 16px", borderRadius: "999px", cursor: "pointer", fontWeight: 600, fontSize: "13px",
-    border: on ? "1px solid rgba(167,139,250,0.7)" : "1px solid rgba(124,58,237,0.25)",
-    background: on ? "rgba(124,58,237,0.35)" : "#15151f", color: on ? "#fff" : "#a8a8b8",
+    border: on ? "1px solid rgba(var(--k-accent-text-rgb),0.7)" : "1px solid rgba(var(--k-accent-rgb),0.25)",
+    background: on ? "rgba(var(--k-accent-rgb),0.35)" : "var(--k-surface)", color: on ? "#fff" : "var(--k-muted2)",
   }),
   search: {
     width: "100%", boxSizing: "border-box", padding: "11px 14px", marginBottom: "14px", borderRadius: "10px",
-    border: "1px solid #2a2a3e", background: "#12121a", color: "#e8e8f0", fontSize: "14px",
+    border: "1px solid var(--k-border)", background: "var(--k-surface)", color: "var(--k-text)", fontSize: "14px",
   },
   card: (late) => ({
-    border: late ? "1px solid rgba(245,158,11,0.45)" : "1px solid #2a2a3e",
-    background: "#12121a", borderRadius: "12px", padding: "14px", marginBottom: "12px",
+    border: late ? "1px solid rgba(245,158,11,0.45)" : "1px solid var(--k-border)",
+    background: "var(--k-surface)", borderRadius: "12px", padding: "14px", marginBottom: "12px",
   }),
-  q: { color: "#e8e8f0", fontSize: "15px", fontWeight: 600, lineHeight: 1.4, margin: "0 0 8px" },
-  meta: { display: "flex", flexWrap: "wrap", gap: "6px 12px", fontSize: "12px", color: "#8888a0", marginBottom: "10px" },
+  q: { color: "var(--k-text)", fontSize: "15px", fontWeight: 600, lineHeight: 1.4, margin: "0 0 8px" },
+  meta: { display: "flex", flexWrap: "wrap", gap: "6px 12px", fontSize: "12px", color: "var(--k-muted)", marginBottom: "10px" },
   late: { color: "#f59e0b", fontWeight: 600 },
-  src: { fontSize: "12px", color: "#a78bfa", wordBreak: "break-all", display: "block", marginBottom: "10px" },
+  src: { fontSize: "12px", color: "var(--k-accent-text)", wordBreak: "break-all", display: "block", marginBottom: "10px" },
   btnRow: { display: "flex", flexWrap: "wrap", gap: "8px" },
   btn: (bg) => ({
     flex: "1 1 120px", padding: "13px 12px", background: bg, color: "#fff", border: "none",
     borderRadius: "10px", cursor: "pointer", fontWeight: 700, fontSize: "14px",
   }),
-  empty: { padding: "30px 10px", textAlign: "center", color: "#8888a0", fontSize: "14px" },
+  empty: { padding: "30px 10px", textAlign: "center", color: "var(--k-muted)", fontSize: "14px" },
 };
 
 function MultiButtons({ market, onResolve }) {
@@ -50,11 +50,11 @@ function MultiButtons({ market, onResolve }) {
     });
     return () => { alive = false; };
   }, [market.id]);
-  if (!options) return <p style={{ fontSize: "12px", color: "#8888a0" }}>Chargement des options…</p>;
+  if (!options) return <p style={{ fontSize: "12px", color: "var(--k-muted)" }}>Chargement des options…</p>;
   return (
     <div style={S.btnRow}>
       {options.map((o) => (
-        <button key={o.id} style={S.btn("#7c3aed")} onClick={() => onResolve(market, o.id, o.label)}>
+        <button key={o.id} style={S.btn("var(--k-accent)")} onClick={() => onResolve(market, o.id, o.label)}>
           {o.label}
         </button>
       ))}
@@ -107,15 +107,15 @@ export default function AdminResolutions() {
     setBusyId(null);
   }
 
-  if (!user) return <p style={{ padding: "40px", color: "#8888a0" }}>Connecte-toi pour continuer.</p>;
-  if (!user.isAdmin) return <p style={{ padding: "40px", color: "#8888a0" }}>Page introuvable.</p>;
+  if (!user) return <p style={{ padding: "40px", color: "var(--k-muted)" }}>Connecte-toi pour continuer.</p>;
+  if (!user.isAdmin) return <p style={{ padding: "40px", color: "var(--k-muted)" }}>Page introuvable.</p>;
 
   return (
     <div style={S.page}>
       <h1 style={S.title}>Résolutions</h1>
       <p style={S.sub}>
         Marchés ouverts à résoudre. Vérifie la source avant de valider : la résolution distribue les gains et ne peut pas être annulée.{" "}
-        <Link to="/admin" style={{ color: "#a78bfa" }}>Retour à l'admin</Link>
+        <Link to="/admin" style={{ color: "var(--k-accent-text)" }}>Retour à l'admin</Link>
       </p>
 
       <div style={S.tabs}>
@@ -140,15 +140,15 @@ export default function AdminResolutions() {
               <span style={isLate ? S.late : undefined}>{isLate ? "Échéance dépassée : " : "Résolution : "}{m.resolutionDate || "non définie"}</span>
               <span>{isMulti ? "Multi-choix" : "Oui/Non"}</span>
               <span>{hasBets ? "Paris en cours" : "Aucun pari"}</span>
-              <Link to={`/market/${m.id}`} style={{ color: "#a78bfa" }}>Voir le marché</Link>
+              <Link to={`/market/${m.id}`} style={{ color: "var(--k-accent-text)" }}>Voir le marché</Link>
             </div>
             {m.resolutionSource && (
               /^https?:\/\//.test(m.resolutionSource)
                 ? <a href={m.resolutionSource} target="_blank" rel="noreferrer" style={S.src}>Source : {m.resolutionSource}</a>
-                : <span style={{ ...S.src, color: "#a8a8b8" }}>Source : {m.resolutionSource}</span>
+                : <span style={{ ...S.src, color: "var(--k-muted2)" }}>Source : {m.resolutionSource}</span>
             )}
             {busyId === m.id ? (
-              <p style={{ fontSize: "13px", color: "#a78bfa" }}>Résolution en cours…</p>
+              <p style={{ fontSize: "13px", color: "var(--k-accent-text)" }}>Résolution en cours…</p>
             ) : isMulti ? (
               <MultiButtons market={m} onResolve={handleResolve} />
             ) : (

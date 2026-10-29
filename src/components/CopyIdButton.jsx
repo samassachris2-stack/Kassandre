@@ -36,8 +36,8 @@ export default function CopyIdButton({ id, style }) {
       }}
       style={{
         display: "inline-flex", alignItems: "center", gap: "5px", padding: "3px 9px",
-        borderRadius: "6px", border: "1px solid #2a2a3e", background: "#1a1a2e",
-        color: "#8888a0", cursor: "pointer", fontSize: "11px", fontWeight: 600,
+        borderRadius: "6px", border: "1px solid var(--k-border)", background: "var(--k-surface2)",
+        color: "var(--k-muted)", cursor: "pointer", fontSize: "11px", fontWeight: 600,
         fontFamily: "inherit", ...style,
       }}
     >

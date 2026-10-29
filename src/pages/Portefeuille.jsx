@@ -19,7 +19,7 @@ const S = {
   title: {
     fontSize: "24px",
     fontWeight: "600",
-    color: "#e8e8f0",
+    color: "var(--k-text)",
     marginBottom: "24px",
   },
   summaryRow: {
@@ -27,26 +27,26 @@ const S = {
     gap: "16px",
     marginBottom: "20px",
     padding: "20px",
-    background: "#0f0f17",
+    background: "var(--k-inset)",
     borderRadius: "12px",
-    border: "0.5px solid rgba(124,58,237,0.15)",
+    border: "0.5px solid rgba(var(--k-accent-rgb),0.15)",
   },
   summaryItem: { flex: 1, textAlign: "center" },
-  summaryValue: { fontSize: "24px", fontWeight: "700", color: "#a78bfa", margin: 0 },
+  summaryValue: { fontSize: "24px", fontWeight: "700", color: "var(--k-accent-text)", margin: 0 },
   summaryValuePositive: { fontSize: "24px", fontWeight: "700", color: "#22c55e", margin: 0 },
   summaryValueNegative: { fontSize: "24px", fontWeight: "700", color: "#ef4444", margin: 0 },
-  summaryLabel: { fontSize: "12px", color: "#8888a0", marginTop: "4px" },
-  summaryDivider: { width: "0.5px", background: "rgba(124,58,237,0.15)" },
+  summaryLabel: { fontSize: "12px", color: "var(--k-muted)", marginTop: "4px" },
+  summaryDivider: { width: "0.5px", background: "rgba(var(--k-accent-rgb),0.15)" },
   chartWrap: {
-    background: "#0f0f17",
-    border: "0.5px solid rgba(124,58,237,0.15)",
+    background: "var(--k-inset)",
+    border: "0.5px solid rgba(var(--k-accent-rgb),0.15)",
     borderRadius: "12px",
     padding: "16px 16px 8px",
     marginBottom: "24px",
   },
   chartLabel: {
     fontSize: "12px",
-    color: "#8888a0",
+    color: "var(--k-muted)",
     marginBottom: "8px",
     fontWeight: "500",
     textTransform: "uppercase",
@@ -56,7 +56,7 @@ const S = {
     display: "flex",
     gap: "6px",
     marginBottom: "16px",
-    background: "#0f0f17",
+    background: "var(--k-inset)",
     borderRadius: "10px",
     padding: "4px",
     width: "fit-content",
@@ -68,8 +68,8 @@ const S = {
     fontSize: "13px",
     fontWeight: "600",
     cursor: "pointer",
-    background: active ? "rgba(124,58,237,0.2)" : "transparent",
-    color: active ? "#a78bfa" : "#8888a0",
+    background: active ? "rgba(var(--k-accent-rgb),0.2)" : "transparent",
+    color: active ? "var(--k-accent-text)" : "var(--k-muted)",
   }),
   controlsRow: {
     display: "flex",
@@ -81,30 +81,30 @@ const S = {
   filterBtn: (active) => ({
     padding: "6px 12px",
     borderRadius: "8px",
-    border: active ? "0.5px solid rgba(124,58,237,0.5)" : "0.5px solid rgba(124,58,237,0.15)",
+    border: active ? "0.5px solid rgba(var(--k-accent-rgb),0.5)" : "0.5px solid rgba(var(--k-accent-rgb),0.15)",
     fontSize: "12px",
     fontWeight: "600",
     cursor: "pointer",
-    background: active ? "rgba(124,58,237,0.12)" : "transparent",
-    color: active ? "#a78bfa" : "#8888a0",
+    background: active ? "rgba(var(--k-accent-rgb),0.12)" : "transparent",
+    color: active ? "var(--k-accent-text)" : "var(--k-muted)",
   }),
   sortSelect: {
     marginLeft: "auto",
     padding: "6px 10px",
     borderRadius: "8px",
-    border: "0.5px solid rgba(124,58,237,0.15)",
-    background: "#0f0f17",
-    color: "#e8e8f0",
+    border: "0.5px solid rgba(var(--k-accent-rgb),0.15)",
+    background: "var(--k-inset)",
+    color: "var(--k-text)",
     fontSize: "12px",
     fontWeight: "500",
     cursor: "pointer",
     outline: "none",
   },
-  emptyState: { textAlign: "center", padding: "60px 20px", color: "#8888a0" },
-  emptyLink: { color: "#a78bfa", textDecoration: "none", fontWeight: "600" },
+  emptyState: { textAlign: "center", padding: "60px 20px", color: "var(--k-muted)" },
+  emptyLink: { color: "var(--k-accent-text)", textDecoration: "none", fontWeight: "600" },
   posCard: {
-    background: "#13131a",
-    border: "0.5px solid rgba(124,58,237,0.15)",
+    background: "var(--k-surface)",
+    border: "0.5px solid rgba(var(--k-accent-rgb),0.15)",
     borderRadius: "14px",
     marginBottom: "12px",
     overflow: "hidden",
@@ -121,7 +121,7 @@ const S = {
     gap: "12px",
     marginBottom: "10px",
   },
-  posQuestion: { fontSize: "14px", fontWeight: "500", color: "#e8e8f0", margin: 0, lineHeight: "1.4" },
+  posQuestion: { fontSize: "14px", fontWeight: "500", color: "var(--k-text)", margin: 0, lineHeight: "1.4" },
   posBadgeGroup: { display: "flex", gap: "6px", alignItems: "center", flexShrink: 0 },
   posSideBadge: (color) => ({
     fontSize: "11px",
@@ -144,19 +144,19 @@ const S = {
   }),
   posStatsRow: { display: "flex", gap: "20px", fontSize: "13px", flexWrap: "wrap" },
   posStat: { display: "flex", flexDirection: "column", gap: "2px" },
-  posStatLabel: { fontSize: "11px", color: "#8888a0" },
-  posStatValue: { fontWeight: "600", color: "#e8e8f0" },
+  posStatLabel: { fontSize: "11px", color: "var(--k-muted)" },
+  posStatValue: { fontWeight: "600", color: "var(--k-text)" },
   pnlPositive: { fontWeight: "600", color: "#22c55e" },
   pnlNegative: { fontWeight: "600", color: "#ef4444" },
-  expandHint: { fontSize: "11px", color: "#8888a0", marginTop: "10px" },
+  expandHint: { fontSize: "11px", color: "var(--k-muted)", marginTop: "10px" },
   detailPanel: {
-    borderTop: "0.5px solid rgba(124,58,237,0.12)",
+    borderTop: "0.5px solid rgba(var(--k-accent-rgb),0.12)",
     padding: "16px 20px 20px",
-    background: "#0f0f17",
+    background: "var(--k-inset)",
   },
   detailChartLabel: {
     fontSize: "11px",
-    color: "#8888a0",
+    color: "var(--k-muted)",
     marginBottom: "8px",
     fontWeight: "500",
     textTransform: "uppercase",
@@ -167,10 +167,10 @@ const S = {
     justifyContent: "space-between",
     fontSize: "12px",
     padding: "8px 0",
-    borderBottom: "0.5px solid rgba(124,58,237,0.08)",
+    borderBottom: "0.5px solid rgba(var(--k-accent-rgb),0.08)",
   },
-  txLabel: { color: "#a8a8b8" },
-  txAmount: { fontWeight: "600", color: "#e8e8f0" },
+  txLabel: { color: "var(--k-muted2)" },
+  txAmount: { fontWeight: "600", color: "var(--k-text)" },
 };
 
 const MULTI_COLORS = ["#7c3aed", "#22c55e", "#ef4444", "#f59e0b", "#06b6d4"];
@@ -271,13 +271,13 @@ function TradeModal({ pos, onClose, onDone }) {
     >
       <div
         style={{
-          background: "#13131a", border: "0.5px solid rgba(124,58,237,0.25)",
+          background: "var(--k-surface)", border: "0.5px solid rgba(var(--k-accent-rgb),0.25)",
           borderRadius: "16px", padding: "24px", maxWidth: "380px", width: "100%",
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <p style={{ fontSize: "13px", color: "#8888a0", marginBottom: "6px" }}>Trader sur</p>
-        <p style={{ fontSize: "15px", fontWeight: "600", color: "#e8e8f0", marginBottom: "14px", lineHeight: 1.4 }}>
+        <p style={{ fontSize: "13px", color: "var(--k-muted)", marginBottom: "6px" }}>Trader sur</p>
+        <p style={{ fontSize: "15px", fontWeight: "600", color: "var(--k-text)", marginBottom: "14px", lineHeight: 1.4 }}>
           {pos.question}
         </p>
 
@@ -291,15 +291,15 @@ function TradeModal({ pos, onClose, onDone }) {
 
         <div style={{
           display: "flex", gap: "6px", marginBottom: "16px",
-          background: "#0a0a0f", borderRadius: "10px", padding: "4px",
+          background: "var(--k-bg)", borderRadius: "10px", padding: "4px",
         }}>
           <button
             onClick={() => setMode("buy")}
             style={{
               flex: 1, padding: "7px", borderRadius: "8px", border: "none",
               fontWeight: "600", fontSize: "13px", cursor: "pointer",
-              background: mode === "buy" ? "rgba(124,58,237,0.2)" : "transparent",
-              color: mode === "buy" ? "#a78bfa" : "#8888a0",
+              background: mode === "buy" ? "rgba(var(--k-accent-rgb),0.2)" : "transparent",
+              color: mode === "buy" ? "var(--k-accent-text)" : "var(--k-muted)",
             }}
           >
             Acheter
@@ -310,7 +310,7 @@ function TradeModal({ pos, onClose, onDone }) {
               flex: 1, padding: "7px", borderRadius: "8px", border: "none",
               fontWeight: "600", fontSize: "13px", cursor: "pointer",
               background: mode === "sell" ? "rgba(239,68,68,0.15)" : "transparent",
-              color: mode === "sell" ? "#ef4444" : "#8888a0",
+              color: mode === "sell" ? "#ef4444" : "var(--k-muted)",
             }}
           >
             Vendre
@@ -318,9 +318,9 @@ function TradeModal({ pos, onClose, onDone }) {
         </div>
 
         {loadingData ? (
-          <p style={{ fontSize: "13px", color: "#8888a0", textAlign: "center", padding: "20px 0" }}>Chargement...</p>
+          <p style={{ fontSize: "13px", color: "var(--k-muted)", textAlign: "center", padding: "20px 0" }}>Chargement...</p>
         ) : success ? (
-          <div style={{ textAlign: "center", padding: "10px", color: "#a78bfa", fontSize: "14px", fontWeight: "600" }}>
+          <div style={{ textAlign: "center", padding: "10px", color: "var(--k-accent-text)", fontSize: "14px", fontWeight: "600" }}>
             {mode === "buy" ? "Pari placé avec succès ✓" : "Vente effectuée ✓"}
           </div>
         ) : mode === "buy" ? (
@@ -332,23 +332,23 @@ function TradeModal({ pos, onClose, onDone }) {
               autoFocus
               style={{
                 width: "100%", padding: "10px 14px", borderRadius: "10px",
-                border: "0.5px solid rgba(124,58,237,0.2)", background: "#0a0a0f",
-                color: "#e8e8f0", marginBottom: "12px", boxSizing: "border-box",
+                border: "0.5px solid rgba(var(--k-accent-rgb),0.2)", background: "var(--k-bg)",
+                color: "var(--k-text)", marginBottom: "12px", boxSizing: "border-box",
                 fontSize: "15px", outline: "none",
               }}
             />
             {buyPreview && (
               <div style={{
-                background: "#0a0a0f", borderRadius: "10px", padding: "12px 14px",
-                marginBottom: "14px", border: "0.5px solid rgba(124,58,237,0.12)",
+                background: "var(--k-bg)", borderRadius: "10px", padding: "12px 14px",
+                marginBottom: "14px", border: "0.5px solid rgba(var(--k-accent-rgb),0.12)",
               }}>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", padding: "3px 0" }}>
-                  <span style={{ color: "#8888a0" }}>Parts reçues</span>
-                  <span style={{ fontWeight: "600", color: "#e8e8f0" }}>{buyPreview.shares.toFixed(2)}</span>
+                  <span style={{ color: "var(--k-muted)" }}>Parts reçues</span>
+                  <span style={{ fontWeight: "600", color: "var(--k-text)" }}>{buyPreview.shares.toFixed(2)}</span>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", padding: "3px 0" }}>
-                  <span style={{ color: "#8888a0" }}>Prix par part</span>
-                  <span style={{ fontWeight: "600", color: "#e8e8f0" }}>{buyPreview.pricePerShare.toFixed(2)} pts</span>
+                  <span style={{ color: "var(--k-muted)" }}>Prix par part</span>
+                  <span style={{ fontWeight: "600", color: "var(--k-text)" }}>{buyPreview.pricePerShare.toFixed(2)} pts</span>
                 </div>
               </div>
             )}
@@ -356,12 +356,12 @@ function TradeModal({ pos, onClose, onDone }) {
             <div style={{ display: "flex", gap: "8px" }}>
               <button onClick={onClose} style={{
                 flex: 1, padding: "12px", borderRadius: "10px",
-                border: "0.5px solid rgba(124,58,237,0.2)", background: "transparent",
-                color: "#8888a0", fontWeight: "600", cursor: "pointer", fontSize: "14px",
+                border: "0.5px solid rgba(var(--k-accent-rgb),0.2)", background: "transparent",
+                color: "var(--k-muted)", fontWeight: "600", cursor: "pointer", fontSize: "14px",
               }}>Annuler</button>
               <button onClick={handleBuy} disabled={loading} style={{
                 flex: 2, padding: "12px", borderRadius: "10px", border: "none",
-                background: loading ? "#3a2066" : "#7c3aed", color: "#fff",
+                background: loading ? "var(--k-disabled)" : "var(--k-accent)", color: "#fff",
                 fontWeight: "600", cursor: loading ? "not-allowed" : "pointer", fontSize: "14px",
               }}>
                 {loading ? "En cours..." : `Acheter ${amount} pts`}
@@ -377,23 +377,23 @@ function TradeModal({ pos, onClose, onDone }) {
               autoFocus
               style={{
                 width: "100%", padding: "10px 14px", borderRadius: "10px",
-                border: "0.5px solid rgba(124,58,237,0.2)", background: "#0a0a0f",
-                color: "#e8e8f0", marginBottom: "12px", boxSizing: "border-box",
+                border: "0.5px solid rgba(var(--k-accent-rgb),0.2)", background: "var(--k-bg)",
+                color: "var(--k-text)", marginBottom: "12px", boxSizing: "border-box",
                 fontSize: "15px", outline: "none",
               }}
             />
             {sellPreview && (
               <div style={{
-                background: "#0a0a0f", borderRadius: "10px", padding: "12px 14px",
-                marginBottom: "14px", border: "0.5px solid rgba(124,58,237,0.12)",
+                background: "var(--k-bg)", borderRadius: "10px", padding: "12px 14px",
+                marginBottom: "14px", border: "0.5px solid rgba(var(--k-accent-rgb),0.12)",
               }}>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", padding: "3px 0" }}>
-                  <span style={{ color: "#8888a0" }}>Tu récupères</span>
+                  <span style={{ color: "var(--k-muted)" }}>Tu récupères</span>
                   <span style={{ fontWeight: "600", color: "#22c55e" }}>{sellPreview.proceeds.toFixed(2)} pts</span>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", padding: "3px 0" }}>
-                  <span style={{ color: "#8888a0" }}>Prix par part</span>
-                  <span style={{ fontWeight: "600", color: "#e8e8f0" }}>{sellPreview.pricePerShare.toFixed(2)} pts</span>
+                  <span style={{ color: "var(--k-muted)" }}>Prix par part</span>
+                  <span style={{ fontWeight: "600", color: "var(--k-text)" }}>{sellPreview.pricePerShare.toFixed(2)} pts</span>
                 </div>
               </div>
             )}
@@ -401,15 +401,15 @@ function TradeModal({ pos, onClose, onDone }) {
             <div style={{ display: "flex", gap: "8px" }}>
               <button onClick={onClose} style={{
                 flex: 1, padding: "12px", borderRadius: "10px",
-                border: "0.5px solid rgba(124,58,237,0.2)", background: "transparent",
-                color: "#8888a0", fontWeight: "600", cursor: "pointer", fontSize: "14px",
+                border: "0.5px solid rgba(var(--k-accent-rgb),0.2)", background: "transparent",
+                color: "var(--k-muted)", fontWeight: "600", cursor: "pointer", fontSize: "14px",
               }}>Annuler</button>
               <button
                 onClick={handleSell}
                 disabled={loading || sellAmount <= 0 || sellAmount > pos.shares}
                 style={{
                   flex: 2, padding: "12px", borderRadius: "10px", border: "none",
-                  background: (loading || sellAmount <= 0 || sellAmount > pos.shares) ? "#3a2066" : "rgba(239,68,68,0.85)",
+                  background: (loading || sellAmount <= 0 || sellAmount > pos.shares) ? "var(--k-disabled)" : "rgba(239,68,68,0.85)",
                   color: "#fff", fontWeight: "600",
                   cursor: (loading || sellAmount <= 0 || sellAmount > pos.shares) ? "not-allowed" : "pointer",
                   fontSize: "14px",
@@ -435,8 +435,8 @@ function InfoTooltip({ text }) {
         aria-label="Informations"
         style={{
           width: "16px", height: "16px", borderRadius: "50%",
-          border: "1px solid #6b6b8a", background: "transparent",
-          color: "#6b6b8a", fontSize: "10px", fontWeight: "700",
+          border: "1px solid var(--k-faint)", background: "transparent",
+          color: "var(--k-faint)", fontSize: "10px", fontWeight: "700",
           lineHeight: "1", cursor: "pointer", padding: 0,
           display: "flex", alignItems: "center", justifyContent: "center",
         }}
@@ -447,9 +447,9 @@ function InfoTooltip({ text }) {
         <div style={{
           position: "absolute", top: "20px", right: 0, zIndex: 20,
           width: "220px", padding: "10px 12px", borderRadius: "8px",
-          background: "#1a1a26", border: "1px solid rgba(124,58,237,0.3)",
+          background: "var(--k-surface2)", border: "1px solid rgba(var(--k-accent-rgb),0.3)",
           boxShadow: "0 4px 16px rgba(0,0,0,0.5)",
-          fontSize: "12px", color: "#c8c8d8", lineHeight: "1.5",
+          fontSize: "12px", color: "var(--k-text2)", lineHeight: "1.5",
           textAlign: "left", fontWeight: "400",
         }}>
           {text}
@@ -527,22 +527,22 @@ function ExpandedDetail({ pos }) {
           </p>
           <ResponsiveContainer width="100%" height={120}>
             <LineChart data={history}>
-              <XAxis dataKey="time" tick={{ fontSize: 10, fill: "#6b6b8a" }} />
-              <YAxis tick={{ fontSize: 10, fill: "#6b6b8a" }} width={36} />
+              <XAxis dataKey="time" tick={{ fontSize: 10, fill: "var(--k-faint)" }} />
+              <YAxis tick={{ fontSize: 10, fill: "var(--k-faint)" }} width={36} />
               <Tooltip
                 formatter={(v, name) => [`${v.toFixed(2)} pts`, name === "valeur" ? "Valeur" : "Coût investi"]}
-                contentStyle={{ background: "#12121a", border: "1px solid #2a2a3e", borderRadius: "8px", fontSize: "12px" }}
+                contentStyle={{ background: "var(--k-surface)", border: "1px solid var(--k-border)", borderRadius: "8px", fontSize: "12px" }}
               />
               <Legend wrapperStyle={{ fontSize: "11px" }} formatter={(v) => (v === "valeur" ? "Valeur" : "Coût investi")} />
               <Line type="monotone" dataKey="valeur" stroke={pos.color} strokeWidth={2} dot={false} />
-              <Line type="monotone" dataKey="cout" stroke="#6b6b8a" strokeWidth={1.5} strokeDasharray="4 3" dot={false} />
+              <Line type="monotone" dataKey="cout" stroke="var(--k-faint)" strokeWidth={1.5} strokeDasharray="4 3" dot={false} />
             </LineChart>
           </ResponsiveContainer>
         </>
       )}
 
       <p style={{ ...S.detailChartLabel, marginTop: "16px" }}>Transactions</p>
-      {txs.length === 0 && <p style={{ fontSize: "12px", color: "#8888a0" }}>Aucune transaction.</p>}
+      {txs.length === 0 && <p style={{ fontSize: "12px", color: "var(--k-muted)" }}>Aucune transaction.</p>}
       {txs.map((tx, i) => {
         const isSell = tx.type === "sell";
         return (
@@ -598,7 +598,7 @@ export default function Portefeuille() {
 
           let currentPrice = 0;
           let optionLabel = null;
-          let color = "#7c3aed";
+          let color = "var(--k-accent)";
 
           if (pos.type === "multi") {
             const optSnap = await getDoc(doc(db, "markets", pos.marketId, "options", pos.optionId));
@@ -810,7 +810,7 @@ export default function Portefeuille() {
           <span>Connecte-toi pour voir ton portefeuille.</span>
           <button
             onClick={login}
-            style={{ background: "#7c3aed", border: "none", color: "#fff", fontSize: "15px", fontWeight: "600", padding: "12px 24px", borderRadius: "10px", cursor: "pointer" }}
+            style={{ background: "var(--k-accent)", border: "none", color: "#fff", fontSize: "15px", fontWeight: "600", padding: "12px 24px", borderRadius: "10px", cursor: "pointer" }}
           >
             Connexion Google
           </button>
@@ -820,7 +820,7 @@ export default function Portefeuille() {
   }
 
   if (error) return <p style={{ padding: "40px", color: "#ef4444" }}>Erreur : {error}</p>;
-  if (loading) return <p style={{ padding: "40px", color: "#8888a0" }}>Chargement...</p>;
+  if (loading) return <p style={{ padding: "40px", color: "var(--k-muted)" }}>Chargement...</p>;
 
   const totalValue = positions.reduce((acc, p) => acc + p.currentValue, 0);
   const totalCost = positions.reduce((acc, p) => acc + p.totalCost, 0);
@@ -831,7 +831,7 @@ export default function Portefeuille() {
     <div style={S.page}>
       <h1 style={S.title}>Portefeuille</h1>
       {user && (
-        <Link to={`/tracker/${user.uid}`} style={{ display: "inline-block", margin: "0 0 16px", fontSize: "13px", fontWeight: 600, color: "#a78bfa", textDecoration: "none" }}>
+        <Link to={`/tracker/${user.uid}`} style={{ display: "inline-block", margin: "0 0 16px", fontSize: "13px", fontWeight: 600, color: "var(--k-accent-text)", textDecoration: "none" }}>
           Analyser mes prévisions : tracker →
         </Link>
       )}
@@ -867,15 +867,15 @@ export default function Portefeuille() {
           </p>
           <ResponsiveContainer width="100%" height={140}>
             <LineChart data={valueHistory}>
-              <XAxis dataKey="time" tick={{ fontSize: 11, fill: "#6b6b8a" }} />
-              <YAxis tick={{ fontSize: 11, fill: "#6b6b8a" }} width={40} />
+              <XAxis dataKey="time" tick={{ fontSize: 11, fill: "var(--k-faint)" }} />
+              <YAxis tick={{ fontSize: 11, fill: "var(--k-faint)" }} width={40} />
               <Tooltip
                 formatter={(v, name) => [`${v.toFixed(2)} pts`, name === "valeur" ? "Valeur" : "Coût investi"]}
-                contentStyle={{ background: "#12121a", border: "1px solid #2a2a3e", borderRadius: "8px", fontSize: "12px" }}
+                contentStyle={{ background: "var(--k-surface)", border: "1px solid var(--k-border)", borderRadius: "8px", fontSize: "12px" }}
               />
               <Legend wrapperStyle={{ fontSize: "12px" }} formatter={(v) => (v === "valeur" ? "Valeur" : "Coût investi")} />
-              <Line type="monotone" dataKey="valeur" stroke="#7c3aed" strokeWidth={2} dot={false} />
-              <Line type="monotone" dataKey="cout" stroke="#6b6b8a" strokeWidth={1.5} strokeDasharray="4 3" dot={false} />
+              <Line type="monotone" dataKey="valeur" stroke="var(--k-accent)" strokeWidth={2} dot={false} />
+              <Line type="monotone" dataKey="cout" stroke="var(--k-faint)" strokeWidth={1.5} strokeDasharray="4 3" dot={false} />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -986,8 +986,8 @@ export default function Portefeuille() {
                   <button
                     onClick={(e) => { e.stopPropagation(); setTradingPos(pos); }}
                     style={{
-                      fontSize: "12px", fontWeight: "600", color: "#a78bfa",
-                      background: "rgba(124,58,237,0.12)", border: "0.5px solid rgba(124,58,237,0.3)",
+                      fontSize: "12px", fontWeight: "600", color: "var(--k-accent-text)",
+                      background: "rgba(var(--k-accent-rgb),0.12)", border: "0.5px solid rgba(var(--k-accent-rgb),0.3)",
                       borderRadius: "7px", padding: "5px 12px", cursor: "pointer",
                     }}
                   >

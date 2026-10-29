@@ -3,12 +3,12 @@ import { useSEO } from "../hooks/useSEO";
 
 const S = {
   page: { maxWidth: "700px", margin: "40px auto", padding: "0 16px 80px" },
-  title: { fontSize: "26px", fontWeight: "600", color: "#e8e8f0", marginBottom: "8px" },
-  lead: { fontSize: "15px", color: "#a8a8b8", lineHeight: "1.7", marginBottom: "32px" },
+  title: { fontSize: "26px", fontWeight: "600", color: "var(--k-text)", marginBottom: "8px" },
+  lead: { fontSize: "15px", color: "var(--k-muted2)", lineHeight: "1.7", marginBottom: "32px" },
   section: { marginBottom: "28px" },
-  h2: { fontSize: "17px", fontWeight: "600", color: "#e8e8f0", marginBottom: "10px" },
-  text: { fontSize: "14px", color: "#a8a8b8", lineHeight: "1.7", margin: 0 },
-  link: { color: "#a78bfa" },
+  h2: { fontSize: "17px", fontWeight: "600", color: "var(--k-text)", marginBottom: "10px" },
+  text: { fontSize: "14px", color: "var(--k-muted2)", lineHeight: "1.7", margin: 0 },
+  link: { color: "var(--k-accent-text)" },
 };
 
 export default function Resolution() {

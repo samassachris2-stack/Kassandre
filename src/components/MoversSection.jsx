@@ -26,9 +26,9 @@ export default function MoversSection() {
 
   return (
     <section style={{ marginBottom: "28px" }}>
-      <h2 style={{ fontSize: "18px", fontWeight: 600, color: "#e8e8f0", margin: "0 0 12px" }}>
+      <h2 style={{ fontSize: "18px", fontWeight: 600, color: "var(--k-text)", margin: "0 0 12px" }}>
         Marchés qui bougent
-        <span style={{ fontSize: "12px", fontWeight: 400, color: "#8888a0", marginLeft: "8px" }}>sur 24 heures</span>
+        <span style={{ fontSize: "12px", fontWeight: 400, color: "var(--k-muted)", marginLeft: "8px" }}>sur 24 heures</span>
       </h2>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "10px" }}>
         {items.map((m) => {
@@ -36,11 +36,11 @@ export default function MoversSection() {
           const color = up ? "#22c55e" : "#ef4444";
           return (
             <Link key={m.marketId} to={`/market/${m.marketId}`}
-              style={{ textDecoration: "none", background: "#0f0f17", border: "0.5px solid rgba(124,58,237,0.2)", borderRadius: "10px", padding: "12px 14px", display: "flex", flexDirection: "column", gap: "8px" }}>
-              <span style={{ color: "#e8e8f0", fontSize: "13px", lineHeight: 1.4, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+              style={{ textDecoration: "none", background: "var(--k-inset)", border: "0.5px solid rgba(var(--k-accent-rgb),0.2)", borderRadius: "10px", padding: "12px 14px", display: "flex", flexDirection: "column", gap: "8px" }}>
+              <span style={{ color: "var(--k-text)", fontSize: "13px", lineHeight: 1.4, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
                 {m.question}
               </span>
-              <span style={{ fontSize: "13px", color: "#8888a0" }}>
+              <span style={{ fontSize: "13px", color: "var(--k-muted)" }}>
                 {m.label} <span style={{ color, fontWeight: 700 }}>{up ? "▲" : "▼"} {m.from}% → {m.to}%</span>
               </span>
             </Link>

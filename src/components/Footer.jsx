@@ -2,8 +2,8 @@ import { Link } from "react-router-dom";
 
 const S = {
   footer: {
-    background: "#0a0a0f",
-    borderTop: "0.5px solid rgba(124,58,237,0.15)",
+    background: "var(--k-bg)",
+    borderTop: "0.5px solid rgba(var(--k-accent-rgb),0.15)",
     marginTop: "40px",
     padding: "40px 24px 24px",
   },
@@ -30,11 +30,11 @@ const S = {
   logoText: {
     fontSize: "16px",
     fontWeight: "600",
-    color: "#e8e8f0",
+    color: "var(--k-text)",
   },
   brandDesc: {
     fontSize: "13px",
-    color: "#8888a0",
+    color: "var(--k-muted)",
     lineHeight: "1.6",
     maxWidth: "260px",
   },
@@ -45,7 +45,7 @@ const S = {
   colTitle: {
     fontSize: "12px",
     fontWeight: "600",
-    color: "#e8e8f0",
+    color: "var(--k-text)",
     textTransform: "uppercase",
     letterSpacing: "0.06em",
     marginBottom: "12px",
@@ -53,7 +53,7 @@ const S = {
   link: {
     display: "block",
     fontSize: "13px",
-    color: "#a8a8b8",
+    color: "var(--k-muted2)",
     textDecoration: "none",
     marginBottom: "8px",
     transition: "color 0.15s",
@@ -67,22 +67,22 @@ const S = {
     width: "32px",
     height: "32px",
     borderRadius: "8px",
-    background: "rgba(124,58,237,0.1)",
-    border: "0.5px solid rgba(124,58,237,0.2)",
+    background: "rgba(var(--k-accent-rgb),0.1)",
+    border: "0.5px solid rgba(var(--k-accent-rgb),0.2)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    color: "#a78bfa",
+    color: "var(--k-accent-text)",
     textDecoration: "none",
     transition: "background 0.15s, border-color 0.15s",
   },
   disclaimer: {
-    background: "rgba(124,58,237,0.06)",
-    border: "0.5px solid rgba(124,58,237,0.15)",
+    background: "rgba(var(--k-accent-rgb),0.06)",
+    border: "0.5px solid rgba(var(--k-accent-rgb),0.15)",
     borderRadius: "10px",
     padding: "12px 16px",
     fontSize: "12px",
-    color: "#8888a0",
+    color: "var(--k-muted)",
     lineHeight: "1.6",
     marginBottom: "20px",
   },
@@ -93,11 +93,11 @@ const S = {
     alignItems: "center",
     gap: "12px",
     paddingTop: "20px",
-    borderTop: "0.5px solid rgba(124,58,237,0.1)",
+    borderTop: "0.5px solid rgba(var(--k-accent-rgb),0.1)",
   },
   copyright: {
     fontSize: "12px",
-    color: "#6b6b80",
+    color: "var(--k-faint)",
   },
 };
 
@@ -109,9 +109,9 @@ export default function Footer() {
           <div style={S.brandCol}>
             <div style={S.logoRow}>
               <svg width="22" height="22" viewBox="0 0 28 28">
-                <path d="M 22 22 A 12 12 0 0 1 6 14" fill="none" stroke="#7c3aed" strokeWidth="3" strokeLinecap="round"/>
-                <path d="M 6 14 A 12 12 0 0 1 22 6" fill="none" stroke="#7c3aed" strokeWidth="3" strokeLinecap="round"/>
-                <circle cx="14" cy="14" r="4" fill="#7c3aed"/>
+                <path d="M 22 22 A 12 12 0 0 1 6 14" fill="none" stroke="var(--k-accent)" strokeWidth="3" strokeLinecap="round"/>
+                <path d="M 6 14 A 12 12 0 0 1 22 6" fill="none" stroke="var(--k-accent)" strokeWidth="3" strokeLinecap="round"/>
+                <circle cx="14" cy="14" r="4" fill="var(--k-accent)"/>
               </svg>
               <span style={S.logoText}>Kassandre</span>
             </div>
@@ -125,8 +125,8 @@ export default function Footer() {
                 target="_blank" rel="noreferrer"
                 style={S.socialLink}
                 aria-label="Twitter"
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(124,58,237,0.5)"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(124,58,237,0.2)"; }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(var(--k-accent-rgb),0.5)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(var(--k-accent-rgb),0.2)"; }}
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L1.254 2.25H8.08l4.253 5.622 5.911-5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
@@ -137,8 +137,8 @@ export default function Footer() {
                 target="_blank" rel="noreferrer"
                 style={S.socialLink}
                 aria-label="Instagram"
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(124,58,237,0.5)"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(124,58,237,0.2)"; }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(var(--k-accent-rgb),0.5)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(var(--k-accent-rgb),0.2)"; }}
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <rect x="2" y="2" width="20" height="20" rx="5" />
@@ -152,16 +152,16 @@ export default function Footer() {
           <div style={S.col}>
             <p style={S.colTitle}>Plateforme</p>
             <Link to="/portefeuille" style={S.link}
-              onMouseEnter={(e) => { e.currentTarget.style.color = "#e8e8f0"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = "#a8a8b8"; }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = "var(--k-text)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = "var(--k-muted2)"; }}
             >Portefeuille</Link>
             <Link to="/resolution" style={S.link}
-              onMouseEnter={(e) => { e.currentTarget.style.color = "#e8e8f0"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = "#a8a8b8"; }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = "var(--k-text)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = "var(--k-muted2)"; }}
             >Comment on résout</Link>
             <Link to="/soumettre" style={S.link}
-              onMouseEnter={(e) => { e.currentTarget.style.color = "#e8e8f0"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = "#a8a8b8"; }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = "var(--k-text)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = "var(--k-muted2)"; }}
             >Proposer un marché</Link>
           </div>
 
@@ -169,30 +169,34 @@ export default function Footer() {
             <p style={S.colTitle}>Catégories</p>
             {["Sport", "Politique", "Crypto", "Tech", "Économie", "International", "Culture", "Climat"].map((cat) => (
               <Link key={cat} to={`/${encodeURIComponent(cat)}`} style={S.link}
-                onMouseEnter={(e) => { e.currentTarget.style.color = "#e8e8f0"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = "#a8a8b8"; }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = "var(--k-text)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = "var(--k-muted2)"; }}
               >{cat}</Link>
             ))}
             <Link to="/presidentielle-2027" style={S.link}
-              onMouseEnter={(e) => { e.currentTarget.style.color = "#e8e8f0"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = "#a8a8b8"; }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = "var(--k-text)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = "var(--k-muted2)"; }}
             >Présidentielle 2027</Link>
           </div>
 
           <div style={S.col}>
             <p style={S.colTitle}>Légal</p>
             <Link to="/cgu" style={S.link}
-              onMouseEnter={(e) => { e.currentTarget.style.color = "#e8e8f0"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = "#a8a8b8"; }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = "var(--k-text)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = "var(--k-muted2)"; }}
             >CGU</Link>
             <Link to="/confidentialite" style={S.link}
-              onMouseEnter={(e) => { e.currentTarget.style.color = "#e8e8f0"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = "#a8a8b8"; }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = "var(--k-text)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = "var(--k-muted2)"; }}
             >Confidentialité</Link>
             <Link to="/mentions-legales" style={S.link}
-              onMouseEnter={(e) => { e.currentTarget.style.color = "#e8e8f0"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = "#a8a8b8"; }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = "var(--k-text)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = "var(--k-muted2)"; }}
             >Mentions légales</Link>
+            <Link to="/settings" style={S.link}
+              onMouseEnter={(e) => { e.currentTarget.style.color = "var(--k-text)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = "var(--k-muted2)"; }}
+            >Apparence</Link>
           </div>
         </div>
 

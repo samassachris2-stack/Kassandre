@@ -53,7 +53,7 @@ function embedHtml(rawUrl) {
     `<div style="position:relative;width:100%;${ratio}">` +
     `<iframe src="${src}" title="${title}" loading="lazy" allowfullscreen ` +
     `allow="autoplay; encrypted-media; picture-in-picture; clipboard-write" ` +
-    `style="position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:12px;background:#0f0f17"></iframe>` +
+    `style="position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:12px;background:var(--k-inset)"></iframe>` +
     `</div></div>`;
   let m;
   if (host === "youtu.be") m = path.match(/^\/([\w-]{6,})/);

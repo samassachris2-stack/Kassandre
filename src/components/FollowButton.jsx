@@ -45,9 +45,9 @@ export default function FollowButton({ marketId }) {
       aria-pressed={!!on}
       style={{
         display: "flex", alignItems: "center", gap: "6px",
-        background: on ? "rgba(124,58,237,0.25)" : "rgba(124,58,237,0.1)",
-        border: "0.5px solid rgba(124,58,237,0.3)",
-        color: "#a78bfa", borderRadius: "8px", padding: "6px 12px",
+        background: on ? "rgba(var(--k-accent-rgb),0.25)" : "rgba(var(--k-accent-rgb),0.1)",
+        border: "0.5px solid rgba(var(--k-accent-rgb),0.3)",
+        color: "var(--k-accent-text)", borderRadius: "8px", padding: "6px 12px",
         fontSize: "13px", fontWeight: "500", cursor: "pointer",
       }}
     >

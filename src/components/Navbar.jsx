@@ -13,8 +13,8 @@ const BLOG_PILL = {
   fontWeight: 600,
   padding: "7px 16px",
   borderRadius: "999px",
-  border: "1px solid rgba(124,58,237,0.6)",
-  color: "#e8e8f0",
+  border: "1px solid rgba(var(--k-accent-rgb),0.6)",
+  color: "var(--k-text)",
   whiteSpace: "nowrap",
   alignItems: "center",
 };
@@ -26,8 +26,8 @@ const S = {
     alignItems: "center",
     padding: "0 24px",
     height: "60px",
-    background: "#0a0a0f",
-    borderBottom: "0.5px solid rgba(124,58,237,0.15)",
+    background: "var(--k-bg)",
+    borderBottom: "0.5px solid rgba(var(--k-accent-rgb),0.15)",
     position: "sticky",
     top: 0,
     zIndex: 50,
@@ -42,7 +42,7 @@ const S = {
   logoText: {
     fontSize: "18px",
     fontWeight: "600",
-    color: "#e8e8f0",
+    color: "var(--k-text)",
     letterSpacing: "0.02em",
   },
   navLink: (active) => ({
@@ -51,13 +51,13 @@ const S = {
     fontWeight: "500",
     padding: "7px 12px",
     borderRadius: "8px",
-    color: active ? "#a78bfa" : "#a8a8b8",
+    color: active ? "var(--k-accent-text)" : "var(--k-muted2)",
     transition: "color 0.15s, background 0.15s",
   }),
   divider: {
     width: "0.5px",
     height: "24px",
-    background: "rgba(124,58,237,0.2)",
+    background: "rgba(var(--k-accent-rgb),0.2)",
     margin: "0 8px",
   },
   rightGroup: {
@@ -68,16 +68,16 @@ const S = {
   balance: {
     fontSize: "13px",
     fontWeight: "600",
-    color: "#a78bfa",
-    background: "rgba(124,58,237,0.1)",
+    color: "var(--k-accent-text)",
+    background: "rgba(var(--k-accent-rgb),0.1)",
     padding: "6px 10px",
     borderRadius: "8px",
-    border: "0.5px solid rgba(124,58,237,0.2)",
+    border: "0.5px solid rgba(var(--k-accent-rgb),0.2)",
     whiteSpace: "nowrap",
   },
   avatar: {
     borderRadius: "50%",
-    border: "1.5px solid rgba(124,58,237,0.4)",
+    border: "1.5px solid rgba(var(--k-accent-rgb),0.4)",
     display: "block",
     cursor: "pointer",
     transition: "border-color 0.15s",
@@ -85,8 +85,8 @@ const S = {
   },
   logoutBtn: {
     background: "transparent",
-    border: "0.5px solid rgba(124,58,237,0.25)",
-    color: "#a8a8b8",
+    border: "0.5px solid rgba(var(--k-accent-rgb),0.25)",
+    color: "var(--k-muted2)",
     fontSize: "13px",
     fontWeight: "500",
     padding: "7px 14px",
@@ -96,7 +96,7 @@ const S = {
     whiteSpace: "nowrap",
   },
   loginBtn: {
-    background: "#7c3aed",
+    background: "var(--k-accent)",
     border: "none",
     color: "#fff",
     fontSize: "14px",
@@ -109,7 +109,7 @@ const S = {
   hamburgerBtn: {
     background: "transparent",
     border: "none",
-    color: "#e8e8f0",
+    color: "var(--k-text)",
     fontSize: "22px",
     cursor: "pointer",
     padding: "4px 8px",
@@ -120,8 +120,8 @@ const S = {
     top: "104px",
     left: 0,
     right: 0,
-    background: "#0f0f17",
-    borderBottom: "0.5px solid rgba(124,58,237,0.15)",
+    background: "var(--k-inset)",
+    borderBottom: "0.5px solid rgba(var(--k-accent-rgb),0.15)",
     display: "flex",
     flexDirection: "column",
     padding: "8px 16px 16px",
@@ -134,16 +134,16 @@ const S = {
     fontWeight: "500",
     padding: "12px 8px",
     borderRadius: "8px",
-    color: active ? "#a78bfa" : "#e8e8f0",
-    background: active ? "rgba(124,58,237,0.1)" : "transparent",
+    color: active ? "var(--k-accent-text)" : "var(--k-text)",
+    background: active ? "rgba(var(--k-accent-rgb),0.1)" : "transparent",
   }),
   catBar: {
     display: "flex",
     gap: "6px",
     alignItems: "center",
     padding: "10px 24px",
-    background: "#0a0a0f",
-    borderBottom: "0.5px solid rgba(124,58,237,0.1)",
+    background: "var(--k-bg)",
+    borderBottom: "0.5px solid rgba(var(--k-accent-rgb),0.1)",
     position: "sticky",
     top: "60px",
     zIndex: 49,
@@ -157,9 +157,9 @@ const S = {
     padding: "6px 13px",
     borderRadius: "20px",
     flexShrink: 0,
-    border: active ? "0.5px solid rgba(124,58,237,0.5)" : "0.5px solid rgba(124,58,237,0.15)",
-    background: active ? "rgba(124,58,237,0.18)" : "transparent",
-    color: active ? "#a78bfa" : "#8888a0",
+    border: active ? "0.5px solid rgba(var(--k-accent-rgb),0.5)" : "0.5px solid rgba(var(--k-accent-rgb),0.15)",
+    background: active ? "rgba(var(--k-accent-rgb),0.18)" : "transparent",
+    color: active ? "var(--k-accent-text)" : "var(--k-muted)",
     transition: "all 0.15s",
   }),
 };
@@ -202,9 +202,9 @@ export default function Navbar() {
       <nav style={S.nav}>
         <Link to="/" style={S.logoLink}>
           <svg width="28" height="28" viewBox="0 0 28 28">
-            <path d="M 22 22 A 12 12 0 0 1 6 14" fill="none" stroke="#7c3aed" strokeWidth="3" strokeLinecap="round"/>
-            <path d="M 6 14 A 12 12 0 0 1 22 6" fill="none" stroke="#7c3aed" strokeWidth="3" strokeLinecap="round"/>
-            <circle cx="14" cy="14" r="4" fill="#7c3aed"/>
+            <path d="M 22 22 A 12 12 0 0 1 6 14" fill="none" stroke="var(--k-accent)" strokeWidth="3" strokeLinecap="round"/>
+            <path d="M 6 14 A 12 12 0 0 1 22 6" fill="none" stroke="var(--k-accent)" strokeWidth="3" strokeLinecap="round"/>
+            <circle cx="14" cy="14" r="4" fill="var(--k-accent)"/>
           </svg>
           <span style={S.logoText} className="kassandre-nav-logo-text">Kassandre</span>
         </Link>
@@ -216,21 +216,21 @@ export default function Navbar() {
               ...S.navLink(location.pathname.startsWith("/blog")),
               padding: "7px 16px",
               borderRadius: "999px",
-              border: "1px solid rgba(124,58,237,0.6)",
-              background: location.pathname.startsWith("/blog") ? "#7c3aed" : "rgba(124,58,237,0.15)",
-              color: "#e8e8f0",
+              border: "1px solid rgba(var(--k-accent-rgb),0.6)",
+              background: location.pathname.startsWith("/blog") ? "var(--k-accent)" : "rgba(var(--k-accent-rgb),0.15)",
+              color: "var(--k-text)",
               fontWeight: 600,
             }}
-            onMouseEnter={(e) => { if (!location.pathname.startsWith("/blog")) e.currentTarget.style.background = "rgba(124,58,237,0.3)"; }}
-            onMouseLeave={(e) => { if (!location.pathname.startsWith("/blog")) e.currentTarget.style.background = "rgba(124,58,237,0.15)"; }}
+            onMouseEnter={(e) => { if (!location.pathname.startsWith("/blog")) e.currentTarget.style.background = "rgba(var(--k-accent-rgb),0.3)"; }}
+            onMouseLeave={(e) => { if (!location.pathname.startsWith("/blog")) e.currentTarget.style.background = "rgba(var(--k-accent-rgb),0.15)"; }}
           >
             Blog
           </Link>
           <Link
             to="/portefeuille"
             style={S.navLink(location.pathname === "/portefeuille")}
-            onMouseEnter={(e) => { if (location.pathname !== "/portefeuille") e.currentTarget.style.color = "#e8e8f0"; }}
-            onMouseLeave={(e) => { if (location.pathname !== "/portefeuille") e.currentTarget.style.color = "#a8a8b8"; }}
+            onMouseEnter={(e) => { if (location.pathname !== "/portefeuille") e.currentTarget.style.color = "var(--k-text)"; }}
+            onMouseLeave={(e) => { if (location.pathname !== "/portefeuille") e.currentTarget.style.color = "var(--k-muted2)"; }}
           >
             Portefeuille
           </Link>
@@ -238,8 +238,8 @@ export default function Navbar() {
             <Link
               to="/admin"
               style={S.navLink(location.pathname.startsWith("/admin"))}
-              onMouseEnter={(e) => { if (!location.pathname.startsWith("/admin")) e.currentTarget.style.color = "#e8e8f0"; }}
-              onMouseLeave={(e) => { if (!location.pathname.startsWith("/admin")) e.currentTarget.style.color = "#a8a8b8"; }}
+              onMouseEnter={(e) => { if (!location.pathname.startsWith("/admin")) e.currentTarget.style.color = "var(--k-text)"; }}
+              onMouseLeave={(e) => { if (!location.pathname.startsWith("/admin")) e.currentTarget.style.color = "var(--k-muted2)"; }}
             >
               Admin
             </Link>
@@ -253,7 +253,7 @@ export default function Navbar() {
             <Link
               to="/blog"
               className="kassandre-nav-mobile-blog"
-              style={{ ...BLOG_PILL, background: location.pathname.startsWith("/blog") ? "#7c3aed" : "rgba(124,58,237,0.15)" }}
+              style={{ ...BLOG_PILL, background: location.pathname.startsWith("/blog") ? "var(--k-accent)" : "rgba(var(--k-accent-rgb),0.15)" }}
             >
               Blog
             </Link>
@@ -267,16 +267,16 @@ export default function Navbar() {
                 width={32}
                 height={32}
                 style={S.avatar}
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#a78bfa"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(124,58,237,0.4)"; }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--k-accent-text)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(var(--k-accent-rgb),0.4)"; }}
               />
             </Link>
             <button
               onClick={logout}
               style={S.logoutBtn}
               className="kassandre-nav-desktop-links"
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(124,58,237,0.5)"; e.currentTarget.style.color = "#e8e8f0"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(124,58,237,0.25)"; e.currentTarget.style.color = "#a8a8b8"; }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(var(--k-accent-rgb),0.5)"; e.currentTarget.style.color = "var(--k-text)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(var(--k-accent-rgb),0.25)"; e.currentTarget.style.color = "var(--k-muted2)"; }}
             >
               Déconnexion
             </button>
@@ -294,7 +294,7 @@ export default function Navbar() {
             <Link
               to="/blog"
               className="kassandre-nav-mobile-blog"
-              style={{ ...BLOG_PILL, background: location.pathname.startsWith("/blog") ? "#7c3aed" : "rgba(124,58,237,0.15)" }}
+              style={{ ...BLOG_PILL, background: location.pathname.startsWith("/blog") ? "var(--k-accent)" : "rgba(var(--k-accent-rgb),0.15)" }}
             >
               Blog
             </Link>
@@ -311,8 +311,8 @@ export default function Navbar() {
               key={cat}
               to={`/${encodeURIComponent(cat)}`}
               style={S.catPill(active)}
-              onMouseEnter={(e) => { if (!active) e.currentTarget.style.color = "#e8e8f0"; }}
-              onMouseLeave={(e) => { if (!active) e.currentTarget.style.color = "#8888a0"; }}
+              onMouseEnter={(e) => { if (!active) e.currentTarget.style.color = "var(--k-text)"; }}
+              onMouseLeave={(e) => { if (!active) e.currentTarget.style.color = "var(--k-muted)"; }}
             >
               {cat}
             </Link>
@@ -329,27 +329,27 @@ export default function Navbar() {
           />
           <div role="menu" style={{
             position: "fixed", top: "128px", left: "8px", right: "8px", zIndex: 60,
-            background: "#0f0f17", border: "0.5px solid rgba(124,58,237,0.3)",
+            background: "var(--k-inset)", border: "0.5px solid rgba(var(--k-accent-rgb),0.3)",
             borderRadius: "14px", boxShadow: "0 12px 36px rgba(0,0,0,0.6)", padding: "10px",
             maxHeight: "calc(100vh - 150px)", overflowY: "auto",
           }}>
             <div style={{
               display: "flex", alignItems: "center", gap: "12px",
               padding: "8px 8px 14px", marginBottom: "6px",
-              borderBottom: "0.5px solid rgba(124,58,237,0.15)",
+              borderBottom: "0.5px solid rgba(var(--k-accent-rgb),0.15)",
             }}>
               <img
                 src={user.photoURL}
                 width={42}
                 height={42}
                 alt=""
-                style={{ borderRadius: "50%", border: "2px solid rgba(124,58,237,0.5)", objectFit: "cover", flexShrink: 0 }}
+                style={{ borderRadius: "50%", border: "2px solid rgba(var(--k-accent-rgb),0.5)", objectFit: "cover", flexShrink: 0 }}
               />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ color: "#e8e8f0", fontWeight: 600, fontSize: "15px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                <div style={{ color: "var(--k-text)", fontWeight: 600, fontSize: "15px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {user.displayName || "Mon compte"}
                 </div>
-                <div style={{ color: "#a78bfa", fontSize: "13px", fontWeight: 600, marginTop: "2px" }}>
+                <div style={{ color: "var(--k-accent-text)", fontSize: "13px", fontWeight: 600, marginTop: "2px" }}>
                   {formatPointsShort(user.balance)} pts
                 </div>
               </div>
@@ -375,13 +375,13 @@ export default function Navbar() {
                     display: "flex", justifyContent: "space-between", alignItems: "center",
                     padding: "13px 10px", borderRadius: "8px", textDecoration: "none",
                     fontSize: "15px", fontWeight: 500,
-                    color: active ? "#a78bfa" : "#e8e8f0",
-                    background: active ? "rgba(124,58,237,0.12)" : "transparent",
+                    color: active ? "var(--k-accent-text)" : "var(--k-text)",
+                    background: active ? "rgba(var(--k-accent-rgb),0.12)" : "transparent",
                     border: "1px solid transparent",
                   }}
                 >
                   <span>{label}</span>
-                  <span style={{ color: "#4a4a60", fontSize: "18px" }}>›</span>
+                  <span style={{ color: "var(--k-border2)", fontSize: "18px" }}>›</span>
                 </Link>
               );
             })}
@@ -392,7 +392,7 @@ export default function Navbar() {
               onClick={() => { setMenuOpen(false); logout(); }}
               style={{
                 display: "block", width: "100%", marginTop: "6px", padding: "13px 10px",
-                background: "transparent", border: "none", borderTop: "0.5px solid rgba(124,58,237,0.15)",
+                background: "transparent", border: "none", borderTop: "0.5px solid rgba(var(--k-accent-rgb),0.15)",
                 borderRadius: "0 0 8px 8px", color: "#ef4444", fontSize: "15px", fontWeight: 500,
                 textAlign: "left", cursor: "pointer",
               }}
