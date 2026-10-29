@@ -5,7 +5,7 @@ import { onSchedule } from "firebase-functions/v2/scheduler";
 import { buildOgPayload, buildIndexPayload, ID_RE } from "./og-data.js";
 import { detectMove, outcomeLabelFor } from "./follow-alerts.js";
 import {
-  LICENSE, MARKET_COLUMNS, getCalibration, getHistory, getMarket, getStats, listMarkets, toCsv,
+  LICENSE, MARKET_COLUMNS, getCalibration, getHistory, getInsights, getMarket, getStats, listMarkets, toCsv,
 } from "./public-api.js";
 import { computeDaily } from "./daily-bonus.js";
 import {
@@ -857,6 +857,7 @@ export const publicApi = onRequest({ cors: true, maxInstances: 5, memory: "512Mi
           "/api/v1/markets/{id}/history",
           "/api/v1/markets/{id}/history.csv",
           "/api/v1/calibration?horizonDays=7",
+          "/api/v1/insights/{marketId}",
           "/api/v1/stats",
         ],
       });
@@ -896,6 +897,13 @@ export const publicApi = onRequest({ cors: true, maxInstances: 5, memory: "512Mi
       const m = await getMarket(db, id);
       if (!m) { res.status(404).json({ error: "not found" }); return; }
       reply(m);
+      return;
+    }
+    if (parts[0] === "insights" && parts.length === 2) {
+      if (!ID_RE.test(parts[1])) { res.status(400).json({ error: "bad id" }); return; }
+      const ins = await getInsights(db, parts[1]);
+      if (!ins) { res.status(404).json({ error: "not found" }); return; }
+      reply(ins, 600);
       return;
     }
     if (parts[0] === "calibration") {

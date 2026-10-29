@@ -4,6 +4,7 @@ import { db } from "../lib/firebase";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import AppearancePanel from "../components/AppearancePanel";
+import DemographicsPanel from "../components/DemographicsPanel";
 
 export default function Settings() {
   const { user } = useAuth();
@@ -142,6 +143,8 @@ export default function Settings() {
         >
           Voir mon profil public
         </button>
+
+        <DemographicsPanel />
 
         <AppearancePanel />
       </div>

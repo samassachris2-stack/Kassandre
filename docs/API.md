@@ -10,6 +10,7 @@ Base : `https://kassandre.app/api/v1` (gratuite, sans clé, lecture seule, licen
 | `GET /markets.csv` | Export CSV (mêmes filtres que la liste) |
 | `GET /markets/{id}/history.csv` | Historique en CSV |
 | `GET /calibration?horizonDays=7` | Probabilité du marché N jours avant la résolution contre résultat réel, score de Brier |
+| `GET /insights/{id}` | Répartition OUI / NON par département, arrondissement de Paris, âge et métier (profils facultatifs, groupes de 10 minimum, marchés Oui/Non) |
 | `GET /stats` | Nombre de marchés par statut et par catégorie |
 
 Implémentation : Cloud Function `publicApi` (functions/public-api.js), servie via la réécriture
@@ -18,3 +19,11 @@ donnée utilisateur. Déploiement : `firebase deploy --only functions:publicApi`
 
 Preuves d'un marché : champ `evidence` (liste de `{type, label, url, archiveUrl, value, date, note}`)
 et `resolutionNote` sur le document du marché, modifiables par les admins sur la page du marché.
+
+## Profils facultatifs et statistiques de groupes
+
+Collection `demographics/{uid}` (département `dept`, arrondissement `arr`, tranche d'âge `ageBand`,
+`profession`, `consent`). Lecture, écriture et suppression réservées au propriétaire (règles Firestore).
+Seule la fonction `publicApi` (Admin SDK) les lit, via `getInsights`, pour publier des agrégats :
+un parieur compte pour une voix, un groupe n'apparaît qu'à partir de 10 personnes, et les petits
+groupes (moins de 30) sont arrondis à 5 %.

@@ -159,6 +159,34 @@ service cloud.firestore {
       allow update: if false;
     }
 
+    // ── Profil facultatif (statistiques agrégées) ────────────────────────────
+    // Département, arrondissement, tranche d'âge, métier. Visible et modifiable
+    // uniquement par son propriétaire, qui peut le supprimer à tout moment.
+    // Seules les Cloud Functions (Admin SDK) le lisent, pour calculer des
+    // statistiques de groupes d'au moins 10 personnes.
+    match /demographics/{userId} {
+      allow read, delete: if request.auth != null && request.auth.uid == userId;
+      allow create, update: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.keys().hasOnly(
+             ['consent', 'consentAt', 'dept', 'arr', 'ageBand', 'profession', 'updatedAt'])
+        && request.resource.data.consent == true
+        && request.resource.data.updatedAt == request.time
+        && (!('dept' in request.resource.data)
+            || (request.resource.data.dept is string
+                && request.resource.data.dept.matches('^(0[1-9]|[1-8][0-9]|9[0-5]|2A|2B|971|972|973|974|976|98|99)$')))
+        && (!('arr' in request.resource.data)
+            || (request.resource.data.arr is int
+                && request.resource.data.arr >= 1 && request.resource.data.arr <= 20
+                && request.resource.data.dept == '75'))
+        && (!('ageBand' in request.resource.data)
+            || request.resource.data.ageBand in ['18-24', '25-34', '35-44', '45-54', '55-64', '65+'])
+        && (!('profession' in request.resource.data)
+            || request.resource.data.profession in [
+                 'etudiant', 'tech', 'sante', 'enseignement', 'finance', 'commerce', 'industrie',
+                 'public', 'artisanat', 'medias', 'sans-emploi', 'retraite', 'autre']);
+    }
+
     // ── Données publiques calculées (ex. meta/movers) ────────────────────────
     // Écrites par les Cloud Functions uniquement.
     match /meta/{docId} {

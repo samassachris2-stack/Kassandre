@@ -30,7 +30,19 @@ export default function Confidentialite() {
           <li>Historique des paris, positions et transactions sur la plateforme</li>
           <li>Pseudo personnalisé, le cas échéant</li>
           <li>Données techniques de navigation (logs serveur Firebase)</li>
+          <li>
+            Facultatif, uniquement avec votre consentement explicite : département, arrondissement de
+            Paris, tranche d'âge et domaine d'activité (voir ci-dessous)
+          </li>
         </ul>
+        <p style={S.text}>
+          <strong>Profil facultatif.</strong> Ces informations sont stockées dans un espace privé, lisible
+          uniquement par vous. Elles ne sont jamais affichées avec votre nom ni sur votre profil public.
+          Elles servent à calculer, côté serveur, des statistiques de groupes (par exemple « part des
+          membres d'un département qui parient OUI »). Un groupe n'est publié que s'il compte au moins
+          10 personnes, et les résultats des petits groupes sont arrondis. Vous pouvez modifier ou effacer
+          ces informations, et retirer votre consentement, à tout moment depuis Paramètres.
+        </p>
       </div>
 
       <div style={S.section}>

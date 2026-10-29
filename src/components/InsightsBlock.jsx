@@ -1,0 +1,179 @@
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+
+const API = "https://kassandre.app/api/v1";
+const ageLabel = (a) => (a === "65+" ? "65 ans et plus" : `${a.replace("-", " à ")} ans`);
+const colorOf = (p) => `color-mix(in srgb, #22c55e ${p}%, #ef4444)`;
+
+// Disposition schématique de Paris : une case par arrondissement, placées
+// approximativement comme sur le terrain (nord en haut).
+const PARIS_GRID = [
+  [null, 17, 18, 19, null],
+  [16, 8, 9, 10, 20],
+  [7, 1, 2, 3, 11],
+  [15, 6, 5, 4, 12],
+  [null, 14, 13, null, null],
+];
+
+function Legend() {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "11px", color: "var(--k-muted)", marginTop: "10px", justifyContent: "center" }}>
+      <span>NON</span>
+      <span style={{ width: "120px", height: "8px", borderRadius: "4px", background: "linear-gradient(to right, #ef4444, #22c55e)" }} />
+      <span>OUI</span>
+      <span style={{ marginLeft: "10px", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+        <span style={{ width: "10px", height: "10px", background: "var(--k-surface2)", border: "1px solid var(--k-border2)" }} /> groupe trop petit
+      </span>
+    </div>
+  );
+}
+
+function FranceMap({ groups }) {
+  const [geo, setGeo] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    import("../lib/franceMap.json").then((m) => { if (alive) setGeo(m.default); });
+    return () => { alive = false; };
+  }, []);
+  if (!geo) return <p style={{ fontSize: "13px", color: "var(--k-muted)" }}>Chargement de la carte...</p>;
+  return (
+    <>
+      <svg viewBox={`0 0 ${geo.w} ${geo.h}`} style={{ width: "100%", maxWidth: "440px", display: "block", margin: "0 auto" }} role="img" aria-label="Carte de France par département">
+        {geo.paths.map((p) => {
+          const g = groups[p.code];
+          return (
+            <path key={p.code} d={p.d} fill={g ? colorOf(g.yesPct) : "var(--k-surface2)"} stroke="var(--k-surface)" strokeWidth="0.8">
+              <title>{g ? `${p.nom} : ${g.yesPct} % pour OUI (${g.n} membres)` : `${p.nom} : pas assez de membres`}</title>
+            </path>
+          );
+        })}
+      </svg>
+      <Legend />
+    </>
+  );
+}
+
+function ParisMap({ groups }) {
+  return (
+    <>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "6px", maxWidth: "380px", margin: "0 auto" }}>
+        {PARIS_GRID.flat().map((n, i) => {
+          if (n == null) return <div key={i} />;
+          const g = groups[n];
+          return (
+            <div
+              key={i}
+              title={g ? `${n}e arrondissement : ${g.yesPct} % pour OUI (${g.n} membres)` : `${n}e arrondissement : pas assez de membres`}
+              style={{
+                aspectRatio: "1", borderRadius: "8px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                background: g ? colorOf(g.yesPct) : "var(--k-surface2)", border: g ? "none" : "1px solid var(--k-border2)",
+                color: g ? "#0a0a0f" : "var(--k-muted)", fontSize: "13px", fontWeight: 700,
+              }}
+            >
+              <span>{n}</span>
+              {g && <span style={{ fontSize: "11px", fontWeight: 600 }}>{g.yesPct}%</span>}
+            </div>
+          );
+        })}
+      </div>
+      <p style={{ fontSize: "11px", color: "var(--k-faint)", textAlign: "center", margin: "8px 0 0" }}>Plan schématique, pas à l'échelle.</p>
+      <Legend />
+    </>
+  );
+}
+
+function Bars({ rows }) {
+  if (rows.length === 0) return <p style={{ fontSize: "13px", color: "var(--k-muted)" }}>Pas encore assez de membres par groupe.</p>;
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "9px" }}>
+      {rows.map((r) => (
+        <div key={r.key}>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", color: "var(--k-text2)", marginBottom: "3px", gap: "10px" }}>
+            <span>{r.label}</span>
+            <span style={{ color: "var(--k-muted)", whiteSpace: "nowrap" }}><strong style={{ color: "var(--k-text)" }}>{r.yesPct} %</strong> OUI · {r.n} membres</span>
+          </div>
+          <div style={{ height: "8px", borderRadius: "4px", background: "rgba(239,68,68,0.55)", overflow: "hidden" }}>
+            <div style={{ width: `${r.yesPct}%`, height: "100%", background: "#22c55e" }} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// "Qui pense quoi ?" : répartition des paris OUI / NON par territoire, âge et métier,
+// à partir des profils partagés volontairement. Groupes de 10 personnes minimum.
+export default function InsightsBlock({ marketId }) {
+  const [data, setData] = useState(null);
+  const [tab, setTab] = useState("territoire");
+  const [scope, setScope] = useState("france");
+
+  useEffect(() => {
+    let alive = true;
+    fetch(`${API}/insights/${encodeURIComponent(marketId)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => { if (alive) setData(j); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [marketId]);
+
+  if (!data || !data.supported || data.profiled == null) return null;
+
+  const labels = data.labels || {};
+  const ageRows = Object.entries(data.byAge.groups)
+    .sort((a, b) => (labels.ageBands || []).indexOf(a[0]) - (labels.ageBands || []).indexOf(b[0]))
+    .map(([k, g]) => ({ key: k, label: ageLabel(k), ...g }));
+  const jobRows = Object.entries(data.byProfession.groups)
+    .sort((a, b) => b[1].n - a[1].n)
+    .map(([k, g]) => ({ key: k, label: labels.professions?.[k] || k, ...g }));
+
+  const tabBtn = (id, text) => (
+    <button
+      key={id} type="button" onClick={() => setTab(id)} aria-pressed={tab === id}
+      style={{
+        padding: "7px 13px", borderRadius: "8px", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
+        border: `1px solid ${tab === id ? "var(--k-accent)" : "var(--k-border)"}`,
+        background: tab === id ? "rgba(var(--k-accent-rgb), 0.15)" : "var(--k-inset)",
+        color: tab === id ? "var(--k-accent-text)" : "var(--k-muted2)",
+      }}
+    >{text}</button>
+  );
+
+  return (
+    <section style={{ marginTop: "28px", textAlign: "left", border: "1px solid var(--k-border)", borderRadius: "12px", padding: "16px", background: "var(--k-surface)" }}>
+      <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "var(--k-text)", margin: "0 0 4px" }}>Qui pense quoi ?</h3>
+      <p style={{ fontSize: "12px", color: "var(--k-muted)", margin: "0 0 14px", lineHeight: 1.45 }}>
+        Part des membres qui parient OUI, selon leur profil. Seuls les groupes d'au moins {data.minGroupSize} personnes sont affichés.
+        {" "}{data.voters} parieurs au total, dont {data.profiled} ayant renseigné leur profil.
+      </p>
+
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "16px" }}>
+        {tabBtn("territoire", "Territoire")}
+        {tabBtn("age", "Âge")}
+        {tabBtn("metier", "Métier")}
+      </div>
+
+      {tab === "territoire" && (
+        <>
+          <div style={{ display: "flex", gap: "8px", marginBottom: "12px", justifyContent: "center" }}>
+            {[["france", "France"], ["paris", "Paris"]].map(([id, text]) => (
+              <button key={id} type="button" onClick={() => setScope(id)} style={{
+                padding: "4px 12px", borderRadius: "999px", fontSize: "12px", fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
+                border: `1px solid ${scope === id ? "var(--k-accent)" : "var(--k-border)"}`, background: "transparent",
+                color: scope === id ? "var(--k-accent-text)" : "var(--k-muted2)",
+              }}>{text}</button>
+            ))}
+          </div>
+          {scope === "france" ? <FranceMap groups={data.byDepartment.groups} /> : <ParisMap groups={data.byParisArrondissement.groups} />}
+        </>
+      )}
+      {tab === "age" && <Bars rows={ageRows} />}
+      {tab === "metier" && <Bars rows={jobRows} />}
+
+      <p style={{ fontSize: "11px", color: "var(--k-faint)", margin: "14px 0 0", lineHeight: 1.45 }}>
+        {data.note} Chacun compte pour une voix. Les petits groupes sont arrondis à 5 % près.{" "}
+        <Link to="/settings" style={{ color: "var(--k-accent-text)" }}>Ajouter mon profil</Link>
+      </p>
+    </section>
+  );
+}

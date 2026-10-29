@@ -205,3 +205,94 @@ export const MARKET_COLUMNS = [
   "id", "question", "type", "status", "categories", "tags", "createdAt", "resolutionDate",
   "resolvedAt", "outcome", "outcomeLabel", "probabilityYes", "volume", "resolutionSource", "url",
 ];
+
+// ── Statistiques par groupe (zone, âge, métier) ────────────────────────────────
+// Chaque parieur compte pour une voix : OUI s'il détient plus d'actions OUI que
+// NON sur le marché, NON dans le cas inverse. Les profils (collection
+// "demographics") sont facultatifs et privés ; ils ne servent qu'ici, et un
+// groupe n'est publié que s'il compte au moins MIN_GROUP personnes.
+export const MIN_GROUP = 10;
+const AGE_BANDS = ["18-24", "25-34", "35-44", "45-54", "55-64", "65+"];
+const PROFESSIONS = {
+  etudiant: "Étudiant", tech: "Tech et numérique", sante: "Santé et social", enseignement: "Enseignement et recherche",
+  finance: "Finance, assurance, immobilier", commerce: "Commerce, vente, services", industrie: "Industrie, ingénierie, transport",
+  public: "Administration et fonction publique", artisanat: "Artisanat, BTP, agriculture", medias: "Médias, culture, communication",
+  "sans-emploi": "Sans emploi", retraite: "Retraité", autre: "Autre",
+};
+
+// Arrondit l'affichage des petits groupes pour limiter les recoupements.
+const pct = (yes, n) => {
+  const p = (yes / n) * 100;
+  return Math.round(n < 30 ? Math.round(p / 5) * 5 : p);
+};
+
+function groupBy(voters, keyOf) {
+  const map = new Map();
+  voters.forEach((v) => {
+    const k = keyOf(v);
+    if (k == null || k === "") return;
+    const g = map.get(k) || { n: 0, yes: 0 };
+    g.n += 1; g.yes += v.vote === "yes" ? 1 : 0;
+    map.set(k, g);
+  });
+  const shown = {};
+  let hidden = 0;
+  map.forEach((g, k) => {
+    if (g.n >= MIN_GROUP) shown[k] = { n: g.n, yesPct: pct(g.yes, g.n) };
+    else hidden += 1;
+  });
+  return { groups: shown, hiddenGroups: hidden };
+}
+
+export async function getInsights(db, marketId) {
+  return memo(`insights:${marketId}`, 600000, async () => {
+    const mSnap = await db.collection("markets").doc(marketId).get();
+    if (!mSnap.exists) return null;
+    const m = mSnap.data();
+    if (m.type === "multi") return { id: marketId, supported: false, reason: "Disponible pour les marchés Oui/Non uniquement." };
+
+    const bets = await db.collection("bets").where("marketId", "==", marketId).limit(10000).get();
+    const net = new Map();
+    bets.docs.forEach((d) => {
+      const b = d.data();
+      if (!b.userId || (b.side !== "yes" && b.side !== "no")) return;
+      const u = net.get(b.userId) || { yes: 0, no: 0 };
+      u[b.side] += b.shares || 0;
+      net.set(b.userId, u);
+    });
+    const voters = [];
+    net.forEach((u, uid) => {
+      if (u.yes > 0.001 && u.yes >= u.no) voters.push({ uid, vote: "yes" });
+      else if (u.no > 0.001) voters.push({ uid, vote: "no" });
+    });
+
+    // Profils partagés (consentement explicite uniquement)
+    const demo = new Map();
+    for (let i = 0; i < voters.length; i += 300) {
+      const refs = voters.slice(i, i + 300).map((v) => db.collection("demographics").doc(v.uid));
+      if (refs.length === 0) break;
+      const docs = await db.getAll(...refs);
+      docs.forEach((d) => { if (d.exists && d.data().consent === true) demo.set(d.id, d.data()); });
+    }
+    const withProfile = voters.filter((v) => demo.has(v.uid)).map((v) => ({ ...v, ...demo.get(v.uid) }));
+
+    const total = voters.length;
+    const yesAll = voters.filter((v) => v.vote === "yes").length;
+    const enough = withProfile.length >= MIN_GROUP;
+    const empty = { groups: {}, hiddenGroups: 0 };
+    return {
+      id: marketId,
+      supported: true,
+      minGroupSize: MIN_GROUP,
+      voters: total,
+      yesPct: total ? pct(yesAll, total) : null,
+      profiled: enough ? withProfile.length : null,
+      note: "Opinion des membres de Kassandre ayant renseigné leur profil, pas un sondage représentatif.",
+      byDepartment: enough ? groupBy(withProfile, (v) => v.dept) : empty,
+      byParisArrondissement: enough ? groupBy(withProfile.filter((v) => v.dept === "75"), (v) => v.arr) : empty,
+      byAge: enough ? groupBy(withProfile, (v) => v.ageBand) : empty,
+      byProfession: enough ? groupBy(withProfile, (v) => v.profession) : empty,
+      labels: { professions: PROFESSIONS, ageBands: AGE_BANDS },
+    };
+  });
+}

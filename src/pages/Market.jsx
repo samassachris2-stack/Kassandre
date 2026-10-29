@@ -12,6 +12,7 @@ import FollowButton from "../components/FollowButton";
 import EmbedCode from "../components/EmbedCode";
 import CommentsSection from "../components/CommentsSection";
 import EvidenceBlock from "../components/EvidenceBlock";
+import InsightsBlock from "../components/InsightsBlock";
 
 const S = {
   layoutWrap: {
@@ -768,6 +769,8 @@ export default function Market() {
       {market.resolutionDate && (
         <p style={S.footer}>Résolution : {market.resolutionDate}</p>
       )}
+
+      <InsightsBlock marketId={id} />
 
       <EvidenceBlock market={market} marketId={id} />
 
