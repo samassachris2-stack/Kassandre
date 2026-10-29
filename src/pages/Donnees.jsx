@@ -10,6 +10,7 @@ const ENDPOINTS = [
   { path: "/markets.csv", desc: "Export CSV de tous les marchés.", params: "status, category, tag", example: "/markets.csv?status=resolved" },
   { path: "/markets/{id}/history.csv", desc: "Historique d'un marché en CSV.", params: "", example: null },
   { path: "/calibration", desc: "Fiabilité des probabilités de Kassandre : probabilité du marché avant la résolution contre résultat réel, et score de Brier.", params: "horizonDays (1 à 60, 7 par défaut)", example: "/calibration?horizonDays=7" },
+  { path: "/track-record", desc: "Part de votes justes par tranche d'âge et par métier sur les marchés Oui/Non résolus (profils facultatifs, groupes de 10 personnes et 30 votes minimum).", params: "category", example: "/track-record?category=Politique" },
   { path: "/stats", desc: "Nombre de marchés par statut et par catégorie.", params: "", example: "/stats" },
 ];
 
@@ -42,6 +43,78 @@ function CalibrationChart({ data }) {
       <text x={W / 2} y={H - 4} fontSize="10" textAnchor="middle" fill="var(--k-muted)">Probabilité annoncée par le marché</text>
       <text x={10} y={H / 2} fontSize="10" textAnchor="middle" fill="var(--k-muted)" transform={`rotate(-90 10 ${H / 2})`}>Fréquence réelle de OUI</text>
     </svg>
+  );
+}
+
+
+const TR_CATS = ["Politique", "Économie", "Tech", "International", "Sport", "Crypto"];
+
+function TrackRecord() {
+  const [cat, setCat] = useState("");
+  const [tab, setTab] = useState("age");
+  const [d, setD] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    fetch(`${BASE}/track-record${cat ? `?category=${encodeURIComponent(cat)}` : ""}`).then((r) => r.json()).then((j) => { if (alive) setD(j); }).catch(() => { if (alive) setD({ error: true }); });
+    return () => { alive = false; };
+  }, [cat]);
+
+  const pill = (active) => ({
+    padding: "5px 12px", borderRadius: "999px", fontSize: "12px", fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
+    border: `1px solid ${active ? "var(--k-accent)" : "var(--k-border)"}`, background: "transparent",
+    color: active ? "var(--k-accent-text)" : "var(--k-muted2)",
+  });
+  const src = d && !d.error ? (tab === "age" ? d.byAge : d.byProfession) : null;
+  const rows = src
+    ? Object.entries(src.groups)
+        .map(([k, g]) => ({ key: k, label: tab === "age" ? (k === "65+" ? "65 ans et plus" : `${k.replace("-", " à ")} ans`) : d.labels.professions[k] || k, ...g }))
+        .sort((a, b) => b.rightPct - a.rightPct)
+    : [];
+  const avg = d?.allMembers?.rightPct;
+
+  return (
+    <section style={{ border: "1px solid var(--k-border)", borderRadius: "12px", padding: "18px", background: "var(--k-surface)", marginBottom: "18px", textAlign: "left" }}>
+      <h2 style={{ fontSize: "1.1rem", margin: "0 0 6px", color: "var(--k-text)" }}>Qui anticipe le mieux ?</h2>
+      <p style={{ fontSize: "13px", color: "var(--k-muted2)", lineHeight: 1.55, margin: "0 0 12px" }}>
+        Part des votes qui allaient dans le bon sens sur les marchés Oui/Non résolus, selon l'âge et le métier des membres qui ont renseigné leur profil.
+        Seuls les groupes d'au moins 10 personnes et 30 votes sont affichés.
+      </p>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "10px" }}>
+        <button type="button" style={pill(cat === "")} onClick={() => { setD(null); setCat(""); }}>Tous les sujets</button>
+        {TR_CATS.map((c) => <button key={c} type="button" style={pill(cat === c)} onClick={() => { setD(null); setCat(c); }}>{c}</button>)}
+      </div>
+      <div style={{ display: "flex", gap: "6px", marginBottom: "14px" }}>
+        <button type="button" style={pill(tab === "age")} onClick={() => setTab("age")}>Par âge</button>
+        <button type="button" style={pill(tab === "metier")} onClick={() => setTab("metier")}>Par métier</button>
+      </div>
+      {!d ? <p style={{ fontSize: "13px", color: "var(--k-muted)" }}>Chargement...</p>
+        : d.error ? <p style={{ fontSize: "13px", color: "var(--k-muted)" }}>Indisponible pour le moment.</p>
+        : rows.length === 0 ? <p style={{ fontSize: "13px", color: "var(--k-muted)" }}>Pas encore assez de profils et de marchés résolus sur ce sujet ({d.markets} marché{d.markets > 1 ? "s" : ""}).</p>
+        : (
+          <div style={{ display: "flex", flexDirection: "column", gap: "9px" }}>
+            {rows.map((r) => (
+              <div key={r.key}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", color: "var(--k-text2)", marginBottom: "3px", gap: "10px" }}>
+                  <span>{r.label}</span>
+                  <span style={{ color: "var(--k-muted)", whiteSpace: "nowrap" }}>
+                    <strong style={{ color: "var(--k-text)" }}>{r.rightPct} %</strong> de votes justes · {r.members} membres
+                    {avg != null && Math.abs(r.rightPct - avg) >= 1 && (
+                      <span style={{ color: r.rightPct > avg ? "#22c55e" : "#ef4444", marginLeft: "6px" }}>{r.rightPct > avg ? "+" : "−"}{Math.abs(r.rightPct - avg)} pts</span>
+                    )}
+                  </span>
+                </div>
+                <div style={{ height: "8px", borderRadius: "4px", background: "var(--k-surface2)", overflow: "hidden" }}>
+                  <div style={{ width: `${r.rightPct}%`, height: "100%", background: "var(--k-accent)" }} />
+                </div>
+              </div>
+            ))}
+            <p style={{ fontSize: "11px", color: "var(--k-faint)", margin: "4px 0 0", lineHeight: 1.45 }}>
+              {d.markets} marchés pris en compte{avg != null ? `, moyenne de tous les membres : ${avg} %` : ""}. Un marché très déséquilibré gonfle ces chiffres : regarde surtout l'écart avec la moyenne.
+              Membres de Kassandre ayant renseigné leur profil, pas un échantillon représentatif.
+            </p>
+          </div>
+        )}
+    </section>
   );
 }
 
@@ -107,6 +180,8 @@ export default function Donnees() {
           <p style={{ fontSize: "13px", color: "var(--k-muted)" }}>{calib ? "Pas encore assez de marchés résolus avec un historique suffisant." : "Chargement..."}</p>
         )}
       </section>
+
+      <TrackRecord />
 
       <section style={box}>
         <h2 style={h2}>Télécharger</h2>

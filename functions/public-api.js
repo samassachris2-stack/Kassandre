@@ -244,6 +244,37 @@ function groupBy(voters, keyOf) {
   return { groups: shown, hiddenGroups: hidden };
 }
 
+// Vote net de chaque parieur sur un marché Oui/Non (une voix par personne).
+async function marketVoters(db, marketId) {
+  const bets = await db.collection("bets").where("marketId", "==", marketId).limit(10000).get();
+  const net = new Map();
+  bets.docs.forEach((d) => {
+    const b = d.data();
+    if (!b.userId || (b.side !== "yes" && b.side !== "no")) return;
+    const u = net.get(b.userId) || { yes: 0, no: 0 };
+    u[b.side] += b.shares || 0;
+    net.set(b.userId, u);
+  });
+  const voters = [];
+  net.forEach((u, uid) => {
+    if (u.yes > 0.001 && u.yes >= u.no) voters.push({ uid, vote: "yes" });
+    else if (u.no > 0.001) voters.push({ uid, vote: "no" });
+  });
+  return voters;
+}
+
+// Profils partagés (consentement explicite uniquement).
+async function loadProfiles(db, uids) {
+  const demo = new Map();
+  for (let i = 0; i < uids.length; i += 300) {
+    const refs = uids.slice(i, i + 300).map((u) => db.collection("demographics").doc(u));
+    if (refs.length === 0) break;
+    const docs = await db.getAll(...refs);
+    docs.forEach((d) => { if (d.exists && d.data().consent === true) demo.set(d.id, d.data()); });
+  }
+  return demo;
+}
+
 export async function getInsights(db, marketId) {
   return memo(`insights:${marketId}`, 600000, async () => {
     const mSnap = await db.collection("markets").doc(marketId).get();
@@ -251,29 +282,8 @@ export async function getInsights(db, marketId) {
     const m = mSnap.data();
     if (m.type === "multi") return { id: marketId, supported: false, reason: "Disponible pour les marchés Oui/Non uniquement." };
 
-    const bets = await db.collection("bets").where("marketId", "==", marketId).limit(10000).get();
-    const net = new Map();
-    bets.docs.forEach((d) => {
-      const b = d.data();
-      if (!b.userId || (b.side !== "yes" && b.side !== "no")) return;
-      const u = net.get(b.userId) || { yes: 0, no: 0 };
-      u[b.side] += b.shares || 0;
-      net.set(b.userId, u);
-    });
-    const voters = [];
-    net.forEach((u, uid) => {
-      if (u.yes > 0.001 && u.yes >= u.no) voters.push({ uid, vote: "yes" });
-      else if (u.no > 0.001) voters.push({ uid, vote: "no" });
-    });
-
-    // Profils partagés (consentement explicite uniquement)
-    const demo = new Map();
-    for (let i = 0; i < voters.length; i += 300) {
-      const refs = voters.slice(i, i + 300).map((v) => db.collection("demographics").doc(v.uid));
-      if (refs.length === 0) break;
-      const docs = await db.getAll(...refs);
-      docs.forEach((d) => { if (d.exists && d.data().consent === true) demo.set(d.id, d.data()); });
-    }
+    const voters = await marketVoters(db, marketId);
+    const demo = await loadProfiles(db, voters.map((v) => v.uid));
     const withProfile = voters.filter((v) => demo.has(v.uid)).map((v) => ({ ...v, ...demo.get(v.uid) }));
 
     const total = voters.length;
@@ -284,6 +294,9 @@ export async function getInsights(db, marketId) {
       id: marketId,
       supported: true,
       minGroupSize: MIN_GROUP,
+      status: m.status || null,
+      outcome: m.status === "resolved" && (m.outcome === "yes" || m.outcome === "no") ? m.outcome : null,
+      categories: catsOf(m),
       voters: total,
       yesPct: total ? pct(yesAll, total) : null,
       profiled: enough ? withProfile.length : null,
@@ -294,6 +307,66 @@ export async function getInsights(db, marketId) {
       byAge: enough ? groupBy(withProfile, (v) => v.ageBand) : empty,
       byProfession: enough ? groupBy(withProfile, (v) => v.profession) : empty,
       labels: { professions: PROFESSIONS, ageBands: AGE_BANDS },
+    };
+  });
+}
+
+// "Qui anticipe le mieux ?" : part de votes corrects (vote net du parieur comparé au
+// résultat) sur les marchés Oui/Non résolus, par tranche d'âge et par métier.
+// Un groupe n'apparaît qu'avec au moins 10 personnes et 30 votes.
+const MIN_VOTES = 30;
+const rightPct = (right, n) => {
+  const p = (right / n) * 100;
+  return Math.round(n < 100 ? Math.round(p / 5) * 5 : p);
+};
+
+export async function getTrackRecord(db, category) {
+  return memo(`track:${category || "*"}`, 3600000, async () => {
+    const snap = await db.collection("markets").where("status", "==", "resolved").get();
+    const markets = snap.docs
+      .map((d) => ({ id: d.id, ...d.data() }))
+      .filter((m) => m.type !== "multi" && (m.outcome === "yes" || m.outcome === "no"))
+      .filter((m) => !category || catsOf(m).includes(category));
+
+    const votes = []; // { uid, right }
+    for (let i = 0; i < markets.length; i += 8) {
+      const chunk = markets.slice(i, i + 8);
+      const lists = await Promise.all(chunk.map((m) => marketVoters(db, m.id)));
+      lists.forEach((vs, k) => vs.forEach((v) => votes.push({ uid: v.uid, right: v.vote === chunk[k].outcome })));
+    }
+    const demo = await loadProfiles(db, [...new Set(votes.map((v) => v.uid))]);
+    const prof = votes.filter((v) => demo.has(v.uid)).map((v) => ({ ...v, ...demo.get(v.uid) }));
+
+    const group = (keyOf) => {
+      const map = new Map();
+      prof.forEach((v) => {
+        const k = keyOf(v);
+        if (!k) return;
+        const g = map.get(k) || { users: new Set(), votes: 0, right: 0 };
+        g.users.add(v.uid); g.votes += 1; g.right += v.right ? 1 : 0;
+        map.set(k, g);
+      });
+      const groups = {};
+      let hidden = 0;
+      map.forEach((g, k) => {
+        if (g.users.size >= MIN_GROUP && g.votes >= MIN_VOTES) groups[k] = { members: g.users.size, votes: g.votes, rightPct: rightPct(g.right, g.votes) };
+        else hidden += 1;
+      });
+      return { groups, hiddenGroups: hidden };
+    };
+
+    const enough = new Set(prof.map((v) => v.uid)).size >= MIN_GROUP && prof.length >= MIN_VOTES;
+    const empty = { groups: {}, hiddenGroups: 0 };
+    return {
+      category: category || null,
+      markets: markets.length,
+      minGroupSize: MIN_GROUP,
+      minVotes: MIN_VOTES,
+      allMembers: votes.length >= MIN_VOTES ? { votes: votes.length, rightPct: rightPct(votes.filter((v) => v.right).length, votes.length) } : null,
+      byAge: enough ? group((v) => v.ageBand) : empty,
+      byProfession: enough ? group((v) => v.profession) : empty,
+      labels: { professions: PROFESSIONS, ageBands: AGE_BANDS },
+      note: "Part des votes allant dans le sens du résultat, parmi les membres ayant renseigné leur profil. Un marché très déséquilibré gonfle ce chiffre : comparer au chiffre de tous les membres.",
     };
   });
 }

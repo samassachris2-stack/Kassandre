@@ -136,21 +136,35 @@ function ParisMap({ groups }) {
   );
 }
 
-function Bars({ rows }) {
+function Bars({ rows, avg, outcome }) {
   if (rows.length === 0) return <p style={{ fontSize: "13px", color: "var(--k-muted)" }}>Pas encore assez de membres par groupe.</p>;
+  // Marché résolu : on montre la part de membres qui avaient vu juste.
+  const shown = (r) => (outcome === "no" ? 100 - r.yesPct : r.yesPct);
+  const ref = avg == null ? null : outcome === "no" ? 100 - avg : avg;
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "9px" }}>
-      {rows.map((r) => (
-        <div key={r.key}>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", color: "var(--k-text2)", marginBottom: "3px", gap: "10px" }}>
-            <span>{r.label}</span>
-            <span style={{ color: "var(--k-muted)", whiteSpace: "nowrap" }}><strong style={{ color: "var(--k-text)" }}>{r.yesPct} %</strong> OUI · {r.n} membres</span>
+      {rows.map((r) => {
+        const v = shown(r);
+        const delta = ref == null ? null : v - ref;
+        return (
+          <div key={r.key}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", color: "var(--k-text2)", marginBottom: "3px", gap: "10px" }}>
+              <span>{r.label}</span>
+              <span style={{ color: "var(--k-muted)", whiteSpace: "nowrap" }}>
+                <strong style={{ color: "var(--k-text)" }}>{v} %</strong> {outcome ? "avaient raison" : "OUI"}
+                {delta != null && Math.abs(delta) >= 1 && (
+                  <span style={{ color: delta > 0 ? "var(--k-green, #22c55e)" : "var(--k-red, #ef4444)", marginLeft: "6px" }}>{delta > 0 ? "+" : "−"}{Math.abs(Math.round(delta))} pts</span>
+                )}
+                {" "}· {r.n} membres
+              </span>
+            </div>
+            <div style={{ height: "8px", borderRadius: "4px", background: "rgba(239,68,68,0.55)", overflow: "hidden" }}>
+              <div style={{ width: `${v}%`, height: "100%", background: "#22c55e" }} />
+            </div>
           </div>
-          <div style={{ height: "8px", borderRadius: "4px", background: "rgba(239,68,68,0.55)", overflow: "hidden" }}>
-            <div style={{ width: `${r.yesPct}%`, height: "100%", background: "#22c55e" }} />
-          </div>
-        </div>
-      ))}
+        );
+      })}
+      {ref != null && <p style={{ fontSize: "11px", color: "var(--k-faint)", margin: "2px 0 0" }}>Écart par rapport à l'ensemble des membres ({ref} %).</p>}
     </div>
   );
 }
@@ -159,7 +173,7 @@ function Bars({ rows }) {
 // à partir des profils partagés volontairement. Groupes de 10 personnes minimum.
 export default function InsightsBlock({ marketId }) {
   const [data, setData] = useState(null);
-  const [tab, setTab] = useState("territoire");
+  const [tabSel, setTab] = useState(null);
   const [scope, setScope] = useState("monde");
 
   useEffect(() => {
@@ -173,6 +187,8 @@ export default function InsightsBlock({ marketId }) {
 
   if (!data || !data.supported || data.profiled == null) return null;
 
+  const sectorMarket = (data.categories || []).some((c) => ["Économie", "Tech", "Crypto"].includes(c));
+  const tab = tabSel || (sectorMarket ? "metier" : "territoire");
   const labels = data.labels || {};
   const ageRows = Object.entries(data.byAge.groups)
     .sort((a, b) => (labels.ageBands || []).indexOf(a[0]) - (labels.ageBands || []).indexOf(b[0]))
@@ -204,7 +220,7 @@ export default function InsightsBlock({ marketId }) {
       <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "16px" }}>
         {tabBtn("territoire", "Territoire")}
         {tabBtn("age", "Âge")}
-        {tabBtn("metier", "Métier")}
+        {tabBtn("metier", sectorMarket ? "Secteurs" : "Métier")}
       </div>
 
       {tab === "territoire" && (
@@ -223,8 +239,13 @@ export default function InsightsBlock({ marketId }) {
           {scope === "paris" && <ParisMap groups={data.byParisArrondissement.groups} />}
         </>
       )}
-      {tab === "age" && <Bars rows={ageRows} />}
-      {tab === "metier" && <Bars rows={jobRows} />}
+      {tab === "age" && <Bars rows={ageRows} avg={data.yesPct} outcome={data.outcome} />}
+      {tab === "metier" && (
+        <>
+          {sectorMarket && <p style={{ fontSize: "13px", color: "var(--k-text2)", margin: "0 0 12px" }}>Ce que pensent les différents secteurs d'activité sur ce sujet.</p>}
+          <Bars rows={jobRows} avg={data.yesPct} outcome={data.outcome} />
+        </>
+      )}
 
       <p style={{ fontSize: "11px", color: "var(--k-faint)", margin: "14px 0 0", lineHeight: 1.45 }}>
         {data.note} Chacun compte pour une voix. Les petits groupes sont arrondis à 5 % près.{" "}

@@ -10,6 +10,7 @@ Base : `https://kassandre.app/api/v1` (gratuite, sans clé, lecture seule, licen
 | `GET /markets.csv` | Export CSV (mêmes filtres que la liste) |
 | `GET /markets/{id}/history.csv` | Historique en CSV |
 | `GET /calibration?horizonDays=7` | Probabilité du marché N jours avant la résolution contre résultat réel, score de Brier |
+| `GET /track-record?category=` | Part de votes justes par tranche d'âge et par métier sur les marchés Oui/Non résolus (groupes de 10 personnes et 30 votes minimum) |
 | `GET /insights/{id}` | Répartition OUI / NON par département, arrondissement de Paris, âge et métier (profils facultatifs, groupes de 10 minimum, marchés Oui/Non) |
 | `GET /stats` | Nombre de marchés par statut et par catégorie |
 
