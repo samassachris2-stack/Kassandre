@@ -9,6 +9,7 @@ import Color from "@tiptap/extension-color";
 import { useState, useRef, useCallback } from "react";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "../lib/firebase";
+import { prepareImageForUpload } from "../lib/imageUtils";
 import { safeFileName } from "../lib/cssUrl";
 import ResizableImage from "./ResizableImage";
 import TextStyleControls from "./TextStyleControls";
@@ -39,6 +40,34 @@ function ToolButton({ onClick, active, disabled, children, title }) {
   );
 }
 
+// Envoie une image collée ou déposée vers Storage et renvoie son URL.
+// (Sans ça, l'image restait en base64 dans le texte et dépassait la limite
+// d'1 Mo d'un document Firestore : "Erreur lors de l'enregistrement".)
+async function uploadEditorImage(file) {
+  const blob = await prepareImageForUpload(file).catch(() => file);
+  const path = `blog-images/${Date.now()}_${safeFileName(file.name || "image.jpg")}`;
+  const storageRef = ref(storage, path);
+  await uploadBytes(storageRef, blob, { contentType: blob.type || "image/jpeg" });
+  return getDownloadURL(storageRef);
+}
+
+async function insertUploadedImages(view, files) {
+  for (const file of files) {
+    try {
+      const url = await uploadEditorImage(file);
+      const type = view.state.schema.nodes.image;
+      view.dispatch(view.state.tr.replaceSelectionWith(type.create({ src: url })));
+    } catch (err) {
+      console.error("Erreur upload image:", err);
+      notify("Erreur lors de l'upload de l'image", "error");
+    }
+  }
+}
+
+function imageFilesOf(dt) {
+  return Array.from(dt?.files || []).filter((f) => f.type.startsWith("image/"));
+}
+
 export default function BlogEditor({ content, onChange }) {
   const [showImageMenu, setShowImageMenu] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
@@ -55,7 +84,7 @@ export default function BlogEditor({ content, onChange }) {
       Color,
       TextStyleExtras,
       ResizableImage.configure({
-        allowBase64: true,
+        allowBase64: false,
       }),
       Link.configure({
         openOnClick: false,
@@ -70,6 +99,23 @@ export default function BlogEditor({ content, onChange }) {
       }),
     ],
     content: content,
+    editorProps: {
+      handlePaste: (view, event) => {
+        const files = imageFilesOf(event.clipboardData);
+        if (!files.length) return false;
+        event.preventDefault();
+        notify("Envoi de l'image...", "success");
+        insertUploadedImages(view, files);
+        return true;
+      },
+      handleDrop: (view, event) => {
+        const files = imageFilesOf(event.dataTransfer);
+        if (!files.length) return false;
+        event.preventDefault();
+        insertUploadedImages(view, files);
+        return true;
+      },
+    },
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
     },
