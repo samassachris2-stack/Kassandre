@@ -7,6 +7,7 @@ import { useAuth } from "../context/AuthContext";
 import { resolveMarket, deleteMarket } from "../lib/amm.js";
 import { notify, askConfirm } from "../lib/notify";
 import CopyIdButton from "../components/CopyIdButton";
+import ReportedComments from "../components/ReportedComments";
 import { prepareImageForUpload } from "../lib/imageUtils";
 
 function MultiResolveButtons({ marketId }) {
@@ -969,6 +970,8 @@ export default function Admin() {
         <Link to="/admin/resolutions" style={{ padding: "10px 16px", borderRadius: "10px", background: "var(--k-accent)", color: "#fff", fontWeight: 600, fontSize: "14px", textDecoration: "none" }}>Résolutions</Link>
         <Link to="/admin/blog" style={{ padding: "10px 16px", borderRadius: "10px", background: "var(--k-surface2)", border: "1px solid var(--k-border)", color: "var(--k-text)", fontWeight: 600, fontSize: "14px", textDecoration: "none" }}>Blog</Link>
       </div>
+
+      <ReportedComments />
 
       <CsvImport
         onAddToQueue={(item) => setQueue((prev) => [...prev, { ...item, _id: `${Date.now()}_${Math.random()}` }])}

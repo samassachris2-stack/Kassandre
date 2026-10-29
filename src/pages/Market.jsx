@@ -10,6 +10,7 @@ import { notify } from "../lib/notify";
 import CopyIdButton from "../components/CopyIdButton";
 import FollowButton from "../components/FollowButton";
 import EmbedCode from "../components/EmbedCode";
+import CommentsSection from "../components/CommentsSection";
 
 const S = {
   layoutWrap: {
@@ -766,6 +767,8 @@ export default function Market() {
       {market.resolutionDate && (
         <p style={S.footer}>Résolution : {market.resolutionDate}</p>
       )}
+
+      <CommentsSection type="market" id={id} options={options} />
 
         </div>
 

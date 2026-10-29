@@ -123,6 +123,42 @@ service cloud.firestore {
       allow update: if false;
     }
 
+    // ── Commentaires (sous les marchés et les articles) ──────────────────────
+    // Lecture publique. Création par un utilisateur connecté, à son nom, avec un
+    // texte de 1 à 500 caractères. Suppression par l'auteur ou un admin.
+    match /comments/{commentId} {
+      allow read: if true;
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasOnly(
+             ['targetKey', 'userId', 'pseudo', 'avatarUrl', 'text', 'side', 'parentId', 'createdAt'])
+        && request.resource.data.keys().hasAll(['targetKey', 'userId', 'pseudo', 'text', 'createdAt'])
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.targetKey is string
+        && request.resource.data.targetKey.size() <= 200
+        && request.resource.data.pseudo is string
+        && request.resource.data.pseudo.size() <= 40
+        && request.resource.data.text is string
+        && request.resource.data.text.size() >= 1
+        && request.resource.data.text.size() <= 500
+        && request.resource.data.createdAt == request.time;
+      allow update: if false;
+      allow delete: if request.auth != null
+        && (resource.data.userId == request.auth.uid || isAdmin());
+    }
+
+    // ── Signalements de commentaires ─────────────────────────────────────────
+    // Un utilisateur ne peut signaler qu'une fois le même commentaire.
+    // Lecture et suppression réservées aux admins.
+    match /reports/{reportId} {
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasOnly(['commentId', 'userId', 'reason', 'createdAt'])
+        && request.resource.data.userId == request.auth.uid
+        && reportId == request.resource.data.commentId + '_' + request.auth.uid
+        && request.resource.data.createdAt == request.time;
+      allow read, delete: if request.auth != null && isAdmin();
+      allow update: if false;
+    }
+
     // ── Données publiques calculées (ex. meta/movers) ────────────────────────
     // Écrites par les Cloud Functions uniquement.
     match /meta/{docId} {

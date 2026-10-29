@@ -6,6 +6,7 @@ import { generateArticleStructuredData } from "../lib/structuredData";
 import ShareButtons from "../components/ShareButtons";
 import RelatedArticles from "../components/RelatedArticles";
 import LinkedMarkets from "../components/LinkedMarkets";
+import CommentsSection from "../components/CommentsSection";
 import { readingMinutes, embedVideos } from "../lib/blogUtils";
 import { trackPageView } from "../lib/analytics";
 
@@ -258,6 +259,8 @@ export default function BlogDetail() {
         />
 
         <LinkedMarkets ids={article.linkedMarkets} />
+
+        <CommentsSection type="article" id={article.slug} />
       </article>
 
       <RelatedArticles current={article} />
