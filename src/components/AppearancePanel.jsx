@@ -2,9 +2,9 @@ import { ACCENTS, DEFAULTS, setAppearance, resetAppearance, useAppearance } from
 
 const THEMES = [
   { id: "dark", label: "Sombre", bg: "#0a0a0f", card: "#12121a", line: "#2a2a35", text: "#e8e8f0" },
-  { id: "light", label: "Clair", bg: "#f4f4f9", card: "#ffffff", line: "#d8d8e4", text: "#17172a" },
+  { id: "light", label: "Clair", bg: "#e9ebf2", card: "#ffffff", line: "#b4b8c9", text: "#17172a" },
   { id: "amoled", label: "Noir pur", bg: "#000000", card: "#08080c", line: "#22222c", text: "#e8e8f0" },
-  { id: "auto", label: "Automatique", bg: "linear-gradient(135deg,#0a0a0f 50%,#f4f4f9 50%)", card: "#8884", line: "#8886", text: "#888" },
+  { id: "auto", label: "Automatique", bg: "linear-gradient(135deg,#0a0a0f 50%,#e9ebf2 50%)", card: "#8884", line: "#8886", text: "#888" },
 ];
 
 const SCALES = [

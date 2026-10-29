@@ -67,7 +67,7 @@ export function applyAppearance(s) {
   if (rootEl) rootEl.style.zoom = s.scale && s.scale !== 1 ? String(s.scale) : "";
 
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute("content", theme === "amoled" ? "#000000" : light ? "#f4f4f9" : "#0a0a0f");
+  if (meta) meta.setAttribute("content", theme === "amoled" ? "#000000" : light ? "#e9ebf2" : "#0a0a0f");
   const scheme = document.querySelector('meta[name="color-scheme"]');
   if (scheme) scheme.setAttribute("content", light ? "light" : "dark");
 }
