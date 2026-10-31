@@ -67,6 +67,7 @@ export default function BlogCSVImport({ onImportComplete }) {
           slug: article.slug,
           excerpt: article.excerpt,
           content: article.content,
+          category: article.category,
           tags: article.tags,
           linkedMarkets: article.linkedMarkets,
           status: article.status,
@@ -137,7 +138,7 @@ export default function BlogCSVImport({ onImportComplete }) {
             style={{ display: 'none' }}
           />
           <p style={styles.help}>
-            Format CSV: title, slug, excerpt, content, tags (séparés par ;),
+            Format CSV: title, slug, excerpt, content, category (facultatif : Politique, Économie…), tags (séparés par ;),
             linkedMarkets (séparés par ;), status (draft/published), publishedAt (facultatif, AAAA-MM-JJ)
           </p>
         </div>

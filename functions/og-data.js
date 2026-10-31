@@ -75,6 +75,8 @@ export async function buildIndexPayload(db, kind) {
       .filter((a) => a.slug)
       .map((a) => ({
         slug: a.slug,
+        // rubrique du blog (libellé), utilisée par le sitemap pour les pages de rubrique
+        category: a.category ?? null,
         lastmod: day(a.updatedAt) || day(a.publishedAt) || day(a.createdAt),
         // champs supplémentaires pour le flux RSS (api/rss.js)
         title: a.title ?? "",

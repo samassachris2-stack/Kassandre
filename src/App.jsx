@@ -76,6 +76,7 @@ function Shell() {
             <Route path="/:cat/:tag" element={<Feed />} />
             <Route path="/market/:id" element={<Market />} />
             <Route path="/blog" element={<BlogList />} />
+            <Route path="/blog/categorie/:cat" element={<BlogList />} />
             <Route path="/blog/:slug" element={<BlogDetail />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/portefeuille" element={<Portefeuille />} />

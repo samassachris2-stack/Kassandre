@@ -85,3 +85,42 @@ export function embedVideos(html) {
   const alone = /<p>\s*(?:<a\s[^>]*href=["']([^"']+)["'][^>]*>[\s\S]*?<\/a>|(https?:\/\/[^\s<]+)|\[video:\s*([^\]\s]+)\s*\])\s*<\/p>/gi;
   return src.replace(alone, (full, a, b, c) => embedHtml(a || b || c) || full);
 }
+
+// Rubriques du blog : mêmes libellés que les marchés (Navbar, Feed).
+export const BLOG_CATEGORIES = ["Sport", "Politique", "Crypto", "Tech", "Économie", "International", "Culture", "Climat", "Autre"];
+
+// Slug d'URL d'une rubrique : « Économie » -> « economie ».
+export const categorySlug = (label) => normalize(label).trim().replace(/\s+/g, "-");
+
+// Retrouve la rubrique à partir d'un libellé ou d'un slug (insensible à la casse et aux accents).
+export function findCategory(value) {
+  const needle = normalize(value).trim();
+  if (!needle) return null;
+  return BLOG_CATEGORIES.find((c) => categorySlug(c) === needle.replace(/\s+/g, "-")) || null;
+}
+
+// Nombre d'articles par rubrique (rubriques vides incluses, dans l'ordre de BLOG_CATEGORIES).
+export function categoryCounts(articles) {
+  const map = new Map(BLOG_CATEGORIES.map((c) => [c, 0]));
+  articles.forEach((a) => {
+    const c = findCategory(a.category);
+    if (c) map.set(c, map.get(c) + 1);
+  });
+  return BLOG_CATEGORIES.map((c) => [c, map.get(c)]);
+}
+
+// Une : jusqu'à 4 articles, positionnés par l'admin (1 = article principal, 2 à 4 = liste de côté).
+export const FEATURED_SLOTS = 4;
+
+export function featuredOf(articles) {
+  return articles
+    .filter((a) => Number.isInteger(a.featuredRank) && a.featuredRank >= 1 && a.featuredRank <= FEATURED_SLOTS)
+    .sort((a, b) => a.featuredRank - b.featuredRank);
+}
+
+// Ordre d'affichage : la une choisie d'abord, puis le reste dans l'ordre reçu (plus récent d'abord).
+export function withFeaturedFirst(articles) {
+  const featured = featuredOf(articles);
+  const ids = new Set(featured.map((a) => a.id));
+  return [...featured, ...articles.filter((a) => !ids.has(a.id))];
+}

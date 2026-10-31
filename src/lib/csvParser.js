@@ -1,3 +1,5 @@
+import { findCategory } from "./blogUtils";
+
 // Parse CSV string into array of objects
 export const parseCSV = (csvText) => {
   const lines = csvText.split('\n');
@@ -79,6 +81,9 @@ export const csvRowToArticle = (row) => {
     slug: row.slug || '',
     excerpt: row.excerpt || '',
     content: row.content || '',
+    // Colonne facultative category : libellé ou slug de rubrique (ex: Économie ou economie).
+    // Une valeur inconnue donne « sans rubrique » au lieu d'écarter l'article.
+    category: findCategory(row.category) || null,
     tags: row.tags
       ? row.tags.split(';').map(t => t.trim()).filter(t => t)
       : [],

@@ -7,7 +7,7 @@ import ShareButtons from "../components/ShareButtons";
 import RelatedArticles from "../components/RelatedArticles";
 import LinkedMarkets from "../components/LinkedMarkets";
 import CommentsSection from "../components/CommentsSection";
-import { readingMinutes, embedVideos } from "../lib/blogUtils";
+import { readingMinutes, embedVideos, categorySlug } from "../lib/blogUtils";
 import { trackPageView } from "../lib/analytics";
 
 export default function BlogDetail() {
@@ -218,9 +218,14 @@ export default function BlogDetail() {
               {formatDate(article.publishedAt)}
               <span style={{ color: "var(--k-muted)", fontWeight: 400 }}> · {readingMinutes(article.content)} min de lecture</span>
             </span>
-            {article.tags && article.tags.length > 0 && (
+            {(article.category || (article.tags && article.tags.length > 0)) && (
               <div style={styles.tags}>
-                {article.tags.map((tag) => (
+                {article.category && (
+                  <Link to={`/blog/categorie/${categorySlug(article.category)}`} style={{ ...styles.tag, textDecoration: "none", color: "var(--k-accent-text)" }}>
+                    {article.category}
+                  </Link>
+                )}
+                {(article.tags || []).map((tag) => (
                   <Link key={tag} to={`/blog?tag=${encodeURIComponent(tag)}`} style={{ ...styles.tag, textDecoration: "none" }}>
                     {tag}
                   </Link>

@@ -4,7 +4,8 @@ import { db } from "../lib/firebase";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { placeBet, calcShares } from "../lib/amm.js";
-import { getLatestArticles } from "../lib/articles";
+import { getPublishedArticles } from "../lib/articles";
+import { withFeaturedFirst } from "../lib/blogUtils";
 import { useSEO } from "../hooks/useSEO";
 import { generateOrganizationStructuredData } from "../lib/structuredData";
 import MoversSection from "../components/MoversSection";
@@ -186,7 +187,8 @@ function BlogPreviewSection() {
   const [articles, setArticles] = useState(null);
 
   useEffect(() => {
-    getLatestArticles(3).then(setArticles);
+    // Les articles mis à la une par l'admin passent avant les plus récents.
+    getPublishedArticles().then((all) => setArticles(withFeaturedFirst(all).slice(0, 3)));
   }, []);
 
   const formatDate = (timestamp) => {

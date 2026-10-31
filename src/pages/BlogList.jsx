@@ -1,8 +1,17 @@
 import { useState, useEffect, useMemo } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import { getPublishedArticles } from "../lib/articles";
-import { readingMinutes, tagCounts, matchesQuery } from "../lib/blogUtils";
+import {
+  readingMinutes,
+  tagCounts,
+  matchesQuery,
+  findCategory,
+  categoryCounts,
+  categorySlug,
+  withFeaturedFirst,
+} from "../lib/blogUtils";
 import { cssUrl } from "../lib/cssUrl";
+import { useSEO } from "../hooks/useSEO";
 
 const PAGE_SIZE = 12;
 const TAGS_SHOWN = 8;
@@ -45,6 +54,10 @@ export default function BlogList() {
   const [params, setParams] = useSearchParams();
   const [visible, setVisible] = useState(PAGE_SIZE);
   const [allTags, setAllTags] = useState(false);
+  const { cat } = useParams();
+  // Page de rubrique : /blog/categorie/:cat. Une rubrique inconnue ne renvoie aucun article.
+  const category = cat ? findCategory(cat) : null;
+  const unknownCategory = Boolean(cat) && !category;
   const tag = params.get("tag") || "";
   const search = params.get("q") || "";
   const sort = params.get("sort") || "recent";
@@ -68,20 +81,34 @@ export default function BlogList() {
 
   const showFilters = articles.length >= FILTERS_FROM;
   const tags = useMemo(() => tagCounts(articles), [articles]);
-  const filtering = Boolean(tag || search.trim());
+  const catCounts = useMemo(() => categoryCounts(articles), [articles]);
+  const filtering = Boolean(tag || search.trim() || category);
+
+  const seo = useSEO({
+    title: category ? `Rubrique ${category}` : "Blog",
+    description: category
+      ? `Analyses et actualités de la rubrique ${category} sur Kassandre.`
+      : "Analyses, décryptages et actualités autour des marchés de prédiction.",
+    url: category ? `/blog/categorie/${categorySlug(category)}` : "/blog",
+  });
 
   const filtered = useMemo(() => {
-    const list = articles.filter((a) => (!tag || (a.tags || []).includes(tag)) && matchesQuery(a, search));
+    const list = articles.filter((a) =>
+      (!category || findCategory(a.category) === category) &&
+      (!tag || (a.tags || []).includes(tag)) &&
+      matchesQuery(a, search));
     if (sort === "old") return [...list].reverse();
     if (sort === "short") return [...list].sort((a, b) => minutesOf(a) - minutesOf(b));
     return list;
-  }, [articles, tag, search, sort]);
+  }, [articles, category, tag, search, sort]);
 
   // Mise en avant : seulement sans filtre et en tri « récents ».
   const showHero = !filtering && sort === "recent" && filtered.length >= 4;
-  const hero = showHero ? filtered[0] : null;
-  const side = showHero ? filtered.slice(1, 4) : [];
-  const rest = showHero ? filtered.slice(4) : filtered;
+  // Une choisie par l'admin en premier, complétée par les plus récents.
+  const top = showHero ? withFeaturedFirst(filtered) : filtered;
+  const hero = showHero ? top[0] : null;
+  const side = showHero ? top.slice(1, 4) : [];
+  const rest = showHero ? top.slice(4) : filtered;
   const shown = rest.slice(0, visible);
 
   // Regroupement par mois quand on parcourt par date.
@@ -105,15 +132,39 @@ export default function BlogList() {
   return (
     <div style={S.container}>
       <style>{CSS}</style>
+      {seo}
 
       <header style={S.header}>
-        <h1 className="bl-title" style={S.title}>Analyses et actualités</h1>
-        <p style={S.subtitle}>Décryptages, enquêtes et points de vue sur l'actualité et les prédictions.</p>
+        <h1 className="bl-title" style={S.title}>{category || "Analyses et actualités"}</h1>
+        <p style={S.subtitle}>
+          {category
+            ? `Tous les articles de la rubrique ${category}.`
+            : "Décryptages, enquêtes et points de vue sur l'actualité et les prédictions."}
+        </p>
         <div style={S.headerMeta}>
           {articles.length > 0 && <span>{articles.length} article{articles.length > 1 ? "s" : ""}</span>}
           <a href="/rss.xml" style={S.rss}>Flux RSS</a>
         </div>
       </header>
+
+      {articles.length > 0 && (
+        <nav aria-label="Rubriques du blog" className="bl-cats" style={S.cats}>
+          <Link to="/blog" style={S.catPill(!category)}>Toutes</Link>
+          {catCounts
+            .filter(([c, n]) => n > 0 || c === category)
+            .map(([c, n]) => (
+              <Link key={c} to={`/blog/categorie/${categorySlug(c)}`} style={S.catPill(category === c)}>
+                {c}<span style={S.pillCount}>{n}</span>
+              </Link>
+            ))}
+        </nav>
+      )}
+
+      {unknownCategory && (
+        <p style={S.empty}>
+          Cette rubrique n'existe pas. <Link to="/blog" style={S.reset}>Voir tous les articles</Link>
+        </p>
+      )}
 
       {showFilters && (
         <div style={S.toolbar}>
@@ -216,6 +267,7 @@ export default function BlogList() {
                 </div>
                 <div style={S.cardBody}>
                   <div style={S.metaSmall}>{dateLabel(a.publishedAt)} · {minutesOf(a)} min de lecture</div>
+                  {a.category && <span style={S.catLabel}>{a.category}</span>}
                   <h3 style={S.cardTitle}>{a.title}</h3>
                   <p style={S.cardExcerpt}>{a.excerpt}</p>
                   {(a.tags || []).length > 0 && (
@@ -289,6 +341,17 @@ const S = {
     color: "var(--k-text)", fontSize: "14px",
   },
   pills: { display: "flex", flexWrap: "wrap", gap: "8px" },
+  cats: { display: "flex", flexWrap: "wrap", gap: "8px", justifyContent: "center", marginBottom: "28px" },
+  catPill: (active) => ({
+    fontSize: "0.9rem", fontWeight: 600, padding: "8px 16px", borderRadius: "999px", textDecoration: "none",
+    border: active ? "1px solid var(--k-accent)" : "1px solid var(--k-border)",
+    background: active ? "var(--k-accent)" : "var(--k-surface)",
+    color: active ? "#fff" : "var(--k-text2)",
+  }),
+  catLabel: {
+    fontSize: "0.72rem", fontWeight: 700, color: "var(--k-accent-text)", textTransform: "uppercase",
+    letterSpacing: "0.06em",
+  },
   pill: (active) => ({
     fontSize: "0.85rem", padding: "6px 14px", borderRadius: "20px", cursor: "pointer",
     border: active ? "1px solid var(--k-accent)" : "1px solid var(--k-border)",

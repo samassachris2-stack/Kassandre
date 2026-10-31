@@ -9,7 +9,11 @@
 const SITE = "https://kassandre.app";
 const OG_DATA_URL = "https://us-central1-kassandre-f868e.cloudfunctions.net/ogData";
 
-const STATIC_PAGES = ["/", "/presidentielle-2027", "/blog", "/leaderboard", "/resolution", "/donnees", "/cgu", "/confidentialite", "/mentions-legales"];
+// Même règle que categorySlug() côté site : « Économie » -> « economie ».
+const slugifyRubrique = (label) =>
+  String(label).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim().replace(/\s+/g, "-");
+
+const STATIC_PAGES =["/", "/presidentielle-2027", "/blog", "/leaderboard", "/resolution", "/donnees", "/cgu", "/confidentialite", "/mentions-legales"];
 const CATEGORIES = ["Sport", "Politique", "Crypto", "Tech", "Économie", "International", "Culture", "Climat", "Autre"];
 
 const xmlEsc = (s) =>
@@ -50,7 +54,12 @@ export async function buildSitemap(type, fetchFn) {
       ]);
     case "blog": {
       const items = await fetchList("articles-index", fetchFn);
-      return urlset(items.map((a) => ({ path: `/blog/${encodeURIComponent(a.slug)}`, lastmod: a.lastmod })));
+      // Une page par rubrique qui contient au moins un article publié.
+      const rubriques = [...new Set(items.map((a) => a.category).filter(Boolean))];
+      return urlset([
+        ...items.map((a) => ({ path: `/blog/${encodeURIComponent(a.slug)}`, lastmod: a.lastmod })),
+        ...rubriques.map((r) => ({ path: `/blog/categorie/${slugifyRubrique(r)}` })),
+      ]);
     }
     case "markets": {
       const items = await fetchList("markets-index", fetchFn);

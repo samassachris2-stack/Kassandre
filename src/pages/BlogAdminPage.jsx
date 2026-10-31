@@ -17,6 +17,7 @@ import {
   generateSlug,
 } from "../lib/articles";
 import { notify, askConfirm } from "../lib/notify";
+import { BLOG_CATEGORIES } from "../lib/blogUtils";
 
 // Date d'un article (Timestamp Firestore) au format attendu par <input type="datetime-local">.
 function toLocalInput(ts) {
@@ -40,6 +41,8 @@ export default function BlogAdminPage() {
     slug: "",
     excerpt: "",
     content: "",
+    category: "",
+    featuredRank: "",
     tags: "",
     linkedMarkets: "",
     status: "draft",
@@ -85,6 +88,8 @@ export default function BlogAdminPage() {
       slug: formData.slug,
       excerpt: formData.excerpt,
       content,
+      category: formData.category || null,
+      featuredRank: formData.featuredRank ? Number(formData.featuredRank) : null,
       tags: formData.tags.split(",").map((tag) => tag.trim()).filter(t => t),
       linkedMarkets: formData.linkedMarkets
         .split(",")
@@ -100,6 +105,15 @@ export default function BlogAdminPage() {
     }
 
     try {
+      // Une seule position par emplacement : l'article qui occupait cette place la quitte.
+      if (articleData.featuredRank) {
+        const displaced = articles.filter(
+          (a) => a.featuredRank === articleData.featuredRank && a.id !== editingId
+        );
+        for (const a of displaced) {
+          await updateArticle(a.id, { featuredRank: null });
+        }
+      }
       if (editingId) {
         await updateArticle(editingId, articleData);
       } else {
@@ -120,6 +134,8 @@ export default function BlogAdminPage() {
       slug: article.slug,
       excerpt: article.excerpt,
       content: article.content,
+      category: article.category || "",
+      featuredRank: article.featuredRank ? String(article.featuredRank) : "",
       tags: article.tags ? article.tags.join(", ") : "",
       linkedMarkets: article.linkedMarkets ? article.linkedMarkets.join(", ") : "",
       status: article.status,
@@ -175,6 +191,8 @@ export default function BlogAdminPage() {
       slug: "",
       excerpt: "",
       content: "",
+      category: "",
+      featuredRank: "",
       tags: "",
       linkedMarkets: "",
       status: "draft",
@@ -324,6 +342,19 @@ export default function BlogAdminPage() {
 
               <div className="blog-admin-row" style={styles.row}>
                 <div style={styles.formGroup}>
+                  <label style={styles.label}>Rubrique</label>
+                  <select
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    style={styles.input}
+                  >
+                    <option value="">Aucune rubrique</option>
+                    {BLOG_CATEGORIES.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+                <div style={styles.formGroup}>
                   <label style={styles.label}>Tags</label>
                   <input
                     type="text"
@@ -344,6 +375,21 @@ export default function BlogAdminPage() {
                     <option value="published">Publié</option>
                   </select>
                 </div>
+              </div>
+
+              <div style={styles.formGroup}>
+                <label style={styles.label}>À la une</label>
+                <select
+                  value={formData.featuredRank}
+                  onChange={(e) => setFormData({ ...formData, featuredRank: e.target.value })}
+                  style={styles.input}
+                >
+                  <option value="">Pas à la une</option>
+                  <option value="1">Position 1 : article principal</option>
+                  <option value="2">Position 2 : liste de côté</option>
+                  <option value="3">Position 3 : liste de côté</option>
+                  <option value="4">Position 4 : liste de côté</option>
+                </select>
               </div>
 
               <div style={styles.formGroup}>
