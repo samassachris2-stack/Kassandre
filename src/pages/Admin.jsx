@@ -4,7 +4,7 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../lib/firebase";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { resolveMarket, deleteMarket } from "../lib/amm.js";
+import { resolveMarket, deleteMarket, cancelMarket } from "../lib/amm.js";
 import { notify, askConfirm } from "../lib/notify";
 import CopyIdButton from "../components/CopyIdButton";
 import ReportedComments from "../components/ReportedComments";
@@ -910,6 +910,12 @@ export default function Admin() {
     // plus besoin du contournement "suppression une par une" qu'on avait dû
     // mettre en place avant. Le serveur vérifie aussi que l'appelant est
     // bien admin avant d'agir.
+    // Un marché avec des mises est annulé (joueurs remboursés), jamais effacé.
+    const m = markets.find((x) => x.id === marketId);
+    if (m && ((m.totalVolume || 0) > 0 || (m.betCount || 0) > 0)) {
+      await cancelMarket(marketId);
+      return;
+    }
     await deleteMarket(marketId);
   }
 
@@ -943,9 +949,16 @@ export default function Admin() {
 
   async function handleBulkDelete() {
     if (selectedToDelete.length === 0) return;
+    const nbWithBets = selectedToDelete.filter((id) => {
+      const m = markets.find((x) => x.id === id);
+      return m && ((m.totalVolume || 0) > 0 || (m.betCount || 0) > 0);
+    }).length;
+    const bets = nbWithBets > 0
+      ? `\n\n${nbWithBets} marché(s) ont des mises : ils seront annulés et les joueurs remboursés (leurs gains restent acquis). Les autres seront supprimés.`
+      : "";
     const confirmMsg = selectedToDelete.length === 1
-      ? "Supprimer ce marché et toutes ses données associées (options, paris, positions) ? Action irréversible."
-      : `Supprimer ces ${selectedToDelete.length} marchés et toutes leurs données associées ? Action irréversible.`;
+      ? `Supprimer ce marché ? Les marchés avec mises sont annulés, pas effacés.${bets}`
+      : `Supprimer ces ${selectedToDelete.length} marchés ?${bets}`;
     if (!(await askConfirm(confirmMsg, { confirmLabel: "Supprimer", danger: true }))) return;
 
     setDeleting(true);

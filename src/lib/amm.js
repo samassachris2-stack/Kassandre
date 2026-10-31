@@ -159,3 +159,8 @@ export async function resolveMarket(marketId, outcome) {
 export async function deleteMarket(marketId) {
   return callFunction("deleteMarket", { marketId });
 }
+
+// Annulation avec remboursement des mises (marché déjà résolu : refus côté serveur).
+export async function cancelMarket(marketId) {
+  return callFunction("cancelMarket", { marketId });
+}

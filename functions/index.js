@@ -516,8 +516,9 @@ export const resolveMarket = onCall({ enforceAppCheck: true }, async (request) =
   return { success: true };
 });
 
-// ── deleteMarket : suppression complète d'un marché et de ses données ────
-// Réservée aux admins. Équivalent serveur de deleteOneMarket côté Admin.jsx.
+// ── deleteMarket : suppression d'un marché SANS mise uniquement ──────────
+// Réservée aux admins. Un marché avec des mises doit être annulé (cancelMarket),
+// sinon les joueurs perdraient leur mise sans remboursement.
 
 export const deleteMarket = onCall({ enforceAppCheck: true }, async (request) => {
   const userId = requireAuth(request);
@@ -528,6 +529,11 @@ export const deleteMarket = onCall({ enforceAppCheck: true }, async (request) =>
   requireAdmin(userSnap.data());
 
   const marketRef = db.collection("markets").doc(marketId);
+
+  const anyBet = await db.collection("bets").where("marketId", "==", marketId).limit(1).get();
+  if (!anyBet.empty) {
+    throw new HttpsError("failed-precondition", "Ce marché a des mises : annulez-le pour rembourser les joueurs.");
+  }
 
   const optsSnap = await marketRef.collection("options").get();
   if (!optsSnap.empty) {
@@ -559,6 +565,83 @@ export const deleteMarket = onCall({ enforceAppCheck: true }, async (request) =>
 
   await marketRef.delete();
   return { success: true };
+});
+
+// ── cancelMarket : annulation d'un marché avec remboursement des mises ───
+// Réservée aux admins. Chaque joueur récupère le montant net qu'il a misé
+// (achats moins ventes). Un gain déjà encaissé reste acquis. Le remboursement
+// est idempotent : le document refunds/{marketId}_{uid} empêche un double crédit
+// si l'annulation est relancée après une erreur.
+
+export const cancelMarket = onCall({ enforceAppCheck: true }, async (request) => {
+  const userId = requireAuth(request);
+  const { marketId } = request.data;
+  if (!marketId) throw new HttpsError("invalid-argument", "marketId manquant.");
+
+  const userSnap = await db.collection("users").doc(userId).get();
+  requireAdmin(userSnap.data());
+
+  const marketRef = db.collection("markets").doc(marketId);
+
+  // 1. Fermer le marché : plus de paris, plus de résolution.
+  await db.runTransaction(async (tx) => {
+    const snap = await tx.get(marketRef);
+    if (!snap.exists) throw new HttpsError("not-found", "Marché introuvable.");
+    const status = snap.data().status;
+    if (status === "resolved") {
+      throw new HttpsError("failed-precondition", "Marché déjà résolu : il ne peut plus être annulé.");
+    }
+    if (status === "open") {
+      tx.update(marketRef, { status: "cancelled", cancelledAt: FieldValue.serverTimestamp() });
+    }
+  });
+
+  // 2. Montant net misé par joueur.
+  const betsSnap = await db.collection("bets").where("marketId", "==", marketId).get();
+  const netByUser = {};
+  betsSnap.forEach((d) => {
+    const b = d.data();
+    netByUser[b.userId] = (netByUser[b.userId] || 0) + (b.amount || 0);
+  });
+
+  const marketData = (await marketRef.get()).data() || {};
+  let refundedUsers = 0;
+  let totalRefunded = 0;
+
+  // 3. Un remboursement par joueur, dans une transaction idempotente.
+  for (const [uid, net] of Object.entries(netByUser)) {
+    const refund = Math.max(0, Math.round(net));
+    if (refund <= 0) continue;
+
+    const refundRef = db.collection("refunds").doc(`${marketId}_${uid}`);
+    const userRef = db.collection("users").doc(uid);
+    const notifRef = db.collection("notifications").doc(`${uid}_${marketId}_cancelled`);
+
+    const done = await db.runTransaction(async (tx) => {
+      const existing = await tx.get(refundRef);
+      if (existing.exists) return false;
+      tx.set(refundRef, {
+        userId: uid, marketId, amount: refund, createdAt: FieldValue.serverTimestamp(),
+      });
+      tx.update(userRef, { balance: FieldValue.increment(refund) });
+      tx.set(notifRef, {
+        userId: uid, type: "cancelled", marketId,
+        payout: refund,
+        question: marketData.question || null,
+        outcomeLabel: null,
+        read: false,
+        createdAt: FieldValue.serverTimestamp(),
+      });
+      return true;
+    });
+
+    if (done) {
+      refundedUsers++;
+      totalRefunded += refund;
+    }
+  }
+
+  return { success: true, refundedUsers, totalRefunded };
 });
 
 // ── Snapshots planifiés pour le leaderboard Hebdo/Mensuel ────────────────
