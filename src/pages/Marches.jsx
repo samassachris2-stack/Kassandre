@@ -61,20 +61,60 @@ function Prob({ m, big }) {
   );
 }
 
+// Jauge OUI / NON des cartes : deux segments, vert et rouge.
+function CardGauge({ m }) {
+  const pct = pctOf(m);
+  if (pct === null) {
+    return (
+      <div style={S.multiBox}>
+        <span style={S.multiDot} />
+        <span style={S.multiText}>Marché à choix multiples</span>
+        <span style={S.multiArrow}>→</span>
+      </div>
+    );
+  }
+  return (
+    <div>
+      <div style={S.gaugeLabels}>
+        <span style={{ color: "#22c55e" }}>OUI <strong style={S.gaugePct}>{pct} %</strong></span>
+        <span style={{ color: "#ef4444" }}><strong style={S.gaugePct}>{100 - pct} %</strong> NON</span>
+      </div>
+      <div style={S.gaugeTrack}>
+        <div style={{ ...S.gaugeYes, width: `${pct}%` }} />
+        <div style={{ ...S.gaugeNo, width: `${100 - pct}%` }} />
+      </div>
+    </div>
+  );
+}
+
 function MarketCard({ m, resolved }) {
+  const n = daysLeft(m);
+  const urgent = !resolved && n !== null && n >= 0 && n <= 3;
+  const hot = (m.totalVolume || 0) >= 50000;
   return (
     <Link to={`/market/${m.id}`} className="mk-card">
       <div className="mk-cover" style={{ background: m.coverImageUrl ? undefined : "linear-gradient(135deg,var(--k-accent-deep),var(--k-inset))" }}>
         {m.coverImageUrl && <img src={m.coverImageUrl} alt="" loading="lazy" decoding="async" />}
+        <div className="mk-cover-fade" />
         <span style={S.coverCat}>{catsOf(m)[0] || "Marché"}</span>
-        {m.pinnedFeatured && <span style={S.coverStar}>★ À la une</span>}
+        <div style={S.coverBadges}>
+          {m.pinnedFeatured && <span style={S.coverStar}>★ À la une</span>}
+          {hot && !m.pinnedFeatured && <span style={S.coverHot}>🔥 Populaire</span>}
+        </div>
+        <span style={{ ...S.timePill, ...(urgent ? S.timeUrgent : null) }}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
+          {whenLabel(m, resolved) || "—"}
+        </span>
       </div>
       <div style={S.cardBody}>
         <h3 style={S.cardTitle}>{m.question}</h3>
-        <Prob m={m} />
+        <CardGauge m={m} />
         <div style={S.cardFoot}>
-          <span>{fmtVol(m)}</span>
-          <span>{whenLabel(m, resolved)}</span>
+          <span style={S.volChip}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></svg>
+            {fmtVol(m)}
+          </span>
+          <span className="mk-cta" style={{ ...S.cta, display: "inline-block", transition: "transform .2s" }}>Parier →</span>
         </div>
       </div>
     </Link>
@@ -346,10 +386,13 @@ export default function Marches() {
 
 const CSS = `
   .mk-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
-  .mk-card { display: flex; flex-direction: column; background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 14px; overflow: hidden; text-decoration: none; transition: border-color .2s, transform .2s; }
-  .mk-card:hover { border-color: var(--k-accent); transform: translateY(-2px); }
-  .mk-cover { position: relative; aspect-ratio: 16 / 8; overflow: hidden; }
-  .mk-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .mk-card { display: flex; flex-direction: column; background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 16px; overflow: hidden; text-decoration: none; transition: border-color .2s, transform .2s, box-shadow .2s; }
+  .mk-card:hover { border-color: var(--k-accent); transform: translateY(-3px); box-shadow: 0 12px 30px rgba(var(--k-accent-rgb),0.18); }
+  .mk-cover { position: relative; aspect-ratio: 16 / 9; overflow: hidden; }
+  .mk-cover img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .4s; }
+  .mk-card:hover .mk-cover img { transform: scale(1.05); }
+  .mk-cover-fade { position: absolute; inset: 0; background: linear-gradient(to top, rgba(var(--k-bg-rgb),0.85) 0%, rgba(var(--k-bg-rgb),0) 55%); pointer-events: none; }
+  .mk-card:hover .mk-cta { transform: translateX(3px); }
   .mk-skel { height: 300px; border-radius: 14px; background: linear-gradient(90deg,var(--k-surface),var(--k-surface2),var(--k-surface)); background-size: 200% 100%; animation: mkskel 1.4s infinite; }
   @keyframes mkskel { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
   .mk-hero { display: grid; grid-template-columns: 1.7fr 1fr; gap: 18px; margin-bottom: 40px; }
@@ -408,11 +451,6 @@ const S = {
   sideQ: { fontSize: "0.92rem", fontWeight: 600, color: "var(--k-text)", lineHeight: 1.35, marginBottom: "4px", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" },
   sideMeta: { fontSize: "0.78rem", color: "var(--k-muted)" },
   sidePct: { fontSize: "1.1rem", fontWeight: 800, color: "var(--k-accent-text)", flexShrink: 0 },
-  coverCat: { position: "absolute", top: "10px", left: "10px", fontSize: "0.7rem", fontWeight: 700, color: "var(--k-accent-text)", background: "rgba(var(--k-bg-rgb),0.85)", borderRadius: "6px", padding: "3px 9px", textTransform: "uppercase", letterSpacing: "0.06em" },
-  coverStar: { position: "absolute", top: "10px", right: "10px", fontSize: "0.7rem", fontWeight: 700, color: "#f59e0b", background: "rgba(var(--k-bg-rgb),0.85)", borderRadius: "6px", padding: "3px 9px" },
-  cardBody: { padding: "14px 16px 16px", display: "flex", flexDirection: "column", gap: "14px", flex: 1 },
-  cardTitle: { fontSize: "1.02rem", fontWeight: 700, color: "var(--k-text)", margin: 0, lineHeight: 1.35, minHeight: "4.1em", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" },
-  cardFoot: { display: "flex", justifyContent: "space-between", gap: "8px", fontSize: "0.78rem", color: "var(--k-muted)", marginTop: "auto", paddingTop: "10px", borderTop: "1px solid var(--k-surface2)" },
   track: { height: "6px", borderRadius: "999px", background: "rgba(var(--k-accent-rgb),0.18)", overflow: "hidden" },
   fill: { height: "100%", borderRadius: "999px", background: "linear-gradient(90deg, var(--k-accent), var(--k-accent-text))" },
   panelTitle: { fontSize: "1rem", fontWeight: 700, color: "var(--k-accent-text)", marginBottom: "6px" },
@@ -426,6 +464,26 @@ const S = {
   topicMore: { marginTop: "auto", paddingTop: "12px", fontSize: "0.85rem", fontWeight: 600, color: "var(--k-accent-text)", textDecoration: "none" },
   activeTag: { fontSize: "0.9rem", color: "var(--k-muted2)", margin: "0 0 18px" },
   reset: { marginLeft: "12px", background: "none", border: "none", color: "var(--k-accent-text)", cursor: "pointer", fontSize: "0.9rem", textDecoration: "underline" },
+  coverCat: { position: "absolute", top: "12px", left: "12px", fontSize: "0.7rem", fontWeight: 700, color: "#fff", background: "rgba(var(--k-accent-rgb),0.85)", backdropFilter: "blur(4px)", borderRadius: "999px", padding: "4px 11px", textTransform: "uppercase", letterSpacing: "0.06em" },
+  coverBadges: { position: "absolute", top: "12px", right: "12px", display: "flex", gap: "6px" },
+  coverStar: { fontSize: "0.7rem", fontWeight: 700, color: "#f59e0b", background: "rgba(var(--k-bg-rgb),0.88)", borderRadius: "999px", padding: "4px 10px" },
+  coverHot: { fontSize: "0.7rem", fontWeight: 700, color: "#fb923c", background: "rgba(var(--k-bg-rgb),0.88)", borderRadius: "999px", padding: "4px 10px" },
+  timePill: { position: "absolute", left: "12px", bottom: "12px", display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "0.75rem", fontWeight: 600, color: "var(--k-text)", background: "rgba(var(--k-bg-rgb),0.82)", backdropFilter: "blur(4px)", borderRadius: "999px", padding: "5px 11px" },
+  timeUrgent: { color: "#fbbf24", background: "rgba(120,53,15,0.75)" },
+  cardBody: { padding: "16px 18px 16px", display: "flex", flexDirection: "column", gap: "16px", flex: 1 },
+  cardTitle: { fontSize: "1.05rem", fontWeight: 700, color: "var(--k-text)", margin: 0, lineHeight: 1.35, minHeight: "4.1em", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" },
+  gaugeLabels: { display: "flex", justifyContent: "space-between", fontSize: "0.74rem", fontWeight: 700, letterSpacing: "0.05em", marginBottom: "7px" },
+  gaugePct: { fontSize: "1.15rem", fontWeight: 800, letterSpacing: 0 },
+  gaugeTrack: { display: "flex", height: "8px", borderRadius: "999px", overflow: "hidden", gap: "3px", background: "transparent" },
+  gaugeYes: { background: "linear-gradient(90deg,#16a34a,#22c55e)", borderRadius: "999px", minWidth: "4px" },
+  gaugeNo: { background: "linear-gradient(90deg,#ef4444,#dc2626)", borderRadius: "999px", minWidth: "4px" },
+  multiBox: { display: "flex", alignItems: "center", gap: "10px", padding: "11px 14px", borderRadius: "12px", background: "rgba(var(--k-accent-rgb),0.12)", border: "1px solid rgba(var(--k-accent-rgb),0.3)" },
+  multiDot: { width: "8px", height: "8px", borderRadius: "50%", background: "var(--k-accent)", flexShrink: 0 },
+  multiText: { flex: 1, fontSize: "0.85rem", fontWeight: 600, color: "var(--k-accent-text)" },
+  multiArrow: { color: "var(--k-accent-text)", fontWeight: 700 },
+  cardFoot: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px", marginTop: "auto", paddingTop: "12px", borderTop: "1px solid var(--k-surface2)" },
+  volChip: { display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "0.8rem", color: "var(--k-muted2)" },
+  cta: { fontSize: "0.85rem", fontWeight: 700, color: "var(--k-accent-text)" },
   multi: { fontWeight: 700, color: "var(--k-accent-text)" },
   more: { display: "block", margin: "28px auto 0", padding: "12px 28px", borderRadius: "10px", background: "transparent", border: "1px solid var(--k-accent)", color: "var(--k-accent-text)", fontSize: "0.95rem", fontWeight: 600, cursor: "pointer" },
 };
