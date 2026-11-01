@@ -23,6 +23,7 @@ const MentionsLegales = lazy(() => import("./pages/MentionsLegales"));
 const BlogList = lazy(() => import("./pages/BlogList"));
 const BlogDetail = lazy(() => import("./pages/BlogDetail"));
 const Resolution = lazy(() => import("./pages/Resolution"));
+const Marches = lazy(() => import("./pages/Marches"));
 const EmbedMarket = lazy(() => import("./pages/EmbedMarket"));
 
 // Les pages /embed/... s'affichent seules, sans barre, pied de page ni notifications.
@@ -60,7 +61,7 @@ function Shell() {
   // Chaque page apparaît en fondu. Les pages du fil (/, /:categorie, /:categorie/:tag) partagent
   // la même clé pour ne pas être rechargées quand on change de filtre.
   const first = pathname.split("/")[1] || "";
-  const FIXED = ["market", "blog", "leaderboard", "portefeuille", "profil", "tracker", "soumettre", "admin", "settings", "donnees", "cgu", "confidentialite", "mentions-legales", "resolution", "presidentielle-2027"];
+  const FIXED = ["market", "marches", "blog", "leaderboard", "portefeuille", "profil", "tracker", "soumettre", "admin", "settings", "donnees", "cgu", "confidentialite", "mentions-legales", "resolution", "presidentielle-2027"];
   const pageKey = FIXED.includes(first) ? pathname : "feed";
   return (
       <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
@@ -70,6 +71,7 @@ function Shell() {
           <div key={pageKey} className="k-page">
           <Routes>
             <Route path="/" element={<Feed />} />
+            <Route path="/marches" element={<Marches />} />
             <Route path="/resolution" element={<Resolution />} />
             <Route path="/presidentielle-2027" element={<Feed hub="presidentielle" />} />
             <Route path="/:cat" element={<Feed />} />

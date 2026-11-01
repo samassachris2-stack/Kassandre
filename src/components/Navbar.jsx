@@ -211,6 +211,14 @@ export default function Navbar() {
 
         <div className="kassandre-nav-desktop-links">
           <Link
+            to="/marches"
+            style={S.navLink(location.pathname === "/marches")}
+            onMouseEnter={(e) => { if (location.pathname !== "/marches") e.currentTarget.style.color = "var(--k-text)"; }}
+            onMouseLeave={(e) => { if (location.pathname !== "/marches") e.currentTarget.style.color = "var(--k-muted2)"; }}
+          >
+            Marchés
+          </Link>
+          <Link
             to="/blog"
             style={{
               ...S.navLink(location.pathname.startsWith("/blog")),
@@ -356,6 +364,7 @@ export default function Navbar() {
             </div>
 
             {[
+              ["Marchés", "/marches"],
               ["Mon profil", `/profil/${user.uid}`],
               ["Portefeuille", "/portefeuille"],
               ["Mon tracker", `/tracker/${user.uid}`],
