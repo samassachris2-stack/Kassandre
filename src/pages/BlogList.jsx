@@ -245,6 +245,17 @@ export default function BlogList() {
             {followAll ? "Voir moins" : `Voir tous les thèmes (${tags.length})`}
           </button>
         )}
+        <div style={S.asideBlock}>
+          <div style={S.asideTitle}>Derniers articles</div>
+          <ul style={S.latestList}>
+            {articles.slice(0, 5).map((a) => (
+              <li key={a.id}>
+                <Link to={`/blog/${a.slug}`} style={S.latestLink}>{a.title}</Link>
+                <div style={S.metaSmall}>{dateLabel(a.publishedAt)}</div>
+              </li>
+            ))}
+          </ul>
+        </div>
       </aside>
       <div className="bl-main">
 
@@ -496,6 +507,9 @@ const S = {
   metaSmall: { fontSize: "0.78rem", color: "var(--k-muted)" },
   asideTitle: { fontSize: "1rem", fontWeight: 700, color: "var(--k-accent-text)", marginBottom: "6px" },
   asideHint: { fontSize: "0.8rem", color: "var(--k-muted)", margin: "0 0 16px", lineHeight: 1.4 },
+  asideBlock: { marginTop: "18px", paddingTop: "16px", borderTop: "1px solid var(--k-surface2)" },
+  latestList: { listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "12px" },
+  latestLink: { display: "block", fontSize: "0.88rem", fontWeight: 600, lineHeight: 1.35, color: "var(--k-text)", textDecoration: "none", marginBottom: "3px" },
   chipWrap: { display: "flex", flexWrap: "wrap", gap: "8px" },
   followMore: { marginTop: "12px", background: "none", border: "none", padding: 0, color: "var(--k-accent-text)", fontSize: "0.85rem", fontWeight: 600, cursor: "pointer" },
   chip: (on) => ({
