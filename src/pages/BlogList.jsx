@@ -23,6 +23,8 @@ const OPINION_TAGS = ["tribune", "opinion", "édito", "edito"];
 // Sections par thème sur la page d'accueil du blog.
 const SECTIONS_MAX = 4;
 const SECTION_SIZE = 3;
+// Thèmes affichés par défaut dans la colonne « Suivre des thèmes ».
+const FOLLOW_SHOWN = 8;
 
 const toDate = (ts) => {
   if (!ts) return null;
@@ -125,6 +127,7 @@ export default function BlogList() {
 
   // Thèmes suivis (clés normalisées), mémorisés dans le navigateur.
   const [followed, setFollowed] = useState(() => readFollowed());
+  const [followAll, setFollowAll] = useState(false);
   const toggleFollow = (label) => {
     const k = tagKey(label);
     setFollowed((prev) => {
@@ -227,23 +230,21 @@ export default function BlogList() {
       <aside className="bl-aside" aria-label="Thèmes à suivre">
         <div style={S.asideTitle}>Suivre des thèmes</div>
         <p style={S.asideHint}>Les thèmes suivis apparaissent en haut de la page.</p>
-        {[["Populaires", tags.slice(0, 10)], ["Tous les thèmes", tags.slice(10)]]
-          .filter(([, list]) => list.length > 0)
-          .map(([title, list]) => (
-            <div key={title} style={S.followGroup}>
-              <div style={S.followGroupTitle}>{title}</div>
-              <div style={S.chipWrap}>
-                {list.map(([t]) => {
-                  const on = followed.includes(tagKey(t));
-                  return (
-                    <button key={tagKey(t)} type="button" aria-pressed={on} onClick={() => toggleFollow(t)} style={S.chip(on)}>
-                      <span aria-hidden="true">{on ? "✓" : "+"}</span> {t}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
+        <div style={S.chipWrap}>
+          {(followAll ? tags : tags.slice(0, FOLLOW_SHOWN)).map(([t]) => {
+            const on = followed.includes(tagKey(t));
+            return (
+              <button key={tagKey(t)} type="button" aria-pressed={on} onClick={() => toggleFollow(t)} style={S.chip(on)}>
+                <span aria-hidden="true">{on ? "✓" : "+"}</span> {t}
+              </button>
+            );
+          })}
+        </div>
+        {tags.length > FOLLOW_SHOWN && (
+          <button type="button" onClick={() => setFollowAll((v) => !v)} style={S.followMore}>
+            {followAll ? "Voir moins" : `Voir tous les thèmes (${tags.length})`}
+          </button>
+        )}
       </aside>
       <div className="bl-main">
 
@@ -495,9 +496,8 @@ const S = {
   metaSmall: { fontSize: "0.78rem", color: "var(--k-muted)" },
   asideTitle: { fontSize: "1rem", fontWeight: 700, color: "var(--k-accent-text)", marginBottom: "6px" },
   asideHint: { fontSize: "0.8rem", color: "var(--k-muted)", margin: "0 0 16px", lineHeight: 1.4 },
-  followGroup: { marginBottom: "18px", paddingBottom: "14px", borderBottom: "1px solid var(--k-surface2)" },
-  followGroupTitle: { fontSize: "0.72rem", fontWeight: 700, color: "var(--k-muted)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" },
   chipWrap: { display: "flex", flexWrap: "wrap", gap: "8px" },
+  followMore: { marginTop: "12px", background: "none", border: "none", padding: 0, color: "var(--k-accent-text)", fontSize: "0.85rem", fontWeight: 600, cursor: "pointer" },
   chip: (on) => ({
     fontSize: "0.85rem", fontWeight: 500, padding: "6px 12px", borderRadius: "999px", cursor: "pointer",
     whiteSpace: "nowrap", textTransform: "capitalize",
