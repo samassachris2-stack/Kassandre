@@ -92,56 +92,65 @@ function MarketCard({ m, resolved }) {
       <div
         className="mk-card"
         style={{
-          position: "relative", overflow: "hidden", height: "100%", boxSizing: "border-box",
-          display: "flex", flexDirection: "column", padding: "16px", cursor: "pointer",
-          borderRadius: "14px", border: "0.5px solid rgba(var(--k-accent-rgb),0.15)",
-          background: hasImg
-            ? `linear-gradient(160deg, rgba(var(--k-bg-rgb),0.78), rgba(var(--k-bg-rgb),0.94)), ${cssUrl(m.coverImageUrl)} center / cover no-repeat`
-            : `radial-gradient(circle at 88% 12%, ${c}55, transparent 55%), radial-gradient(circle at 8% 95%, ${c}2a, transparent 50%), linear-gradient(160deg, ${c}1c, var(--k-surface))`,
+          overflow: "hidden", height: "100%", boxSizing: "border-box", display: "flex", flexDirection: "column",
+          cursor: "pointer", borderRadius: "14px", border: "0.5px solid rgba(var(--k-accent-rgb),0.15)", background: "var(--k-surface)",
         }}
       >
-        {!hasImg && <span style={S.coverEmoji} aria-hidden="true">{e}</span>}
-
-        <div style={{ position: "relative", display: "flex", alignItems: "flex-start", gap: "10px", marginBottom: "10px" }}>
+        {/* Partie haute : image (ou fond décoratif), titre et jauge */}
+        <div
+          style={{
+            position: "relative", overflow: "hidden", minHeight: "128px", padding: "16px 16px 14px",
+            display: "flex", alignItems: "flex-end", gap: "10px",
+            background: hasImg
+              ? `linear-gradient(to top, rgba(var(--k-bg-rgb),0.92) 8%, rgba(var(--k-bg-rgb),0.35) 85%), ${cssUrl(m.coverImageUrl)} center / cover no-repeat`
+              : `radial-gradient(circle at 88% 15%, ${c}66, transparent 58%), radial-gradient(circle at 6% 100%, ${c}33, transparent 50%), linear-gradient(160deg, ${c}26, var(--k-inset))`,
+          }}
+        >
+          {!hasImg && <span style={S.coverEmoji} aria-hidden="true">{e}</span>}
           <p style={{
-            fontWeight: 500, fontSize: "14px", color: "var(--k-text)", lineHeight: 1.35, flex: 1, margin: 0,
+            position: "relative", fontWeight: 600, fontSize: "14px", color: "#fff", lineHeight: 1.35, flex: 1, margin: 0,
+            textShadow: "0 1px 6px rgba(0,0,0,0.45)",
             display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden",
           }}>{m.question}</p>
           {!isMulti && pct !== null && (
-            <svg width="42" height="42" viewBox="0 0 44 44" style={{ flexShrink: 0 }}>
-              <circle cx="22" cy="22" r="18" fill="none" stroke="rgba(var(--k-accent-rgb),0.15)" strokeWidth="4" />
+            <svg width="42" height="42" viewBox="0 0 44 44" style={{ position: "relative", flexShrink: 0 }}>
+              <circle cx="22" cy="22" r="19" fill="rgba(var(--k-bg-rgb),0.55)" />
+              <circle cx="22" cy="22" r="18" fill="none" stroke="rgba(var(--k-accent-rgb),0.25)" strokeWidth="4" />
               <circle cx="22" cy="22" r="18" fill="none" stroke="var(--k-accent)" strokeWidth="4" strokeDasharray={circ} strokeDashoffset={circ * (1 - pct / 100)} strokeLinecap="round" transform="rotate(-90 22 22)" />
-              <text x="22" y="26" textAnchor="middle" fontSize="11" fontWeight="600" fill="var(--k-text)">{pct}%</text>
+              <text x="22" y="26" textAnchor="middle" fontSize="11" fontWeight="600" fill="#fff">{pct}%</text>
             </svg>
           )}
         </div>
 
-        {(m.tags || []).length > 0 && (
-          <div style={{ position: "relative", display: "flex", gap: "5px", flexWrap: "wrap", marginBottom: "10px" }}>
-            {m.tags.slice(0, 3).map((tag) => (
-              <button
-                key={tag}
-                type="button"
-                onClick={(ev) => { ev.preventDefault(); ev.stopPropagation(); navigate(`/marches?tag=${encodeURIComponent(tagKey(tag))}`); }}
-                style={{ fontSize: "11px", fontWeight: 500, color: "var(--k-accent-text)", background: "rgba(var(--k-accent-rgb),0.12)", border: "0.5px solid rgba(var(--k-accent-rgb),0.25)", borderRadius: "6px", padding: "2px 8px", cursor: "pointer" }}
-              >#{tag}</button>
-            ))}
-          </div>
-        )}
+        {/* Partie basse : tags, Oui / Non, volume et résolution */}
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "12px 16px 14px" }}>
+          {(m.tags || []).length > 0 && (
+            <div style={{ display: "flex", gap: "5px", flexWrap: "wrap", marginBottom: "12px" }}>
+              {m.tags.slice(0, 3).map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={(ev) => { ev.preventDefault(); ev.stopPropagation(); navigate(`/marches?tag=${encodeURIComponent(tagKey(tag))}`); }}
+                  style={{ fontSize: "11px", fontWeight: 500, color: "var(--k-accent-text)", background: "rgba(var(--k-accent-rgb),0.12)", border: "0.5px solid rgba(var(--k-accent-rgb),0.25)", borderRadius: "6px", padding: "2px 8px", cursor: "pointer" }}
+                >#{tag}</button>
+              ))}
+            </div>
+          )}
 
-        {!isMulti && pct !== null && (
-          <div style={{ position: "relative", display: "flex", gap: "6px", marginTop: "auto", marginBottom: "10px" }}>
-            <div style={{ flex: 1, padding: "7px", borderRadius: "7px", textAlign: "center", border: "0.5px solid rgba(34,197,94,0.35)", background: "rgba(34,197,94,0.12)", color: "#22c55e", fontWeight: 600, fontSize: "12px" }}>Oui · {pct}%</div>
-            <div style={{ flex: 1, padding: "7px", borderRadius: "7px", textAlign: "center", border: "0.5px solid rgba(239,68,68,0.35)", background: "rgba(239,68,68,0.12)", color: "#ef4444", fontWeight: 600, fontSize: "12px" }}>Non · {100 - pct}%</div>
-          </div>
-        )}
-        {isMulti && <p style={{ position: "relative", fontSize: "11px", color: "var(--k-muted)", marginTop: "auto", marginBottom: "10px" }}>Multi-choix</p>}
+          {!isMulti && pct !== null && (
+            <div style={{ display: "flex", gap: "6px", marginTop: "auto", marginBottom: "12px" }}>
+              <div style={{ flex: 1, padding: "7px", borderRadius: "7px", textAlign: "center", border: "0.5px solid rgba(34,197,94,0.35)", background: "rgba(34,197,94,0.12)", color: "#22c55e", fontWeight: 600, fontSize: "12px" }}>Oui · {pct}%</div>
+              <div style={{ flex: 1, padding: "7px", borderRadius: "7px", textAlign: "center", border: "0.5px solid rgba(239,68,68,0.35)", background: "rgba(239,68,68,0.12)", color: "#ef4444", fontWeight: 600, fontSize: "12px" }}>Non · {100 - pct}%</div>
+            </div>
+          )}
+          {isMulti && <p style={{ fontSize: "11px", color: "var(--k-muted)", marginTop: "auto", marginBottom: "12px" }}>Multi-choix</p>}
 
-        <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: "11px", color: "var(--k-muted)" }}>
-          <span>{Math.round(m.totalVolume || 0)} pts Vol.</span>
-          <span style={urgent ? { color: "#fbbf24", fontWeight: 600 } : undefined}>
-            {resolved ? `Résolu le ${m.resolutionDate || ""}` : urgent ? whenLabel(m, false) : `Résolution : ${m.resolutionDate || "n.c."}`}
-          </span>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: "11px", color: "var(--k-muted)", paddingTop: "10px", borderTop: "0.5px solid rgba(var(--k-accent-rgb),0.12)" }}>
+            <span>{Math.round(m.totalVolume || 0)} pts Vol.</span>
+            <span style={urgent ? { color: "#fbbf24", fontWeight: 600 } : undefined}>
+              {resolved ? `Résolu le ${m.resolutionDate || ""}` : urgent ? whenLabel(m, false) : `Résolution : ${m.resolutionDate || "n.c."}`}
+            </span>
+          </div>
         </div>
       </div>
     </Link>
