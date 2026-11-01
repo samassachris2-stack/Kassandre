@@ -87,22 +87,22 @@ function MarketCard({ m, resolved }) {
             position: "relative", overflow: "hidden", minHeight: "128px", padding: "16px 16px 14px",
             display: "flex", alignItems: "flex-end", gap: "10px",
             background: hasImg
-              ? `linear-gradient(to top, rgba(var(--k-bg-rgb),0.92) 8%, rgba(var(--k-bg-rgb),0.35) 85%), ${cssUrl(m.coverImageUrl)} center / cover no-repeat`
+              ? `linear-gradient(to top, var(--k-photo-card-a) 8%, var(--k-photo-card-b) 85%), ${cssUrl(m.coverImageUrl)} center / cover no-repeat`
               : `radial-gradient(circle at 88% 15%, ${c}66, transparent 58%), radial-gradient(circle at 6% 100%, ${c}33, transparent 50%), linear-gradient(160deg, ${c}26, var(--k-inset))`,
           }}
         >
           {!hasImg && <span style={S.coverEmoji} aria-hidden="true">{e}</span>}
           <p style={{
-            position: "relative", fontWeight: 600, fontSize: "14px", color: "#fff", lineHeight: 1.35, flex: 1, margin: 0,
-            textShadow: "0 1px 6px rgba(0,0,0,0.45)",
+            position: "relative", fontWeight: 600, fontSize: "14px", color: hasImg ? "#fff" : "var(--k-text)", lineHeight: 1.35, flex: 1, margin: 0,
+            textShadow: hasImg ? "0 1px 6px rgba(0,0,0,0.45)" : "none",
             display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden",
           }}>{m.question}</p>
           {!isMulti && pct !== null && (
             <svg width="42" height="42" viewBox="0 0 44 44" style={{ position: "relative", flexShrink: 0 }}>
-              <circle cx="22" cy="22" r="19" fill="rgba(var(--k-bg-rgb),0.55)" />
+              <circle cx="22" cy="22" r="19" fill={hasImg ? "var(--k-photo-glass)" : "transparent"} />
               <circle cx="22" cy="22" r="18" fill="none" stroke="rgba(var(--k-accent-rgb),0.25)" strokeWidth="4" />
               <circle cx="22" cy="22" r="18" fill="none" stroke="var(--k-accent)" strokeWidth="4" strokeDasharray={circ} strokeDashoffset={circ * (1 - pct / 100)} strokeLinecap="round" transform="rotate(-90 22 22)" />
-              <text x="22" y="26" textAnchor="middle" fontSize="11" fontWeight="600" fill="#fff">{pct}%</text>
+              <text x="22" y="26" textAnchor="middle" fontSize="11" fontWeight="600" fill={hasImg ? "#fff" : "var(--k-text)"}>{pct}%</text>
             </svg>
           )}
         </div>
@@ -441,8 +441,8 @@ export default function Marches() {
         <section className="mk-hero" aria-label="À la une">
           <Link to={`/market/${hero.id}`} className="mk-hero-main" style={{
             background: hero.coverImageUrl
-              ? `linear-gradient(to top, rgba(var(--k-bg-rgb),0.97) 14%, rgba(var(--k-bg-rgb),0.45) 75%), ${cssUrl(hero.coverImageUrl)} center / cover no-repeat`
-              : "linear-gradient(135deg, var(--k-accent-deep), var(--k-bg))",
+              ? `linear-gradient(to top, var(--k-photo-hero-a) 14%, var(--k-photo-hero-b) 75%), ${cssUrl(hero.coverImageUrl)} center / cover no-repeat`
+              : "var(--k-photo-hero-fallback)",
           }}>
             <div style={S.heroBody}>
               <div style={S.heroBadges}>
@@ -454,7 +454,7 @@ export default function Marches() {
                 <div style={S.heroBox}>
                   <div style={{ display: "flex", alignItems: "baseline", gap: "10px", marginBottom: "10px" }}>
                     <span style={{ fontSize: "2.4rem", fontWeight: 800, color: "#fff", lineHeight: 1 }}>{pctOf(hero)} %</span>
-                    <span style={{ fontSize: "0.9rem", color: "var(--k-muted2)" }}>de chance que OUI</span>
+                    <span style={{ fontSize: "0.9rem", color: "rgba(255,255,255,0.85)" }}>de chance que OUI</span>
                   </div>
                   <div style={{ display: "flex", gap: "8px" }}>
                     <div style={S.heroYes}>Oui · {pctOf(hero)}%</div>
@@ -462,7 +462,7 @@ export default function Marches() {
                   </div>
                 </div>
               ) : (
-                <div style={S.heroBox}><span style={{ fontSize: "1rem", fontWeight: 600, color: "var(--k-accent-text)" }}>Marché à choix multiples</span></div>
+                <div style={S.heroBox}><span style={{ fontSize: "1rem", fontWeight: 600, color: "#ddd0ff" }}>Marché à choix multiples</span></div>
               )}
               <div style={S.heroFootRow}>
                 <span style={S.heroChip}>{fmtVol(hero)} échangés</span>
@@ -599,7 +599,7 @@ const S = {
   heroBody: { padding: "28px", width: "100%", boxSizing: "border-box" },
   heroBadges: { display: "flex", gap: "8px", marginBottom: "12px" },
   badge: { fontSize: "0.72rem", fontWeight: 700, color: "#fff", background: "var(--k-accent)", borderRadius: "6px", padding: "3px 10px", textTransform: "uppercase", letterSpacing: "0.06em" },
-  badgeCat: { fontSize: "0.72rem", fontWeight: 700, color: "var(--k-accent-text)", background: "rgba(var(--k-accent-rgb),0.2)", borderRadius: "6px", padding: "3px 10px", textTransform: "uppercase", letterSpacing: "0.06em" },
+  badgeCat: { fontSize: "0.72rem", fontWeight: 700, color: "#ddd0ff", background: "rgba(255,255,255,0.16)", borderRadius: "6px", padding: "3px 10px", textTransform: "uppercase", letterSpacing: "0.06em" },
   heroTitle: { fontSize: "1.9rem", fontWeight: 800, color: "#fff", margin: "0 0 18px", lineHeight: 1.2, maxWidth: "640px", textShadow: "0 2px 12px rgba(0,0,0,0.4)" },
   sideTitle: { fontSize: "0.8rem", fontWeight: 700, color: "var(--k-accent-text)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "6px" },
   panelTitle: { fontSize: "1rem", fontWeight: 700, color: "var(--k-accent-text)", marginBottom: "6px" },
@@ -620,11 +620,11 @@ const S = {
   rowActions: { display: "flex", alignItems: "center", gap: "10px" },
   arrow: { width: "32px", height: "32px", borderRadius: "50%", border: "1px solid var(--k-border2)", background: "var(--k-surface)", color: "var(--k-text)", fontSize: "1.2rem", lineHeight: 1, cursor: "pointer" },
   arrowOff: { opacity: 0.3, cursor: "default" },
-  heroBox: { maxWidth: "460px", padding: "14px 16px", borderRadius: "14px", background: "rgba(var(--k-bg-rgb),0.6)", backdropFilter: "blur(6px)", border: "0.5px solid rgba(var(--k-accent-rgb),0.3)" },
+  heroBox: { maxWidth: "460px", padding: "14px 16px", borderRadius: "14px", background: "var(--k-photo-glass)", backdropFilter: "blur(6px)", border: "0.5px solid rgba(var(--k-accent-rgb),0.3)" },
   heroYes: { flex: 1, padding: "9px", borderRadius: "9px", textAlign: "center", border: "0.5px solid rgba(34,197,94,0.4)", background: "rgba(34,197,94,0.14)", color: "#22c55e", fontWeight: 700, fontSize: "0.9rem" },
   heroNo: { flex: 1, padding: "9px", borderRadius: "9px", textAlign: "center", border: "0.5px solid rgba(239,68,68,0.4)", background: "rgba(239,68,68,0.14)", color: "#ef4444", fontWeight: 700, fontSize: "0.9rem" },
   heroFootRow: { display: "flex", gap: "8px", flexWrap: "wrap", marginTop: "14px" },
-  heroChip: { fontSize: "0.78rem", fontWeight: 600, color: "var(--k-text2)", background: "rgba(var(--k-bg-rgb),0.6)", border: "0.5px solid rgba(var(--k-accent-rgb),0.25)", borderRadius: "999px", padding: "5px 12px" },
+  heroChip: { fontSize: "0.78rem", fontWeight: 600, color: "#fff", background: "var(--k-photo-glass)", border: "0.5px solid rgba(255,255,255,0.2)", borderRadius: "999px", padding: "5px 12px" },
   sideHead: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px", marginBottom: "8px" },
   miniQ: { fontSize: "0.9rem", fontWeight: 600, color: "var(--k-text)", lineHeight: 1.3, marginBottom: "4px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" },
   miniMeta: { display: "flex", alignItems: "center", gap: "5px", fontSize: "0.74rem", color: "var(--k-muted)" },

@@ -38,6 +38,12 @@
   --k-card-veil-b: rgba(var(--k-bg-rgb), 0.94);
   --k-yes: #22c55e;
   --k-no: #ef4444;
+  --k-photo-card-a: rgba(var(--k-bg-rgb), 0.92);
+  --k-photo-card-b: rgba(var(--k-bg-rgb), 0.35);
+  --k-photo-hero-a: rgba(var(--k-bg-rgb), 0.97);
+  --k-photo-hero-b: rgba(var(--k-bg-rgb), 0.45);
+  --k-photo-glass: rgba(var(--k-bg-rgb), 0.6);
+  --k-photo-hero-fallback: linear-gradient(135deg, var(--k-accent-deep), var(--k-bg));
 
   /* variables historiques du modèle Vite, reliées au thème */
   --text: var(--k-muted2);
@@ -92,6 +98,12 @@
   --k-card-veil-b: rgba(255, 255, 255, 0.97);
   --k-yes: #15803d;
   --k-no: #b91c1c;
+  --k-photo-card-a: rgba(18, 12, 44, 0.88);
+  --k-photo-card-b: rgba(18, 12, 44, 0.25);
+  --k-photo-hero-a: rgba(18, 12, 44, 0.92);
+  --k-photo-hero-b: rgba(18, 12, 44, 0.30);
+  --k-photo-glass: rgba(18, 12, 44, 0.55);
+  --k-photo-hero-fallback: linear-gradient(135deg, #3b1f8f, #1b1245);
 }
 
 /* Contraste élevé : bordures et textes plus marqués */
