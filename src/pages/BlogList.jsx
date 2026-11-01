@@ -441,7 +441,12 @@ const CSS = `
   .bl-pills { overflow-x: auto; }
   .bl-topics { display: flex; gap: 16px; align-items: stretch; margin-bottom: 32px; }
   .bl-topics-panel { width: 260px; flex-shrink: 0; background: var(--k-inset); border: 1px solid rgba(var(--k-accent-rgb),0.25); border-radius: 14px; padding: 18px; }
-  .bl-topics-cols { display: flex; gap: 16px; flex: 1; min-width: 0; overflow-x: auto; }
+  .bl-topics-cols { display: flex; gap: 16px; flex: 1; min-width: 0; overflow-x: auto; padding-bottom: 12px; }
+  .bl-topics-cols, .bl-pills, .bl-aside { scrollbar-width: thin; scrollbar-color: rgba(var(--k-accent-rgb),0.55) transparent; }
+  .bl-topics-cols::-webkit-scrollbar, .bl-pills::-webkit-scrollbar, .bl-aside::-webkit-scrollbar { height: 6px; width: 6px; }
+  .bl-topics-cols::-webkit-scrollbar-track, .bl-pills::-webkit-scrollbar-track, .bl-aside::-webkit-scrollbar-track { background: transparent; }
+  .bl-topics-cols::-webkit-scrollbar-thumb, .bl-pills::-webkit-scrollbar-thumb, .bl-aside::-webkit-scrollbar-thumb { background: rgba(var(--k-accent-rgb),0.45); border-radius: 999px; }
+  .bl-topics-cols::-webkit-scrollbar-thumb:hover { background: var(--k-accent); }
   .bl-topic-col { width: 250px; flex-shrink: 0; display: flex; flex-direction: column; background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 14px; padding: 16px; }
   .bl-layout { display: flex; gap: 32px; align-items: flex-start; }
   .bl-main { flex: 1; min-width: 0; }
