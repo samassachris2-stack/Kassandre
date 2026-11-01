@@ -181,18 +181,74 @@ function MiniRow({ m }) {
 // Rangée défilante (un thème) : cartes côte à côte, molette, glissement ou flèches.
 function TagRow({ label, count, tagKeyValue, items, resolved }) {
   const ref = useRef(null);
+  const drag = useRef({ down: false, moved: false, x: 0, left: 0 });
+  const [edge, setEdge] = useState({ start: true, end: false });
+
+  const sync = () => {
+    const el = ref.current;
+    if (!el) return;
+    const start = el.scrollLeft <= 4;
+    const end = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4;
+    setEdge((e) => (e.start === start && e.end === end ? e : { start, end }));
+  };
+  useEffect(() => {
+    sync();
+    window.addEventListener("resize", sync);
+    return () => window.removeEventListener("resize", sync);
+  }, [items.length]);
+
   const by = (dir) => ref.current?.scrollBy({ left: dir * 620, behavior: "smooth" });
+
+  // Glisser à la souris (sur mobile le doigt suffit déjà).
+  const onDown = (e) => {
+    if (e.pointerType !== "mouse" || e.button !== 0) return;
+    drag.current = { down: true, moved: false, x: e.clientX, left: ref.current.scrollLeft };
+  };
+  const onMove = (e) => {
+    const d = drag.current;
+    if (!d.down) return;
+    const dx = e.clientX - d.x;
+    if (!d.moved && Math.abs(dx) > 6) {
+      d.moved = true;
+      ref.current.classList.add("is-dragging");
+    }
+    if (d.moved) ref.current.scrollLeft = d.left - dx;
+  };
+  const onUp = () => {
+    const d = drag.current;
+    if (!d.down) return;
+    d.down = false;
+    ref.current?.classList.remove("is-dragging");
+    // laisse le clic « fantôme » passer avant de réautoriser les liens
+    setTimeout(() => { d.moved = false; }, 0);
+  };
+  const onClickCapture = (e) => {
+    if (drag.current.moved) { e.preventDefault(); e.stopPropagation(); }
+  };
+
+  const fade = `${edge.start ? "" : " fade-l"}${edge.end ? "" : " fade-r"}`;
   return (
     <section style={{ marginBottom: "36px" }} aria-label={label}>
       <div style={S.rowHead}>
         <h2 style={S.rowTitle}>{label}<span style={S.rowCount}>{count}</span></h2>
         <div style={S.rowActions}>
           <Link to={`/marches?tag=${encodeURIComponent(tagKeyValue)}`} style={S.topicMore}>Voir tout →</Link>
-          <button type="button" aria-label="Précédent" onClick={() => by(-1)} style={S.arrow}>‹</button>
-          <button type="button" aria-label="Suivant" onClick={() => by(1)} style={S.arrow}>›</button>
+          <button type="button" aria-label="Précédent" disabled={edge.start} onClick={() => by(-1)} style={{ ...S.arrow, ...(edge.start ? S.arrowOff : null) }}>‹</button>
+          <button type="button" aria-label="Suivant" disabled={edge.end} onClick={() => by(1)} style={{ ...S.arrow, ...(edge.end ? S.arrowOff : null) }}>›</button>
         </div>
       </div>
-      <div ref={ref} className="mk-row-scroll">
+      <div
+        ref={ref}
+        className={`mk-row-scroll${fade}`}
+        onScroll={sync}
+        onPointerDown={onDown}
+        onPointerMove={onMove}
+        onPointerUp={onUp}
+        onPointerLeave={onUp}
+        onPointerCancel={onUp}
+        onClickCapture={onClickCapture}
+        onDragStart={(e) => e.preventDefault()}
+      >
         {items.map((m) => <div key={m.id} className="mk-row-item"><MarketCard m={m} resolved={resolved} /></div>)}
       </div>
     </section>
@@ -498,19 +554,20 @@ const CSS = `
   .mk-hero-main { box-shadow: 0 10px 40px rgba(var(--k-accent-rgb),0.12); }
   .mk-topics { display: flex; gap: 16px; align-items: stretch; margin: 0 0 40px; }
   .mk-topics-panel { width: 270px; flex-shrink: 0; background: var(--k-inset); border: 1px solid rgba(var(--k-accent-rgb),0.25); border-radius: 16px; padding: 20px; }
-  .mk-topics-cols { display: flex; gap: 16px; flex: 1; min-width: 0; overflow-x: auto; padding-bottom: 10px; scrollbar-width: thin; scrollbar-color: rgba(var(--k-accent-rgb),0.55) transparent; }
-  .mk-topics-cols::-webkit-scrollbar { height: 6px; }
-  .mk-topics-cols::-webkit-scrollbar-thumb { background: rgba(var(--k-accent-rgb),0.45); border-radius: 999px; }
+  .mk-topics-cols { display: flex; gap: 16px; flex: 1; min-width: 0; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; -ms-overflow-style: none; }
+  .mk-topics-cols::-webkit-scrollbar { display: none; }
   .mk-topic-col { width: 270px; flex-shrink: 0; display: flex; flex-direction: column; background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 16px; padding: 16px 18px; }
-  .mk-row-scroll { display: flex; gap: 18px; overflow-x: auto; scroll-snap-type: x proximity; padding: 4px 2px 14px; scrollbar-width: thin; scrollbar-color: rgba(var(--k-accent-rgb),0.55) transparent; }
-  .mk-row-scroll::-webkit-scrollbar { height: 6px; }
-  .mk-row-scroll::-webkit-scrollbar-thumb { background: rgba(var(--k-accent-rgb),0.45); border-radius: 999px; }
+  .mk-row-scroll { display: flex; gap: 18px; overflow-x: auto; scroll-snap-type: x proximity; padding: 4px 2px 6px; scrollbar-width: none; -ms-overflow-style: none; cursor: grab; overscroll-behavior-x: contain; }
+  .mk-row-scroll::-webkit-scrollbar { display: none; }
+  .mk-row-scroll.is-dragging { cursor: grabbing; scroll-snap-type: none; user-select: none; }
+  .mk-row-scroll.fade-r { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 64px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 64px), transparent); }
+  .mk-row-scroll.fade-l { -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 64px), transparent); mask-image: linear-gradient(to left, #000 calc(100% - 64px), transparent); }
+  .mk-row-scroll.fade-l.fade-r { -webkit-mask-image: linear-gradient(to right, transparent, #000 48px, #000 calc(100% - 64px), transparent); mask-image: linear-gradient(to right, transparent, #000 48px, #000 calc(100% - 64px), transparent); }
   .mk-row-item { flex: 0 0 280px; scroll-snap-align: start; display: flex; }
   .mk-row-item .mk-card { width: 100%; }
   @media (max-width: 600px) { .mk-row-item { flex-basis: 82%; } }
-  .mk-pills { scrollbar-width: thin; scrollbar-color: rgba(var(--k-accent-rgb),0.55) transparent; }
-  .mk-pills::-webkit-scrollbar { height: 6px; }
-  .mk-pills::-webkit-scrollbar-thumb { background: rgba(var(--k-accent-rgb),0.45); border-radius: 999px; }
+  .mk-pills { scrollbar-width: none; -ms-overflow-style: none; }
+  .mk-pills::-webkit-scrollbar { display: none; }
   @media (max-width: 900px) {
     .mk-hero { grid-template-columns: 1fr; }
     .mk-topics { flex-direction: column; }
@@ -562,6 +619,7 @@ const S = {
   rowCount: { fontSize: "0.8rem", fontWeight: 600, color: "var(--k-muted)" },
   rowActions: { display: "flex", alignItems: "center", gap: "10px" },
   arrow: { width: "32px", height: "32px", borderRadius: "50%", border: "1px solid var(--k-border2)", background: "var(--k-surface)", color: "var(--k-text)", fontSize: "1.2rem", lineHeight: 1, cursor: "pointer" },
+  arrowOff: { opacity: 0.3, cursor: "default" },
   heroBox: { maxWidth: "460px", padding: "14px 16px", borderRadius: "14px", background: "rgba(var(--k-bg-rgb),0.6)", backdropFilter: "blur(6px)", border: "0.5px solid rgba(var(--k-accent-rgb),0.3)" },
   heroYes: { flex: 1, padding: "9px", borderRadius: "9px", textAlign: "center", border: "0.5px solid rgba(34,197,94,0.4)", background: "rgba(34,197,94,0.14)", color: "#22c55e", fontWeight: 700, fontSize: "0.9rem" },
   heroNo: { flex: 1, padding: "9px", borderRadius: "9px", textAlign: "center", border: "0.5px solid rgba(239,68,68,0.4)", background: "rgba(239,68,68,0.14)", color: "#ef4444", fontWeight: 700, fontSize: "0.9rem" },
