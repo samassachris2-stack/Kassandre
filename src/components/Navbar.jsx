@@ -4,6 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import NotificationBell from "./NotificationBell";
 import { formatPointsShort } from "../lib/formatPoints";
+import { useInstallPrompt } from "../hooks/useInstallPrompt";
 
 const CATEGORIES = ["Sport", "Politique", "Crypto", "Tech", "Économie", "International", "Culture", "Climat", "Autre"];
 
@@ -157,6 +158,8 @@ export default function Navbar() {
   const { user, login, logout } = useAuth();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [installHelp, setInstallHelp] = useState(false);
+  const installState = useInstallPrompt();
 
   // Échap ferme le menu mobile
   useEffect(() => {
@@ -371,6 +374,39 @@ export default function Navbar() {
                 </Link>
               );
             })}
+
+            {!installState.standalone && (
+              <div style={{ marginTop: "6px", borderTop: "0.5px solid rgba(var(--k-accent-rgb),0.15)", paddingTop: "6px" }}>
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={async () => {
+                    if (installState.canPrompt) {
+                      const ok = await installState.install();
+                      if (ok) setMenuOpen(false);
+                    } else {
+                      setInstallHelp((v) => !v);
+                    }
+                  }}
+                  style={{
+                    display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%",
+                    padding: "13px 10px", borderRadius: "8px", cursor: "pointer", textAlign: "left",
+                    background: "rgba(var(--k-accent-rgb),0.12)", border: "1px solid rgba(var(--k-accent-rgb),0.3)",
+                    color: "var(--k-accent-text)", fontSize: "15px", fontWeight: 600,
+                  }}
+                >
+                  <span>Installer l'application</span>
+                  <span style={{ fontSize: "18px" }}>{installState.canPrompt ? "⬇" : installHelp ? "▴" : "▾"}</span>
+                </button>
+                {installHelp && !installState.canPrompt && (
+                  <p style={{ margin: "10px 10px 4px", color: "var(--k-muted2)", fontSize: "13.5px", lineHeight: 1.5 }}>
+                    {installState.ios
+                      ? "Touche le bouton Partager de Safari (carré avec une flèche), puis « Sur l'écran d'accueil »."
+                      : "Ouvre le menu de ton navigateur (les trois points ⋮), puis « Installer l'application » ou « Ajouter à l'écran d'accueil »."}
+                  </p>
+                )}
+              </div>
+            )}
 
             <button
               type="button"
