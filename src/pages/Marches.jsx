@@ -8,17 +8,18 @@ import { cssUrl } from "../lib/cssUrl";
 
 const CATEGORIES = ["Sport", "Politique", "Crypto", "Tech", "Économie", "International", "Culture", "Climat", "Autre"];
 const PAGE = 18;
-// Une couleur et un symbole par catégorie : chaque marché se reconnaît d'un coup d'œil.
+// Un symbole par catégorie et une nuance de la palette violette du site :
+// on garde l'identité Kassandre tout en distinguant les marchés.
 const CAT_STYLE = {
-  Sport: { c: "#22c55e", e: "⚽" },
-  Politique: { c: "#3b82f6", e: "🏛️" },
-  Crypto: { c: "#f97316", e: "₿" },
-  Tech: { c: "#06b6d4", e: "💻" },
-  Économie: { c: "#eab308", e: "📈" },
-  International: { c: "#14b8a6", e: "🌍" },
-  Culture: { c: "#ec4899", e: "🎬" },
-  Climat: { c: "#10b981", e: "🌱" },
-  Autre: { c: "#94a3b8", e: "❓" },
+  Sport: { c: "#8b5cf6", e: "⚽" },
+  Politique: { c: "#7c3aed", e: "🏛️" },
+  Crypto: { c: "#a855f7", e: "₿" },
+  Tech: { c: "#6366f1", e: "💻" },
+  Économie: { c: "#9d6bff", e: "📈" },
+  International: { c: "#818cf8", e: "🌍" },
+  Culture: { c: "#c084fc", e: "🎬" },
+  Climat: { c: "#7c6cf0", e: "🌱" },
+  Autre: { c: "#9ca3c7", e: "◆" },
 };
 const catStyle = (m) => CAT_STYLE[catsOf(m)[0]] || { c: "#a78bfa", e: "◆" };
 const FOLLOW_KEY = "kassandre_markets_follow";
