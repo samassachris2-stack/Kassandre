@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { collection, query, where, orderBy, limit, getDocs } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { useSEO } from "../hooks/useSEO";
@@ -76,75 +76,72 @@ function Prob({ m, big }) {
   );
 }
 
-// Jauge OUI / NON des cartes : deux segments, vert et rouge.
-function CardGauge({ m }) {
-  const pct = pctOf(m);
-  const { c } = catStyle(m);
-  if (pct === null) {
-    return (
-      <div style={{ ...S.multiBox, background: `${c}1f`, border: `1px solid ${c}55` }}>
-        <span style={{ ...S.multiDot, background: c }} />
-        <span style={{ ...S.multiText, color: c }}>Marché à choix multiples</span>
-        <span style={{ ...S.multiArrow, color: c }}>→</span>
-      </div>
-    );
-  }
-  return (
-    <div>
-      <div style={S.gaugeLabels}>
-        <span style={{ color: "#22c55e" }}>OUI <strong style={S.gaugePct}>{pct} %</strong></span>
-        <span style={{ color: "#ef4444" }}><strong style={S.gaugePct}>{100 - pct} %</strong> NON</span>
-      </div>
-      <div style={S.gaugeTrack}>
-        <div style={{ ...S.gaugeYes, width: `${pct}%` }} />
-        <div style={{ ...S.gaugeNo, width: `${100 - pct}%` }} />
-      </div>
-    </div>
-  );
-}
-
+// Carte de marché : même présentation que l'accueil (titre + jauge, tags, Oui / Non,
+// volume et résolution). Sans image de couverture, un fond dégradé et un symbole comblent le vide.
 function MarketCard({ m, resolved }) {
+  const navigate = useNavigate();
+  const { c, e } = catStyle(m);
+  const isMulti = m.type === "multi";
+  const pct = pctOf(m);
   const n = daysLeft(m);
   const urgent = !resolved && n !== null && n >= 0 && n <= 3;
-  const hot = (m.totalVolume || 0) >= 50000;
-  const { c, e } = catStyle(m);
   const hasImg = Boolean(m.coverImageUrl);
+  const circ = 2 * Math.PI * 18;
   return (
-    <Link to={`/market/${m.id}`} className="mk-card" style={{ "--mk-c": c }}>
+    <Link to={`/market/${m.id}`} style={{ textDecoration: "none", color: "inherit", display: "block", height: "100%" }}>
       <div
-        className="mk-cover"
-        style={hasImg ? undefined : {
-          background: `radial-gradient(circle at 85% 20%, ${c}66, transparent 55%), radial-gradient(circle at 10% 90%, ${c}33, transparent 50%), linear-gradient(135deg, ${c}22, var(--k-inset))`,
+        className="mk-card"
+        style={{
+          position: "relative", overflow: "hidden", height: "100%", boxSizing: "border-box",
+          display: "flex", flexDirection: "column", padding: "16px", cursor: "pointer",
+          borderRadius: "14px", border: "0.5px solid rgba(var(--k-accent-rgb),0.15)",
+          background: hasImg
+            ? `linear-gradient(160deg, rgba(var(--k-bg-rgb),0.78), rgba(var(--k-bg-rgb),0.94)), ${cssUrl(m.coverImageUrl)} center / cover no-repeat`
+            : `radial-gradient(circle at 88% 12%, ${c}55, transparent 55%), radial-gradient(circle at 8% 95%, ${c}2a, transparent 50%), linear-gradient(160deg, ${c}1c, var(--k-surface))`,
         }}
       >
-        {hasImg ? (
-          <img src={m.coverImageUrl} alt="" loading="lazy" decoding="async" />
-        ) : (
-          <>
-            <span style={S.coverEmoji} aria-hidden="true">{e}</span>
-            <span style={{ ...S.coverRings, borderColor: `${c}44` }} aria-hidden="true" />
-          </>
-        )}
-        <div className="mk-cover-fade" />
-        <span style={{ ...S.coverCat, background: c }}>{catsOf(m)[0] || "Marché"}</span>
-        <div style={S.coverBadges}>
-          {m.pinnedFeatured && <span style={S.coverStar}>★ À la une</span>}
-          {hot && !m.pinnedFeatured && <span style={S.coverHot}>🔥 Populaire</span>}
+        {!hasImg && <span style={S.coverEmoji} aria-hidden="true">{e}</span>}
+
+        <div style={{ position: "relative", display: "flex", alignItems: "flex-start", gap: "10px", marginBottom: "10px" }}>
+          <p style={{
+            fontWeight: 500, fontSize: "14px", color: "var(--k-text)", lineHeight: 1.35, flex: 1, margin: 0,
+            display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden",
+          }}>{m.question}</p>
+          {!isMulti && pct !== null && (
+            <svg width="42" height="42" viewBox="0 0 44 44" style={{ flexShrink: 0 }}>
+              <circle cx="22" cy="22" r="18" fill="none" stroke="rgba(var(--k-accent-rgb),0.15)" strokeWidth="4" />
+              <circle cx="22" cy="22" r="18" fill="none" stroke="var(--k-accent)" strokeWidth="4" strokeDasharray={circ} strokeDashoffset={circ * (1 - pct / 100)} strokeLinecap="round" transform="rotate(-90 22 22)" />
+              <text x="22" y="26" textAnchor="middle" fontSize="11" fontWeight="600" fill="var(--k-text)">{pct}%</text>
+            </svg>
+          )}
         </div>
-        <span style={{ ...S.timePill, ...(urgent ? S.timeUrgent : null) }}>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
-          {whenLabel(m, resolved) || "—"}
-        </span>
-      </div>
-      <div style={S.cardBody}>
-        <h3 style={S.cardTitle}>{m.question}</h3>
-        <CardGauge m={m} />
-        <div style={S.cardFoot}>
-          <span style={S.volChip}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></svg>
-            {fmtVol(m)}
+
+        {(m.tags || []).length > 0 && (
+          <div style={{ position: "relative", display: "flex", gap: "5px", flexWrap: "wrap", marginBottom: "10px" }}>
+            {m.tags.slice(0, 3).map((tag) => (
+              <button
+                key={tag}
+                type="button"
+                onClick={(ev) => { ev.preventDefault(); ev.stopPropagation(); navigate(`/marches?tag=${encodeURIComponent(tagKey(tag))}`); }}
+                style={{ fontSize: "11px", fontWeight: 500, color: "var(--k-accent-text)", background: "rgba(var(--k-accent-rgb),0.12)", border: "0.5px solid rgba(var(--k-accent-rgb),0.25)", borderRadius: "6px", padding: "2px 8px", cursor: "pointer" }}
+              >#{tag}</button>
+            ))}
+          </div>
+        )}
+
+        {!isMulti && pct !== null && (
+          <div style={{ position: "relative", display: "flex", gap: "6px", marginTop: "auto", marginBottom: "10px" }}>
+            <div style={{ flex: 1, padding: "7px", borderRadius: "7px", textAlign: "center", border: "0.5px solid rgba(34,197,94,0.35)", background: "rgba(34,197,94,0.12)", color: "#22c55e", fontWeight: 600, fontSize: "12px" }}>Oui · {pct}%</div>
+            <div style={{ flex: 1, padding: "7px", borderRadius: "7px", textAlign: "center", border: "0.5px solid rgba(239,68,68,0.35)", background: "rgba(239,68,68,0.12)", color: "#ef4444", fontWeight: 600, fontSize: "12px" }}>Non · {100 - pct}%</div>
+          </div>
+        )}
+        {isMulti && <p style={{ position: "relative", fontSize: "11px", color: "var(--k-muted)", marginTop: "auto", marginBottom: "10px" }}>Multi-choix</p>}
+
+        <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: "11px", color: "var(--k-muted)" }}>
+          <span>{Math.round(m.totalVolume || 0)} pts Vol.</span>
+          <span style={urgent ? { color: "#fbbf24", fontWeight: 600 } : undefined}>
+            {resolved ? `Résolu le ${m.resolutionDate || ""}` : urgent ? whenLabel(m, false) : `Résolution : ${m.resolutionDate || "n.c."}`}
           </span>
-          <span className="mk-cta" style={{ ...S.cta, color: c, display: "inline-block", transition: "transform .2s" }}>Parier →</span>
         </div>
       </div>
     </Link>
@@ -453,15 +450,10 @@ export default function Marches() {
 }
 
 const CSS = `
-  .mk-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
-  .mk-card { display: flex; flex-direction: column; background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 16px; overflow: hidden; text-decoration: none; transition: border-color .2s, transform .2s, box-shadow .2s; }
-  .mk-card:hover { border-color: var(--mk-c, var(--k-accent)); transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0,0,0,0.35); }
-  .mk-cover { position: relative; aspect-ratio: 16 / 9; overflow: hidden; }
-  .mk-cover img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .4s; }
-  .mk-card:hover .mk-cover img { transform: scale(1.05); }
-  .mk-cover-fade { position: absolute; inset: 0; background: linear-gradient(to top, rgba(var(--k-bg-rgb),0.85) 0%, rgba(var(--k-bg-rgb),0) 55%); pointer-events: none; }
-  .mk-card:hover .mk-cta { transform: translateX(3px); }
-  .mk-skel { height: 300px; border-radius: 14px; background: linear-gradient(90deg,var(--k-surface),var(--k-surface2),var(--k-surface)); background-size: 200% 100%; animation: mkskel 1.4s infinite; }
+  .mk-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+  .mk-card { transition: border-color .15s, filter .15s; }
+  .mk-card:hover { border-color: rgba(var(--k-accent-rgb),0.35) !important; filter: brightness(1.08); }
+  .mk-skel { height: 200px; border-radius: 14px; background: linear-gradient(90deg,var(--k-surface),var(--k-surface2),var(--k-surface)); background-size: 200% 100%; animation: mkskel 1.4s infinite; }
   @keyframes mkskel { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
   .mk-hero { display: grid; grid-template-columns: 1.7fr 1fr; gap: 18px; margin-bottom: 40px; }
   .mk-hero-main { display: flex; align-items: flex-end; min-height: 380px; border-radius: 16px; overflow: hidden; text-decoration: none; border: 1px solid var(--k-border); transition: border-color .2s; }
@@ -479,21 +471,19 @@ const CSS = `
   .mk-row-scroll { display: flex; gap: 18px; overflow-x: auto; scroll-snap-type: x proximity; padding: 4px 2px 14px; scrollbar-width: thin; scrollbar-color: rgba(var(--k-accent-rgb),0.55) transparent; }
   .mk-row-scroll::-webkit-scrollbar { height: 6px; }
   .mk-row-scroll::-webkit-scrollbar-thumb { background: rgba(var(--k-accent-rgb),0.45); border-radius: 999px; }
-  .mk-row-item { flex: 0 0 300px; scroll-snap-align: start; display: flex; }
+  .mk-row-item { flex: 0 0 280px; scroll-snap-align: start; display: flex; }
   .mk-row-item .mk-card { width: 100%; }
   @media (max-width: 600px) { .mk-row-item { flex-basis: 82%; } }
   .mk-pills { scrollbar-width: thin; scrollbar-color: rgba(var(--k-accent-rgb),0.55) transparent; }
   .mk-pills::-webkit-scrollbar { height: 6px; }
   .mk-pills::-webkit-scrollbar-thumb { background: rgba(var(--k-accent-rgb),0.45); border-radius: 999px; }
   @media (max-width: 900px) {
-    .mk-grid { grid-template-columns: repeat(2, 1fr); }
     .mk-hero { grid-template-columns: 1fr; }
     .mk-topics { flex-direction: column; }
     .mk-topics-panel { width: 100%; box-sizing: border-box; }
     .mk-hero-main { min-height: 320px; }
   }
   @media (max-width: 600px) {
-    .mk-grid { grid-template-columns: 1fr; }
     .mk-title { font-size: 1.9rem !important; }
     .mk-hero-title { font-size: 1.4rem !important; }
     .mk-pills { flex-wrap: nowrap !important; overflow-x: auto; padding-bottom: 6px; }
@@ -538,28 +528,7 @@ const S = {
   topicMore: { marginTop: "auto", paddingTop: "12px", fontSize: "0.85rem", fontWeight: 600, color: "var(--k-accent-text)", textDecoration: "none" },
   activeTag: { fontSize: "0.9rem", color: "var(--k-muted2)", margin: "0 0 18px" },
   reset: { marginLeft: "12px", background: "none", border: "none", color: "var(--k-accent-text)", cursor: "pointer", fontSize: "0.9rem", textDecoration: "underline" },
-  coverCat: { position: "absolute", top: "12px", left: "12px", fontSize: "0.7rem", fontWeight: 700, color: "#fff", background: "rgba(var(--k-accent-rgb),0.85)", backdropFilter: "blur(4px)", borderRadius: "999px", padding: "4px 11px", textTransform: "uppercase", letterSpacing: "0.06em" },
-  coverBadges: { position: "absolute", top: "12px", right: "12px", display: "flex", gap: "6px" },
-  coverStar: { fontSize: "0.7rem", fontWeight: 700, color: "#f59e0b", background: "rgba(var(--k-bg-rgb),0.88)", borderRadius: "999px", padding: "4px 10px" },
-  coverHot: { fontSize: "0.7rem", fontWeight: 700, color: "#fb923c", background: "rgba(var(--k-bg-rgb),0.88)", borderRadius: "999px", padding: "4px 10px" },
-  timePill: { position: "absolute", left: "12px", bottom: "12px", display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "0.75rem", fontWeight: 600, color: "var(--k-text)", background: "rgba(var(--k-bg-rgb),0.82)", backdropFilter: "blur(4px)", borderRadius: "999px", padding: "5px 11px" },
-  timeUrgent: { color: "#fbbf24", background: "rgba(120,53,15,0.75)" },
-  cardBody: { padding: "16px 18px 16px", display: "flex", flexDirection: "column", gap: "16px", flex: 1 },
-  cardTitle: { fontSize: "1.05rem", fontWeight: 700, color: "var(--k-text)", margin: 0, lineHeight: 1.35, minHeight: "4.1em", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" },
-  gaugeLabels: { display: "flex", justifyContent: "space-between", fontSize: "0.74rem", fontWeight: 700, letterSpacing: "0.05em", marginBottom: "7px" },
-  gaugePct: { fontSize: "1.15rem", fontWeight: 800, letterSpacing: 0 },
-  gaugeTrack: { display: "flex", height: "8px", borderRadius: "999px", overflow: "hidden", gap: "3px", background: "transparent" },
-  gaugeYes: { background: "linear-gradient(90deg,#16a34a,#22c55e)", borderRadius: "999px", minWidth: "4px" },
-  gaugeNo: { background: "linear-gradient(90deg,#ef4444,#dc2626)", borderRadius: "999px", minWidth: "4px" },
-  multiBox: { display: "flex", alignItems: "center", gap: "10px", padding: "11px 14px", borderRadius: "12px", background: "rgba(var(--k-accent-rgb),0.12)", border: "1px solid rgba(var(--k-accent-rgb),0.3)" },
-  multiDot: { width: "8px", height: "8px", borderRadius: "50%", background: "var(--k-accent)", flexShrink: 0 },
-  multiText: { flex: 1, fontSize: "0.85rem", fontWeight: 600, color: "var(--k-accent-text)" },
-  multiArrow: { color: "var(--k-accent-text)", fontWeight: 700 },
-  cardFoot: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px", marginTop: "auto", paddingTop: "12px", borderTop: "1px solid var(--k-surface2)" },
-  volChip: { display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "0.8rem", color: "var(--k-muted2)" },
-  cta: { fontSize: "0.85rem", fontWeight: 700, color: "var(--k-accent-text)" },
   coverEmoji: { position: "absolute", right: "-6px", top: "50%", transform: "translateY(-50%) rotate(-8deg)", fontSize: "110px", lineHeight: 1, opacity: 0.35, filter: "saturate(1.2)", userSelect: "none" },
-  coverRings: { position: "absolute", left: "-40px", bottom: "-60px", width: "170px", height: "170px", borderRadius: "50%", border: "2px solid", boxShadow: "0 0 0 24px transparent, 0 0 0 26px rgba(255,255,255,0.04)" },
   rowHead: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", marginBottom: "14px", paddingBottom: "8px", borderBottom: "1px solid var(--k-surface2)" },
   rowTitle: { fontSize: "1.2rem", fontWeight: 700, color: "var(--k-text)", margin: 0, display: "flex", alignItems: "baseline", gap: "10px" },
   rowCount: { fontSize: "0.8rem", fontWeight: 600, color: "var(--k-muted)" },
