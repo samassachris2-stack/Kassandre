@@ -143,7 +143,7 @@ function MarketCard({ m, resolved }) {
 }
 
 // Ligne compacte : vignette (image ou symbole), question, échéance et jauge circulaire.
-function MiniRow({ m }) {
+function MiniRow({ m, showWhen = true }) {
   const { c, e } = catStyle(m);
   const pct = pctOf(m);
   const n = daysLeft(m);
@@ -160,10 +160,12 @@ function MiniRow({ m }) {
       }}>{!m.coverImageUrl && <span aria-hidden="true">{e}</span>}</div>
       <div style={{ minWidth: 0, flex: 1, textAlign: "left" }}>
         <div style={S.miniQ}>{m.question}</div>
-        <div style={{ ...S.miniMeta, ...(urgent ? { color: "#fbbf24" } : null) }}>
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
-          {whenLabel(m, false) || "—"}
-        </div>
+        {showWhen && (
+          <div style={{ ...S.miniMeta, ...(urgent ? { color: "#fbbf24" } : null) }}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
+            {whenLabel(m, false) || "—"}
+          </div>
+        )}
       </div>
       {pct !== null ? (
         <svg width="40" height="40" viewBox="0 0 36 36" style={{ flexShrink: 0 }}>
@@ -510,7 +512,7 @@ export default function Marches() {
                     {c.on ? "Suivi ✓" : "+ Suivre"}
                   </button>
                 </div>
-                {c.items.map((m) => <MiniRow key={m.id} m={m} />)}
+                {c.items.map((m) => <MiniRow key={m.id} m={m} showWhen={false} />)}
                 <Link to={`/marches?tag=${encodeURIComponent(c.key)}`} style={S.topicMore}>Voir tout ({c.n}) →</Link>
               </div>
             ))}
