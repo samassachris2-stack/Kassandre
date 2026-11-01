@@ -3,6 +3,7 @@ import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, serverTimestamp
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../lib/firebase";
 import { Link } from "react-router-dom";
+import { createPortal } from "react-dom";
 import { useAuth } from "../context/AuthContext";
 import { resolveMarket, deleteMarket, cancelMarket } from "../lib/amm.js";
 import { notify, askConfirm } from "../lib/notify";
@@ -161,12 +162,14 @@ function ImageCropper({ file, onConfirm, onCancel }) {
     finalCanvas.toBlob((blob) => onConfirm(blob), "image/jpeg", 0.9);
   }
 
-  return (
+  // Rendu dans document.body : un parent animé ou filtré (carte de marché, transition de page)
+  // ferait de ce « fixed » un cadre local et la fenêtre apparaîtrait coupée ou hors de vue.
+  return createPortal(
     <div style={{
       position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)",
-      display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "20px",
+      display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "20px", overflowY: "auto",
     }}>
-      <div style={{ background: "var(--k-surface)", border: "1px solid var(--k-border)", borderRadius: "16px", padding: "20px", maxWidth: "640px", width: "100%" }}>
+      <div style={{ background: "var(--k-surface)", border: "1px solid var(--k-border)", borderRadius: "16px", padding: "20px", maxWidth: "640px", width: "100%", maxHeight: "100%", overflowY: "auto" }}>
         <p style={{ fontSize: "14px", fontWeight: "600", color: "var(--k-text)", marginBottom: "12px" }}>
           Ajuste le cadrage de l'image
         </p>
@@ -215,7 +218,8 @@ function ImageCropper({ file, onConfirm, onCancel }) {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
