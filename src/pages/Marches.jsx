@@ -61,21 +61,6 @@ function whenLabel(m, resolved) {
   return `Résolution : ${m.resolutionDate}`;
 }
 
-function Prob({ m, big }) {
-  const pct = pctOf(m);
-  const { c } = catStyle(m);
-  if (pct === null) return <span style={{ ...S.multi, color: c, fontSize: big ? "1rem" : "0.85rem" }}>Multi-choix</span>;
-  return (
-    <div style={{ width: "100%" }}>
-      <div style={{ display: "flex", alignItems: "baseline", gap: "8px", marginBottom: "6px" }}>
-        <span style={{ fontSize: big ? "2.6rem" : "1.5rem", fontWeight: 800, color: c, lineHeight: 1 }}>{pct} %</span>
-        <span style={{ fontSize: big ? "0.95rem" : "0.8rem", color: "var(--k-muted2)" }}>de chance que OUI</span>
-      </div>
-      <div style={{ ...S.track, background: `${c}30` }}><div style={{ ...S.fill, width: `${pct}%`, background: c }} /></div>
-    </div>
-  );
-}
-
 // Carte de marché : même présentation que l'accueil (titre + jauge, tags, Oui / Non,
 // volume et résolution). Sans image de couverture, un fond dégradé et un symbole comblent le vide.
 function MarketCard({ m, resolved }) {
@@ -153,6 +138,42 @@ function MarketCard({ m, resolved }) {
           </div>
         </div>
       </div>
+    </Link>
+  );
+}
+
+// Ligne compacte : vignette (image ou symbole), question, échéance et jauge circulaire.
+function MiniRow({ m }) {
+  const { c, e } = catStyle(m);
+  const pct = pctOf(m);
+  const n = daysLeft(m);
+  const urgent = n !== null && n >= 0 && n <= 3;
+  const circ = 2 * Math.PI * 15;
+  return (
+    <Link to={`/market/${m.id}`} className="mk-mini">
+      <div style={{
+        width: "52px", height: "52px", borderRadius: "12px", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "24px",
+        background: m.coverImageUrl
+          ? `linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), ${cssUrl(m.coverImageUrl)} center / cover no-repeat`
+          : `radial-gradient(circle at 80% 15%, ${c}66, transparent 60%), linear-gradient(160deg, ${c}26, var(--k-inset))`,
+        border: "0.5px solid rgba(var(--k-accent-rgb),0.2)",
+      }}>{!m.coverImageUrl && <span aria-hidden="true">{e}</span>}</div>
+      <div style={{ minWidth: 0, flex: 1, textAlign: "left" }}>
+        <div style={S.miniQ}>{m.question}</div>
+        <div style={{ ...S.miniMeta, ...(urgent ? { color: "#fbbf24" } : null) }}>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
+          {whenLabel(m, false) || "—"}
+        </div>
+      </div>
+      {pct !== null ? (
+        <svg width="40" height="40" viewBox="0 0 36 36" style={{ flexShrink: 0 }}>
+          <circle cx="18" cy="18" r="15" fill="none" stroke="rgba(var(--k-accent-rgb),0.18)" strokeWidth="3.5" />
+          <circle cx="18" cy="18" r="15" fill="none" stroke="var(--k-accent)" strokeWidth="3.5" strokeDasharray={circ} strokeDashoffset={circ * (1 - pct / 100)} strokeLinecap="round" transform="rotate(-90 18 18)" />
+          <text x="18" y="21.5" textAnchor="middle" fontSize="9.5" fontWeight="700" fill="var(--k-text)">{pct}%</text>
+        </svg>
+      ) : (
+        <span style={S.miniMulti}>Multi</span>
+      )}
     </Link>
   );
 }
@@ -369,25 +390,36 @@ export default function Marches() {
           }}>
             <div style={S.heroBody}>
               <div style={S.heroBadges}>
-                <span style={S.badge}>{hero.pinnedFeatured ? "À la une" : "Le plus actif"}</span>
-                {catsOf(hero)[0] && <span style={S.badgeCat}>{catsOf(hero)[0]}</span>}
+                <span style={S.badge}>{hero.pinnedFeatured ? "★ À la une" : "🔥 Le plus actif"}</span>
+                {catsOf(hero)[0] && <span style={S.badgeCat}>{catStyle(hero).e} {catsOf(hero)[0]}</span>}
               </div>
               <h2 className="mk-hero-title" style={S.heroTitle}>{hero.question}</h2>
-              <Prob m={hero} big />
-              <div style={S.heroFoot}>{fmtVol(hero)} · {whenLabel(hero, false)}</div>
+              {pctOf(hero) !== null ? (
+                <div style={S.heroBox}>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: "10px", marginBottom: "10px" }}>
+                    <span style={{ fontSize: "2.4rem", fontWeight: 800, color: "#fff", lineHeight: 1 }}>{pctOf(hero)} %</span>
+                    <span style={{ fontSize: "0.9rem", color: "var(--k-muted2)" }}>de chance que OUI</span>
+                  </div>
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    <div style={S.heroYes}>Oui · {pctOf(hero)}%</div>
+                    <div style={S.heroNo}>Non · {100 - pctOf(hero)}%</div>
+                  </div>
+                </div>
+              ) : (
+                <div style={S.heroBox}><span style={{ fontSize: "1rem", fontWeight: 600, color: "var(--k-accent-text)" }}>Marché à choix multiples</span></div>
+              )}
+              <div style={S.heroFootRow}>
+                <span style={S.heroChip}>{fmtVol(hero)} échangés</span>
+                <span style={S.heroChip}>{whenLabel(hero, false)}</span>
+              </div>
             </div>
           </Link>
           <div className="mk-side">
-            <div style={S.sideTitle}>Se terminent bientôt</div>
-            {soon.map((m) => (
-              <Link key={m.id} to={`/market/${m.id}`} className="mk-side-item">
-                <div style={{ minWidth: 0, flex: 1 }}>
-                  <div style={S.sideQ}>{m.question}</div>
-                  <div style={S.sideMeta}>{whenLabel(m, false)}</div>
-                </div>
-                <div style={{ ...S.sidePct, color: catStyle(m).c }}>{pctOf(m) !== null ? `${pctOf(m)} %` : "Multi"}</div>
-              </Link>
-            ))}
+            <div style={S.sideHead}>
+              <span style={S.sideTitle}>Se terminent bientôt</span>
+              <Link to="/marches?tri=closing" style={S.topicMore}>Tout voir →</Link>
+            </div>
+            {soon.map((m) => <MiniRow key={m.id} m={m} />)}
           </div>
         </section>
       )}
@@ -422,15 +454,7 @@ export default function Marches() {
                     {c.on ? "Suivi ✓" : "+ Suivre"}
                   </button>
                 </div>
-                {c.items.map((m) => (
-                  <Link key={m.id} to={`/market/${m.id}`} className="mk-side-item">
-                    <div style={{ minWidth: 0, flex: 1 }}>
-                      <div style={S.sideQ}>{m.question}</div>
-                      <div style={S.sideMeta}>{whenLabel(m, false)}</div>
-                    </div>
-                    <div style={{ ...S.sidePct, color: catStyle(m).c }}>{pctOf(m) !== null ? `${pctOf(m)} %` : "Multi"}</div>
-                  </Link>
-                ))}
+                {c.items.map((m) => <MiniRow key={m.id} m={m} />)}
                 <Link to={`/marches?tag=${encodeURIComponent(c.key)}`} style={S.topicMore}>Voir tout ({c.n}) →</Link>
               </div>
             ))}
@@ -468,9 +492,10 @@ const CSS = `
   .mk-hero-main { display: flex; align-items: flex-end; min-height: 380px; border-radius: 16px; overflow: hidden; text-decoration: none; border: 1px solid var(--k-border); transition: border-color .2s; }
   .mk-hero-main:hover { border-color: var(--k-accent); }
   .mk-side { display: flex; flex-direction: column; gap: 4px; background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 16px; padding: 18px; }
-  .mk-side-item { display: flex; gap: 12px; padding: 12px 0; border-top: 1px solid var(--k-surface2); text-decoration: none; align-items: center; }
-  .mk-side-item:first-of-type { border-top: none; }
-  .mk-side-item:hover div:first-child > div:first-child { color: var(--k-accent-text); }
+  .mk-mini { display: flex; align-items: center; gap: 12px; padding: 10px 10px; margin: 0 -10px; border-radius: 12px; text-decoration: none; transition: background .15s; text-align: left; }
+  .mk-mini:hover { background: rgba(var(--k-accent-rgb),0.1); }
+  .mk-hero-main, .mk-side, .mk-topics, .mk-topic-col { text-align: left; }
+  .mk-hero-main { box-shadow: 0 10px 40px rgba(var(--k-accent-rgb),0.12); }
   .mk-topics { display: flex; gap: 16px; align-items: stretch; margin: 0 0 40px; }
   .mk-topics-panel { width: 270px; flex-shrink: 0; background: var(--k-inset); border: 1px solid rgba(var(--k-accent-rgb),0.25); border-radius: 16px; padding: 20px; }
   .mk-topics-cols { display: flex; gap: 16px; flex: 1; min-width: 0; overflow-x: auto; padding-bottom: 10px; scrollbar-width: thin; scrollbar-color: rgba(var(--k-accent-rgb),0.55) transparent; }
@@ -518,14 +543,8 @@ const S = {
   heroBadges: { display: "flex", gap: "8px", marginBottom: "12px" },
   badge: { fontSize: "0.72rem", fontWeight: 700, color: "#fff", background: "var(--k-accent)", borderRadius: "6px", padding: "3px 10px", textTransform: "uppercase", letterSpacing: "0.06em" },
   badgeCat: { fontSize: "0.72rem", fontWeight: 700, color: "var(--k-accent-text)", background: "rgba(var(--k-accent-rgb),0.2)", borderRadius: "6px", padding: "3px 10px", textTransform: "uppercase", letterSpacing: "0.06em" },
-  heroTitle: { fontSize: "1.8rem", fontWeight: "bold", color: "#fff", margin: "0 0 16px", lineHeight: 1.25 },
-  heroFoot: { fontSize: "0.85rem", color: "var(--k-muted2)", marginTop: "12px" },
+  heroTitle: { fontSize: "1.9rem", fontWeight: 800, color: "#fff", margin: "0 0 18px", lineHeight: 1.2, maxWidth: "640px", textShadow: "0 2px 12px rgba(0,0,0,0.4)" },
   sideTitle: { fontSize: "0.8rem", fontWeight: 700, color: "var(--k-accent-text)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "6px" },
-  sideQ: { fontSize: "0.92rem", fontWeight: 600, color: "var(--k-text)", lineHeight: 1.35, marginBottom: "4px", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" },
-  sideMeta: { fontSize: "0.78rem", color: "var(--k-muted)" },
-  sidePct: { fontSize: "1.1rem", fontWeight: 800, color: "var(--k-accent-text)", flexShrink: 0 },
-  track: { height: "6px", borderRadius: "999px", background: "rgba(var(--k-accent-rgb),0.18)", overflow: "hidden" },
-  fill: { height: "100%", borderRadius: "999px", background: "linear-gradient(90deg, var(--k-accent), var(--k-accent-text))" },
   panelTitle: { fontSize: "1rem", fontWeight: 700, color: "var(--k-accent-text)", marginBottom: "6px" },
   panelHint: { fontSize: "0.8rem", color: "var(--k-muted)", margin: "0 0 16px", lineHeight: 1.4 },
   chipWrap: { display: "flex", flexWrap: "wrap", gap: "8px" },
@@ -543,6 +562,15 @@ const S = {
   rowCount: { fontSize: "0.8rem", fontWeight: 600, color: "var(--k-muted)" },
   rowActions: { display: "flex", alignItems: "center", gap: "10px" },
   arrow: { width: "32px", height: "32px", borderRadius: "50%", border: "1px solid var(--k-border2)", background: "var(--k-surface)", color: "var(--k-text)", fontSize: "1.2rem", lineHeight: 1, cursor: "pointer" },
+  heroBox: { maxWidth: "460px", padding: "14px 16px", borderRadius: "14px", background: "rgba(var(--k-bg-rgb),0.6)", backdropFilter: "blur(6px)", border: "0.5px solid rgba(var(--k-accent-rgb),0.3)" },
+  heroYes: { flex: 1, padding: "9px", borderRadius: "9px", textAlign: "center", border: "0.5px solid rgba(34,197,94,0.4)", background: "rgba(34,197,94,0.14)", color: "#22c55e", fontWeight: 700, fontSize: "0.9rem" },
+  heroNo: { flex: 1, padding: "9px", borderRadius: "9px", textAlign: "center", border: "0.5px solid rgba(239,68,68,0.4)", background: "rgba(239,68,68,0.14)", color: "#ef4444", fontWeight: 700, fontSize: "0.9rem" },
+  heroFootRow: { display: "flex", gap: "8px", flexWrap: "wrap", marginTop: "14px" },
+  heroChip: { fontSize: "0.78rem", fontWeight: 600, color: "var(--k-text2)", background: "rgba(var(--k-bg-rgb),0.6)", border: "0.5px solid rgba(var(--k-accent-rgb),0.25)", borderRadius: "999px", padding: "5px 12px" },
+  sideHead: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px", marginBottom: "8px" },
+  miniQ: { fontSize: "0.9rem", fontWeight: 600, color: "var(--k-text)", lineHeight: 1.3, marginBottom: "4px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" },
+  miniMeta: { display: "flex", alignItems: "center", gap: "5px", fontSize: "0.74rem", color: "var(--k-muted)" },
+  miniMulti: { flexShrink: 0, fontSize: "0.72rem", fontWeight: 700, color: "var(--k-accent-text)", border: "1px solid rgba(var(--k-accent-rgb),0.4)", background: "rgba(var(--k-accent-rgb),0.12)", borderRadius: "999px", padding: "5px 10px" },
   multi: { fontWeight: 700, color: "var(--k-accent-text)" },
   more: { display: "block", margin: "28px auto 0", padding: "12px 28px", borderRadius: "10px", background: "transparent", border: "1px solid var(--k-accent)", color: "var(--k-accent-text)", fontSize: "0.95rem", fontWeight: 600, cursor: "pointer" },
 };
