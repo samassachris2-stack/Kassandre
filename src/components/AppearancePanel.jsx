@@ -2,7 +2,7 @@ import { ACCENTS, DEFAULTS, setAppearance, resetAppearance, useAppearance } from
 
 const THEMES = [
   { id: "dark", label: "Sombre", bg: "#0a0a0f", card: "#12121a", line: "#2a2a35", text: "#e8e8f0" },
-  { id: "light", label: "Clair", bg: "#ede9f9", card: "#fdfcff", line: "#b9acdf", text: "#14102b" },
+  { id: "light", label: "Clair", bg: "#f8f8fb", card: "#ffffff", line: "#d9dbe5", text: "#14102b" },
   { id: "amoled", label: "Noir pur", bg: "#000000", card: "#08080c", line: "#22222c", text: "#e8e8f0" },
   { id: "auto", label: "Automatique", bg: "linear-gradient(135deg,#0a0a0f 50%,#ede9f9 50%)", card: "#8884", line: "#8886", text: "#888" },
 ];

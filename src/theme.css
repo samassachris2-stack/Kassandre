@@ -67,13 +67,13 @@
 
 :root[data-theme="light"] {
   /* Fonds teintés par la couleur principale choisie : l'identité violette reste visible */
-  --k-bg: color-mix(in srgb, var(--k-accent) 9%, #f7f7fb);
-  --k-body-bg: color-mix(in srgb, var(--k-accent) 9%, #f7f7fb);
-  --k-inset: color-mix(in srgb, var(--k-accent) 12%, #f1f1f8);
-  --k-surface: color-mix(in srgb, var(--k-accent) 3%, #ffffff);
-  --k-surface2: color-mix(in srgb, var(--k-accent) 15%, #eeeef6);
-  --k-border: color-mix(in srgb, var(--k-accent) 32%, #c3c6d6);
-  --k-border2: color-mix(in srgb, var(--k-accent) 42%, #9a9eb4);
+  --k-bg: color-mix(in srgb, var(--k-accent) 2%, #f8f8fb);
+  --k-body-bg: color-mix(in srgb, var(--k-accent) 2%, #f8f8fb);
+  --k-inset: color-mix(in srgb, var(--k-accent) 1%, #ffffff);
+  --k-surface: #ffffff;
+  --k-surface2: color-mix(in srgb, var(--k-accent) 6%, #f1f1f6);
+  --k-border: color-mix(in srgb, var(--k-accent) 14%, #d9dbe5);
+  --k-border2: color-mix(in srgb, var(--k-accent) 24%, #b3b6c8);
   --k-text: #14102b;
   --k-text2: #261f4a;
   --k-muted2: #3a3162;
@@ -85,8 +85,8 @@
   --k-red-bg: #fbd5d9;
   --k-red-border: #ec9ea8;
   --k-ink-rgb: 20, 16, 43;
-  --k-bg-rgb: 237, 233, 249;
-  --k-inset-rgb: 229, 224, 245;
+  --k-bg-rgb: 248, 248, 251;
+  --k-inset-rgb: 255, 255, 255;
   color-scheme: light;
   /* Thème clair : photo nette sous un voile sombre avec texte blanc (à la une), voile blanc franc sur les cartes */
   --k-hero-veil-a: rgba(18, 12, 44, 0.82);
