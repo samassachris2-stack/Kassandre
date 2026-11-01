@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import ExploreMenu from "./ExploreMenu";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import NotificationBell from "./NotificationBell";
@@ -7,18 +8,6 @@ import { formatPointsShort } from "../lib/formatPoints";
 const CATEGORIES = ["Sport", "Politique", "Crypto", "Tech", "Économie", "International", "Culture", "Climat", "Autre"];
 
 // Pastille Blog : même style sur ordinateur (liens) et sur téléphone (barre du haut)
-const BLOG_PILL = {
-  textDecoration: "none",
-  fontSize: "14px",
-  fontWeight: 600,
-  padding: "7px 16px",
-  borderRadius: "999px",
-  border: "1px solid rgba(var(--k-accent-rgb),0.6)",
-  color: "var(--k-text)",
-  whiteSpace: "nowrap",
-  alignItems: "center",
-};
-
 const S = {
   nav: {
     display: "flex",
@@ -258,13 +247,7 @@ export default function Navbar() {
 
         {user ? (
           <div style={S.rightGroup}>
-            <Link
-              to="/blog"
-              className="kassandre-nav-mobile-blog"
-              style={{ ...BLOG_PILL, background: location.pathname.startsWith("/blog") ? "var(--k-accent)" : "rgba(var(--k-accent-rgb),0.15)" }}
-            >
-              Blog
-            </Link>
+            <span className="kassandre-nav-mobile-blog"><ExploreMenu /></span>
             <NotificationBell />
             <span style={S.balance} title={`${Number(user.balance).toFixed(2)} pts`}>
               {formatPointsShort(user.balance)}<span className="kassandre-nav-balance-text"> pts</span>
@@ -299,13 +282,7 @@ export default function Navbar() {
           </div>
         ) : (
           <div style={S.rightGroup}>
-            <Link
-              to="/blog"
-              className="kassandre-nav-mobile-blog"
-              style={{ ...BLOG_PILL, background: location.pathname.startsWith("/blog") ? "var(--k-accent)" : "rgba(var(--k-accent-rgb),0.15)" }}
-            >
-              Blog
-            </Link>
+            <span className="kassandre-nav-mobile-blog"><ExploreMenu /></span>
             <button onClick={login} style={S.loginBtn}>Connexion Google</button>
           </div>
         )}
