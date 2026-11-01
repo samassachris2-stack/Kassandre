@@ -10,6 +10,7 @@ import {
   categorySlug,
   withFeaturedFirst,
   sameTag,
+  tagKey,
 } from "../lib/blogUtils";
 import { cssUrl } from "../lib/cssUrl";
 import { useSEO } from "../hooks/useSEO";
@@ -50,6 +51,17 @@ const isOpinion = (a) => (a.tags || []).some((t) => OPINION_TAGS.includes(String
 
 function minutesOf(a) {
   return a.readingTime || readingMinutes(a.content);
+}
+
+// Thèmes suivis : enregistrés dans ce navigateur (pas de compte nécessaire).
+const FOLLOW_KEY = "kassandre_blog_follow";
+function readFollowed() {
+  try {
+    const v = JSON.parse(localStorage.getItem(FOLLOW_KEY) || "[]");
+    return Array.isArray(v) ? v.filter((x) => typeof x === "string") : [];
+  } catch {
+    return [];
+  }
 }
 
 // Une carte d'article (utilisée dans les sections par thème et dans la liste).
@@ -110,6 +122,17 @@ export default function BlogList() {
 
   const showFilters = articles.length >= FILTERS_FROM;
   const tags = useMemo(() => tagCounts(articles), [articles]);
+
+  // Thèmes suivis (clés normalisées), mémorisés dans le navigateur.
+  const [followed, setFollowed] = useState(() => readFollowed());
+  const toggleFollow = (label) => {
+    const k = tagKey(label);
+    setFollowed((prev) => {
+      const next = prev.includes(k) ? prev.filter((x) => x !== k) : [...prev, k];
+      try { localStorage.setItem(FOLLOW_KEY, JSON.stringify(next)); } catch { /* navigation privée : pas de mémoire */ }
+      return next;
+    });
+  };
   const catCounts = useMemo(() => categoryCounts(articles), [articles]);
   const filtering = Boolean(tag || search.trim() || category);
 
@@ -142,18 +165,23 @@ export default function BlogList() {
     if (!showHero) return [];
     const pool = top.slice(4);
     const used = new Set([hero?.id, ...top.slice(1, 4).map((a) => a.id)].filter(Boolean));
-    return tagCounts(pool)
-      .filter(([t, n]) => n >= 2 && !OPINION_TAGS.includes(String(t).toLowerCase()))
+    const counts = tagCounts(pool);
+    // Thèmes suivis d'abord (même avec un seul article), puis les thèmes qui reviennent.
+    const followedLabels = counts.map(([t]) => t).filter((t) => followed.includes(tagKey(t)));
+    const autoLabels = counts
+      .filter(([t, n]) => n >= 2 && !followed.includes(tagKey(t)) && !OPINION_TAGS.includes(String(t).toLowerCase()))
       .slice(0, SECTIONS_MAX)
-      .map(([tag]) => {
+      .map(([t]) => t);
+    return [...followedLabels, ...autoLabels]
+      .map((tag) => {
         const items = pool
           .filter((a) => !used.has(a.id) && (a.tags || []).some((t) => sameTag(t, tag)))
           .slice(0, SECTION_SIZE);
         items.forEach((a) => used.add(a.id));
         return { tag, items };
       })
-      .filter((s) => s.items.length >= 2);
-  }, [showHero, top, hero]);
+      .filter((s) => s.items.length >= (followed.includes(tagKey(s.tag)) ? 1 : 2));
+  }, [showHero, top, hero, followed]);
 
   const sectionIds = new Set(sections.flatMap((s) => s.items.map((a) => a.id)));
   const rest = showHero ? top.slice(4).filter((a) => !sectionIds.has(a.id)) : filtered;
@@ -194,6 +222,27 @@ export default function BlogList() {
           <a href="/rss.xml" style={S.rss}>Flux RSS</a>
         </div>
       </header>
+
+      <div className="bl-layout">
+      <aside className="bl-aside" aria-label="Thèmes à suivre">
+        <div style={S.asideTitle}>Suivre des thèmes</div>
+        <p style={S.asideHint}>Les thèmes suivis apparaissent en haut de la page.</p>
+        <ul style={S.followList}>
+          {tags.map(([t, n]) => {
+            const on = followed.includes(tagKey(t));
+            return (
+              <li key={tagKey(t)} style={S.followRow}>
+                <span style={S.followLabel}>{t}</span>
+                <span style={S.pillCount}>{n}</span>
+                <button type="button" aria-pressed={on} onClick={() => toggleFollow(t)} style={S.followBtn(on)}>
+                  {on ? "Suivi ✓" : "Suivre"}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      </aside>
+      <div className="bl-main">
 
       {articles.length > 0 && (
         <nav aria-label="Rubriques du blog" className="bl-cats" style={S.cats}>
@@ -329,6 +378,8 @@ export default function BlogList() {
           Voir plus d'articles ({rest.length - visible})
         </button>
       )}
+      </div>
+      </div>
     </div>
   );
 }
@@ -349,6 +400,13 @@ const CSS = `
   .bl-side-item:first-of-type { border-top: none; }
   .bl-side-item:hover div:first-child { color: var(--k-accent-text); }
   .bl-pills { overflow-x: auto; }
+  .bl-layout { display: flex; gap: 32px; align-items: flex-start; }
+  .bl-main { flex: 1; min-width: 0; }
+  .bl-aside { width: 230px; flex-shrink: 0; position: sticky; top: 90px; max-height: calc(100vh - 110px); overflow-y: auto; background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 12px; padding: 16px; }
+  @media (max-width: 900px) {
+    .bl-layout { flex-direction: column; gap: 20px; }
+    .bl-aside { width: 100%; position: static; max-height: 280px; }
+  }
   @media (max-width: 900px) {
     .bl-grid { grid-template-columns: repeat(2, 1fr); }
     .bl-hero { grid-template-columns: 1fr; }
@@ -432,6 +490,17 @@ const S = {
     display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden",
   },
   metaSmall: { fontSize: "0.78rem", color: "var(--k-muted)" },
+  asideTitle: { fontSize: "0.8rem", fontWeight: 700, color: "var(--k-accent-text)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "6px" },
+  asideHint: { fontSize: "0.8rem", color: "var(--k-muted)", margin: "0 0 12px", lineHeight: 1.4 },
+  followList: { listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "8px" },
+  followRow: { display: "flex", alignItems: "center", gap: "8px", minWidth: 0 },
+  followLabel: { flex: 1, minWidth: 0, fontSize: "0.9rem", color: "var(--k-text2)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textTransform: "capitalize" },
+  followBtn: (on) => ({
+    fontSize: "0.75rem", fontWeight: 600, padding: "4px 10px", borderRadius: "999px", cursor: "pointer", whiteSpace: "nowrap",
+    border: on ? "1px solid var(--k-accent)" : "1px solid var(--k-border)",
+    background: on ? "var(--k-accent)" : "transparent",
+    color: on ? "#fff" : "var(--k-muted2)",
+  }),
   sectionHead: { display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: "12px", marginBottom: "14px", paddingBottom: "8px", borderBottom: "1px solid var(--k-surface2)" },
   sectionTitle: { fontSize: "1.1rem", fontWeight: 700, color: "var(--k-text)", margin: 0, textTransform: "capitalize" },
   sectionMore: { fontSize: "0.85rem", fontWeight: 600, color: "var(--k-accent-text)", textDecoration: "none", whiteSpace: "nowrap" },
