@@ -18,6 +18,9 @@ const TAGS_SHOWN = 8;
 // En dessous de ce nombre d'articles, la recherche et les thèmes n'apportent rien.
 const FILTERS_FROM = 6;
 const OPINION_TAGS = ["tribune", "opinion", "édito", "edito"];
+// Sections par thème sur la page d'accueil du blog.
+const SECTIONS_MAX = 4;
+const SECTION_SIZE = 3;
 
 const toDate = (ts) => {
   if (!ts) return null;
@@ -46,6 +49,31 @@ const isOpinion = (a) => (a.tags || []).some((t) => OPINION_TAGS.includes(String
 
 function minutesOf(a) {
   return a.readingTime || readingMinutes(a.content);
+}
+
+// Une carte d'article (utilisée dans les sections par thème et dans la liste).
+function BlogCard({ a }) {
+  return (
+    <Link to={`/blog/${a.slug}`} className="bl-card">
+      <div className="bl-cover" style={{ background: a.coverImageUrl ? undefined : "linear-gradient(135deg,var(--k-accent-deep),var(--k-inset))" }}>
+        {a.coverImageUrl && <img src={a.coverImageUrl} alt="" loading="lazy" decoding="async" />}
+        {isOpinion(a) && <span style={S.cardBadge}>Tribune</span>}
+      </div>
+      <div style={S.cardBody}>
+        <div style={S.metaSmall}>{dateLabel(a.publishedAt)} · {minutesOf(a)} min de lecture</div>
+        {a.category && <span style={S.catLabel}>{a.category}</span>}
+        <h3 style={S.cardTitle}>{a.title}</h3>
+        <p style={S.cardExcerpt}>{a.excerpt}</p>
+        {(a.tags || []).length > 0 && (
+          <div style={S.cardTags}>
+            {a.tags.filter((t) => !OPINION_TAGS.includes(String(t).toLowerCase())).slice(0, 2).map((t) => (
+              <span key={t} style={S.tag}>{t}</span>
+            ))}
+          </div>
+        )}
+      </div>
+    </Link>
+  );
 }
 
 export default function BlogList() {
@@ -105,10 +133,29 @@ export default function BlogList() {
   // Mise en avant : seulement sans filtre et en tri « récents ».
   const showHero = !filtering && sort === "recent" && filtered.length >= 4;
   // Une choisie par l'admin en premier, complétée par les plus récents.
-  const top = showHero ? withFeaturedFirst(filtered) : filtered;
+  const top = useMemo(() => (showHero ? withFeaturedFirst(filtered) : filtered), [showHero, filtered]);
   const hero = showHero ? top[0] : null;
   const side = showHero ? top.slice(1, 4) : [];
-  const rest = showHero ? top.slice(4) : filtered;
+  // Sections par thème : les tags qui reviennent (au moins 2 articles) ont leur rangée sur la page.
+  const sections = useMemo(() => {
+    if (!showHero) return [];
+    const pool = top.slice(4);
+    const used = new Set([hero?.id, ...top.slice(1, 4).map((a) => a.id)].filter(Boolean));
+    return tagCounts(pool)
+      .filter(([t, n]) => n >= 2 && !OPINION_TAGS.includes(String(t).toLowerCase()))
+      .slice(0, SECTIONS_MAX)
+      .map(([tag]) => {
+        const items = pool
+          .filter((a) => !used.has(a.id) && (a.tags || []).includes(tag))
+          .slice(0, SECTION_SIZE);
+        items.forEach((a) => used.add(a.id));
+        return { tag, items };
+      })
+      .filter((s) => s.items.length >= 2);
+  }, [showHero, top, hero]);
+
+  const sectionIds = new Set(sections.flatMap((s) => s.items.map((a) => a.id)));
+  const rest = showHero ? top.slice(4).filter((a) => !sectionIds.has(a.id)) : filtered;
   const shown = rest.slice(0, visible);
 
   // Regroupement par mois quand on parcourt par date.
@@ -255,31 +302,23 @@ export default function BlogList() {
         </section>
       )}
 
+      {sections.map((s) => (
+        <section key={s.tag} style={{ marginBottom: "32px" }}>
+          <div style={S.sectionHead}>
+            <h2 style={S.sectionTitle}>{s.tag}</h2>
+            <Link to={`/blog?tag=${encodeURIComponent(s.tag)}`} style={S.sectionMore}>Voir tout →</Link>
+          </div>
+          <div className="bl-grid">
+            {s.items.map((a) => <BlogCard key={a.id} a={a} />)}
+          </div>
+        </section>
+      ))}
+
       {groups.map((g) => (
         <section key={g.label || "all"} style={{ marginBottom: "28px" }}>
           {g.label && <h2 style={S.month}>{g.label}</h2>}
           <div className="bl-grid">
-            {g.items.map((a) => (
-              <Link key={a.id} to={`/blog/${a.slug}`} className="bl-card">
-                <div className="bl-cover" style={{ background: a.coverImageUrl ? undefined : "linear-gradient(135deg,var(--k-accent-deep),var(--k-inset))" }}>
-                  {a.coverImageUrl && <img src={a.coverImageUrl} alt="" loading="lazy" decoding="async" />}
-                  {isOpinion(a) && <span style={S.cardBadge}>Tribune</span>}
-                </div>
-                <div style={S.cardBody}>
-                  <div style={S.metaSmall}>{dateLabel(a.publishedAt)} · {minutesOf(a)} min de lecture</div>
-                  {a.category && <span style={S.catLabel}>{a.category}</span>}
-                  <h3 style={S.cardTitle}>{a.title}</h3>
-                  <p style={S.cardExcerpt}>{a.excerpt}</p>
-                  {(a.tags || []).length > 0 && (
-                    <div style={S.cardTags}>
-                      {a.tags.filter((t) => !OPINION_TAGS.includes(String(t).toLowerCase())).slice(0, 2).map((t) => (
-                        <span key={t} style={S.tag}>{t}</span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </Link>
-            ))}
+            {g.items.map((a) => <BlogCard key={a.id} a={a} />)}
           </div>
         </section>
       ))}
@@ -392,6 +431,9 @@ const S = {
     display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden",
   },
   metaSmall: { fontSize: "0.78rem", color: "var(--k-muted)" },
+  sectionHead: { display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: "12px", marginBottom: "14px", paddingBottom: "8px", borderBottom: "1px solid var(--k-surface2)" },
+  sectionTitle: { fontSize: "1.1rem", fontWeight: 700, color: "var(--k-text)", margin: 0, textTransform: "capitalize" },
+  sectionMore: { fontSize: "0.85rem", fontWeight: 600, color: "var(--k-accent-text)", textDecoration: "none", whiteSpace: "nowrap" },
   month: { fontSize: "1.1rem", fontWeight: 700, color: "var(--k-text)", margin: "0 0 14px", paddingBottom: "8px", borderBottom: "1px solid var(--k-surface2)" },
   cardBadge: {
     position: "absolute", top: "10px", left: "10px", fontSize: "0.7rem", fontWeight: 700, color: "#f59e0b",
