@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { collection, query, where, orderBy, limit, getDocs } from "firebase/firestore";
 import { db } from "../lib/firebase";
@@ -8,6 +8,19 @@ import { cssUrl } from "../lib/cssUrl";
 
 const CATEGORIES = ["Sport", "Politique", "Crypto", "Tech", "Économie", "International", "Culture", "Climat", "Autre"];
 const PAGE = 18;
+// Une couleur et un symbole par catégorie : chaque marché se reconnaît d'un coup d'œil.
+const CAT_STYLE = {
+  Sport: { c: "#22c55e", e: "⚽" },
+  Politique: { c: "#3b82f6", e: "🏛️" },
+  Crypto: { c: "#f97316", e: "₿" },
+  Tech: { c: "#06b6d4", e: "💻" },
+  Économie: { c: "#eab308", e: "📈" },
+  International: { c: "#14b8a6", e: "🌍" },
+  Culture: { c: "#ec4899", e: "🎬" },
+  Climat: { c: "#10b981", e: "🌱" },
+  Autre: { c: "#94a3b8", e: "❓" },
+};
+const catStyle = (m) => CAT_STYLE[catsOf(m)[0]] || { c: "#a78bfa", e: "◆" };
 const FOLLOW_KEY = "kassandre_markets_follow";
 const FOLLOW_SHOWN = 10;
 
@@ -49,14 +62,15 @@ function whenLabel(m, resolved) {
 
 function Prob({ m, big }) {
   const pct = pctOf(m);
-  if (pct === null) return <span style={{ ...S.multi, fontSize: big ? "1rem" : "0.85rem" }}>Multi-choix</span>;
+  const { c } = catStyle(m);
+  if (pct === null) return <span style={{ ...S.multi, color: c, fontSize: big ? "1rem" : "0.85rem" }}>Multi-choix</span>;
   return (
     <div style={{ width: "100%" }}>
       <div style={{ display: "flex", alignItems: "baseline", gap: "8px", marginBottom: "6px" }}>
-        <span style={{ fontSize: big ? "2.6rem" : "1.5rem", fontWeight: 800, color: "var(--k-accent-text)", lineHeight: 1 }}>{pct} %</span>
+        <span style={{ fontSize: big ? "2.6rem" : "1.5rem", fontWeight: 800, color: c, lineHeight: 1 }}>{pct} %</span>
         <span style={{ fontSize: big ? "0.95rem" : "0.8rem", color: "var(--k-muted2)" }}>de chance que OUI</span>
       </div>
-      <div style={S.track}><div style={{ ...S.fill, width: `${pct}%` }} /></div>
+      <div style={{ ...S.track, background: `${c}30` }}><div style={{ ...S.fill, width: `${pct}%`, background: c }} /></div>
     </div>
   );
 }
@@ -64,12 +78,13 @@ function Prob({ m, big }) {
 // Jauge OUI / NON des cartes : deux segments, vert et rouge.
 function CardGauge({ m }) {
   const pct = pctOf(m);
+  const { c } = catStyle(m);
   if (pct === null) {
     return (
-      <div style={S.multiBox}>
-        <span style={S.multiDot} />
-        <span style={S.multiText}>Marché à choix multiples</span>
-        <span style={S.multiArrow}>→</span>
+      <div style={{ ...S.multiBox, background: `${c}1f`, border: `1px solid ${c}55` }}>
+        <span style={{ ...S.multiDot, background: c }} />
+        <span style={{ ...S.multiText, color: c }}>Marché à choix multiples</span>
+        <span style={{ ...S.multiArrow, color: c }}>→</span>
       </div>
     );
   }
@@ -91,12 +106,26 @@ function MarketCard({ m, resolved }) {
   const n = daysLeft(m);
   const urgent = !resolved && n !== null && n >= 0 && n <= 3;
   const hot = (m.totalVolume || 0) >= 50000;
+  const { c, e } = catStyle(m);
+  const hasImg = Boolean(m.coverImageUrl);
   return (
-    <Link to={`/market/${m.id}`} className="mk-card">
-      <div className="mk-cover" style={{ background: m.coverImageUrl ? undefined : "linear-gradient(135deg,var(--k-accent-deep),var(--k-inset))" }}>
-        {m.coverImageUrl && <img src={m.coverImageUrl} alt="" loading="lazy" decoding="async" />}
+    <Link to={`/market/${m.id}`} className="mk-card" style={{ "--mk-c": c }}>
+      <div
+        className="mk-cover"
+        style={hasImg ? undefined : {
+          background: `radial-gradient(circle at 85% 20%, ${c}66, transparent 55%), radial-gradient(circle at 10% 90%, ${c}33, transparent 50%), linear-gradient(135deg, ${c}22, var(--k-inset))`,
+        }}
+      >
+        {hasImg ? (
+          <img src={m.coverImageUrl} alt="" loading="lazy" decoding="async" />
+        ) : (
+          <>
+            <span style={S.coverEmoji} aria-hidden="true">{e}</span>
+            <span style={{ ...S.coverRings, borderColor: `${c}44` }} aria-hidden="true" />
+          </>
+        )}
         <div className="mk-cover-fade" />
-        <span style={S.coverCat}>{catsOf(m)[0] || "Marché"}</span>
+        <span style={{ ...S.coverCat, background: c }}>{catsOf(m)[0] || "Marché"}</span>
         <div style={S.coverBadges}>
           {m.pinnedFeatured && <span style={S.coverStar}>★ À la une</span>}
           {hot && !m.pinnedFeatured && <span style={S.coverHot}>🔥 Populaire</span>}
@@ -114,10 +143,31 @@ function MarketCard({ m, resolved }) {
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></svg>
             {fmtVol(m)}
           </span>
-          <span className="mk-cta" style={{ ...S.cta, display: "inline-block", transition: "transform .2s" }}>Parier →</span>
+          <span className="mk-cta" style={{ ...S.cta, color: c, display: "inline-block", transition: "transform .2s" }}>Parier →</span>
         </div>
       </div>
     </Link>
+  );
+}
+
+// Rangée défilante (un thème) : cartes côte à côte, molette, glissement ou flèches.
+function TagRow({ label, count, tagKeyValue, items, resolved }) {
+  const ref = useRef(null);
+  const by = (dir) => ref.current?.scrollBy({ left: dir * 620, behavior: "smooth" });
+  return (
+    <section style={{ marginBottom: "36px" }} aria-label={label}>
+      <div style={S.rowHead}>
+        <h2 style={S.rowTitle}>{label}<span style={S.rowCount}>{count}</span></h2>
+        <div style={S.rowActions}>
+          <Link to={`/marches?tag=${encodeURIComponent(tagKeyValue)}`} style={S.topicMore}>Voir tout →</Link>
+          <button type="button" aria-label="Précédent" onClick={() => by(-1)} style={S.arrow}>‹</button>
+          <button type="button" aria-label="Suivant" onClick={() => by(1)} style={S.arrow}>›</button>
+        </div>
+      </div>
+      <div ref={ref} className="mk-row-scroll">
+        {items.map((m) => <div key={m.id} className="mk-row-item"><MarketCard m={m} resolved={resolved} /></div>)}
+      </div>
+    </section>
   );
 }
 
@@ -199,6 +249,19 @@ export default function Marches() {
         .sort((a, b) => (b.totalVolume || 0) - (a.totalVolume || 0))
         .slice(0, 4),
     })).filter((c) => c.items.length > 0);
+  }, [tags, followed, markets]);
+
+  // Rangées défilantes : thèmes suivis d'abord, puis les thèmes les plus fournis.
+  const tagRows = useMemo(() => {
+    const chosen = tags.filter((t) => followed.includes(t.key));
+    const others = tags.filter((t) => !followed.includes(t.key) && t.n >= 3);
+    return [...chosen, ...others].slice(0, 5).map((t) => ({
+      ...t,
+      items: [...markets]
+        .filter((m) => (m.tags || []).some((x) => tagKey(x) === t.key))
+        .sort((a, b) => (b.totalVolume || 0) - (a.totalVolume || 0))
+        .slice(0, 12),
+    })).filter((r) => r.items.length >= 2);
   }, [tags, followed, markets]);
 
   const list = useMemo(() => {
@@ -315,7 +378,7 @@ export default function Marches() {
                   <div style={S.sideQ}>{m.question}</div>
                   <div style={S.sideMeta}>{whenLabel(m, false)}</div>
                 </div>
-                <div style={S.sidePct}>{pctOf(m) !== null ? `${pctOf(m)} %` : "Multi"}</div>
+                <div style={{ ...S.sidePct, color: catStyle(m).c }}>{pctOf(m) !== null ? `${pctOf(m)} %` : "Multi"}</div>
               </Link>
             ))}
           </div>
@@ -358,7 +421,7 @@ export default function Marches() {
                       <div style={S.sideQ}>{m.question}</div>
                       <div style={S.sideMeta}>{whenLabel(m, false)}</div>
                     </div>
-                    <div style={S.sidePct}>{pctOf(m) !== null ? `${pctOf(m)} %` : "Multi"}</div>
+                    <div style={{ ...S.sidePct, color: catStyle(m).c }}>{pctOf(m) !== null ? `${pctOf(m)} %` : "Multi"}</div>
                   </Link>
                 ))}
                 <Link to={`/marches?tag=${encodeURIComponent(c.key)}`} style={S.topicMore}>Voir tout ({c.n}) →</Link>
@@ -367,6 +430,10 @@ export default function Marches() {
           </div>
         </section>
       )}
+
+      {!loading && !resolved && !filtering && tagRows.map((r) => (
+        <TagRow key={r.key} label={r.label} count={r.n} tagKeyValue={r.key} items={r.items} resolved={false} />
+      ))}
 
       {!loading && rest.length > 0 && (
         <>
@@ -387,7 +454,7 @@ export default function Marches() {
 const CSS = `
   .mk-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
   .mk-card { display: flex; flex-direction: column; background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 16px; overflow: hidden; text-decoration: none; transition: border-color .2s, transform .2s, box-shadow .2s; }
-  .mk-card:hover { border-color: var(--k-accent); transform: translateY(-3px); box-shadow: 0 12px 30px rgba(var(--k-accent-rgb),0.18); }
+  .mk-card:hover { border-color: var(--mk-c, var(--k-accent)); transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0,0,0,0.35); }
   .mk-cover { position: relative; aspect-ratio: 16 / 9; overflow: hidden; }
   .mk-cover img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .4s; }
   .mk-card:hover .mk-cover img { transform: scale(1.05); }
@@ -408,6 +475,12 @@ const CSS = `
   .mk-topics-cols::-webkit-scrollbar { height: 6px; }
   .mk-topics-cols::-webkit-scrollbar-thumb { background: rgba(var(--k-accent-rgb),0.45); border-radius: 999px; }
   .mk-topic-col { width: 270px; flex-shrink: 0; display: flex; flex-direction: column; background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 16px; padding: 16px 18px; }
+  .mk-row-scroll { display: flex; gap: 18px; overflow-x: auto; scroll-snap-type: x proximity; padding: 4px 2px 14px; scrollbar-width: thin; scrollbar-color: rgba(var(--k-accent-rgb),0.55) transparent; }
+  .mk-row-scroll::-webkit-scrollbar { height: 6px; }
+  .mk-row-scroll::-webkit-scrollbar-thumb { background: rgba(var(--k-accent-rgb),0.45); border-radius: 999px; }
+  .mk-row-item { flex: 0 0 300px; scroll-snap-align: start; display: flex; }
+  .mk-row-item .mk-card { width: 100%; }
+  @media (max-width: 600px) { .mk-row-item { flex-basis: 82%; } }
   .mk-pills { scrollbar-width: thin; scrollbar-color: rgba(var(--k-accent-rgb),0.55) transparent; }
   .mk-pills::-webkit-scrollbar { height: 6px; }
   .mk-pills::-webkit-scrollbar-thumb { background: rgba(var(--k-accent-rgb),0.45); border-radius: 999px; }
@@ -484,6 +557,13 @@ const S = {
   cardFoot: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px", marginTop: "auto", paddingTop: "12px", borderTop: "1px solid var(--k-surface2)" },
   volChip: { display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "0.8rem", color: "var(--k-muted2)" },
   cta: { fontSize: "0.85rem", fontWeight: 700, color: "var(--k-accent-text)" },
+  coverEmoji: { position: "absolute", right: "-6px", top: "50%", transform: "translateY(-50%) rotate(-8deg)", fontSize: "110px", lineHeight: 1, opacity: 0.35, filter: "saturate(1.2)", userSelect: "none" },
+  coverRings: { position: "absolute", left: "-40px", bottom: "-60px", width: "170px", height: "170px", borderRadius: "50%", border: "2px solid", boxShadow: "0 0 0 24px transparent, 0 0 0 26px rgba(255,255,255,0.04)" },
+  rowHead: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", marginBottom: "14px", paddingBottom: "8px", borderBottom: "1px solid var(--k-surface2)" },
+  rowTitle: { fontSize: "1.2rem", fontWeight: 700, color: "var(--k-text)", margin: 0, display: "flex", alignItems: "baseline", gap: "10px" },
+  rowCount: { fontSize: "0.8rem", fontWeight: 600, color: "var(--k-muted)" },
+  rowActions: { display: "flex", alignItems: "center", gap: "10px" },
+  arrow: { width: "32px", height: "32px", borderRadius: "50%", border: "1px solid var(--k-border2)", background: "var(--k-surface)", color: "var(--k-text)", fontSize: "1.2rem", lineHeight: 1, cursor: "pointer" },
   multi: { fontWeight: 700, color: "var(--k-accent-text)" },
   more: { display: "block", margin: "28px auto 0", padding: "12px 28px", borderRadius: "10px", background: "transparent", border: "1px solid var(--k-accent)", color: "var(--k-accent-text)", fontSize: "0.95rem", fontWeight: 600, cursor: "pointer" },
 };
