@@ -76,6 +76,7 @@ const SORT_OPTIONS = [
 
 function FeaturedCarousel({ markets }) {
   const [index, setIndex] = useState(0);
+  const touchStartX = useRef(null);
 
   const featured = useMemo(() => {
     const pinned = markets.filter((m) => m.pinnedFeatured);
@@ -104,13 +105,23 @@ function FeaturedCarousel({ markets }) {
 
   if (featured.length === 0) return null;
 
+  // Glisser avec le pouce : un geste horizontal de plus de 40 px change de marché.
+  const onTouchStart = (e) => { touchStartX.current = e.touches[0].clientX; };
+  const onTouchEnd = (e) => {
+    if (touchStartX.current === null || featured.length < 2) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    touchStartX.current = null;
+    if (Math.abs(dx) < 40) return;
+    setIndex((i) => (dx < 0 ? (i + 1) % featured.length : (i - 1 + featured.length) % featured.length));
+  };
+
   const market = featured[index];
   const isMulti = market.type === "multi";
   const total = isMulti ? 0 : (market.poolYes || 0) + (market.poolNo || 0);
   const pctYes = isMulti ? null : Math.round((market.poolNo / total) * 100);
 
   return (
-    <div style={{ marginBottom: "28px" }}>
+    <div style={{ marginBottom: "28px", touchAction: "pan-y" }} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
       <Link to={`/market/${market.id}`} style={{ textDecoration: "none", color: "inherit" }}>
         <div style={{
           position: "relative",
