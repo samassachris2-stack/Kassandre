@@ -9,6 +9,7 @@ import {
   categoryCounts,
   categorySlug,
   withFeaturedFirst,
+  sameTag,
 } from "../lib/blogUtils";
 import { cssUrl } from "../lib/cssUrl";
 import { useSEO } from "../hooks/useSEO";
@@ -123,7 +124,7 @@ export default function BlogList() {
   const filtered = useMemo(() => {
     const list = articles.filter((a) =>
       (!category || findCategory(a.category) === category) &&
-      (!tag || (a.tags || []).includes(tag)) &&
+      (!tag || (a.tags || []).some((t) => sameTag(t, tag))) &&
       matchesQuery(a, search));
     if (sort === "old") return [...list].reverse();
     if (sort === "short") return [...list].sort((a, b) => minutesOf(a) - minutesOf(b));
@@ -146,7 +147,7 @@ export default function BlogList() {
       .slice(0, SECTIONS_MAX)
       .map(([tag]) => {
         const items = pool
-          .filter((a) => !used.has(a.id) && (a.tags || []).includes(tag))
+          .filter((a) => !used.has(a.id) && (a.tags || []).some((t) => sameTag(t, tag)))
           .slice(0, SECTION_SIZE);
         items.forEach((a) => used.add(a.id));
         return { tag, items };

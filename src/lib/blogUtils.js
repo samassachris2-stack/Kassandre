@@ -15,11 +15,31 @@ export function normalize(str) {
     .replace(/[̀-ͯ]/g, "");
 }
 
+// Clé de comparaison d'un tag : sans casse, sans accents, sans espaces superflus.
+// « France », « france » et « France  » désignent le même thème.
+export const tagKey = (t) => normalize(t).trim();
+export const sameTag = (a, b) => tagKey(a) === tagKey(b);
+
 // Thèmes (tags) triés par nombre d'articles, avec leur effectif.
+// Les variantes d'écriture sont regroupées ; le libellé retenu est la forme
+// avec majuscule si elle existe (« France » plutôt que « france »).
 export function tagCounts(articles) {
-  const map = new Map();
-  articles.forEach((a) => (a.tags || []).forEach((t) => map.set(t, (map.get(t) || 0) + 1)));
-  return [...map.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "fr"));
+  const map = new Map(); // clé -> { label, n }
+  articles.forEach((a) => {
+    const seen = new Set();
+    (a.tags || []).forEach((t) => {
+      const raw = String(t).trim();
+      const k = tagKey(raw);
+      if (!k) return;
+      if (!map.has(k)) map.set(k, { label: raw, n: 0 });
+      const entry = map.get(k);
+      if (/^\p{Lu}/u.test(raw) && !/^\p{Lu}/u.test(entry.label)) entry.label = raw;
+      if (!seen.has(k)) { seen.add(k); entry.n += 1; }
+    });
+  });
+  return [...map.values()]
+    .sort((a, b) => b.n - a.n || a.label.localeCompare(b.label, "fr"))
+    .map((e) => [e.label, e.n]);
 }
 
 export function matchesQuery(article, q) {
