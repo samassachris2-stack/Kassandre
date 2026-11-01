@@ -130,7 +130,7 @@ function FeaturedCarousel({ markets }) {
           minHeight: "220px",
           border: "0.5px solid rgba(var(--k-accent-rgb),0.2)",
           background: market.coverImageUrl
-            ? `linear-gradient(to right, rgba(var(--k-bg-rgb),0.92), rgba(var(--k-bg-rgb),0.55)), ${cssUrl(market.coverImageUrl)} center / cover no-repeat`
+            ? `linear-gradient(to right, var(--k-hero-veil-a), var(--k-hero-veil-b)), ${cssUrl(market.coverImageUrl)} center / cover no-repeat`
             : "linear-gradient(135deg, var(--k-surface2), var(--k-surface))",
           padding: "28px 32px",
           display: "flex",
@@ -152,8 +152,8 @@ function FeaturedCarousel({ markets }) {
             </h2>
             {(Array.isArray(market.categories) ? market.categories : (market.category ? [market.category] : [])).map((cat) => (
               <span key={cat} style={{
-                fontSize: "12px", fontWeight: "500", color: "var(--k-accent-text)",
-                background: "rgba(var(--k-accent-rgb),0.2)", borderRadius: "6px",
+                fontSize: "12px", fontWeight: "500", color: "var(--k-hero-accent)",
+                background: "rgba(255,255,255,0.14)", borderRadius: "6px",
                 padding: "2px 9px", marginRight: "6px",
               }}>{cat}</span>
             ))}
@@ -162,13 +162,13 @@ function FeaturedCarousel({ markets }) {
           <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
             {!isMulti ? (
               <div>
-                <span style={{ fontSize: "42px", fontWeight: "800", color: "var(--k-accent-text)", lineHeight: 1 }}>{pctYes}%</span>
-                <span style={{ fontSize: "15px", color: "var(--k-text)", marginLeft: "10px" }}>de chance que OUI</span>
+                <span style={{ fontSize: "42px", fontWeight: "800", color: "var(--k-hero-accent)", lineHeight: 1 }}>{pctYes}%</span>
+                <span style={{ fontSize: "15px", color: "var(--k-hero-text)", marginLeft: "10px" }}>de chance que OUI</span>
               </div>
             ) : (
-              <span style={{ fontSize: "15px", color: "var(--k-text)" }}>Multi-choix</span>
+              <span style={{ fontSize: "15px", color: "var(--k-hero-text)" }}>Multi-choix</span>
             )}
-            <span style={{ fontSize: "13px", color: "var(--k-muted2)" }}>Résolution : {market.resolutionDate}</span>
+            <span style={{ fontSize: "13px", color: "var(--k-hero-muted)" }}>Résolution : {market.resolutionDate}</span>
           </div>
         </div>
       </Link>
@@ -944,7 +944,7 @@ export default function Feed({ hub }) {
                   padding: "16px",
                   cursor: "pointer",
                   background: market.coverImageUrl
-                    ? `linear-gradient(160deg, rgba(var(--k-bg-rgb),0.78), rgba(var(--k-bg-rgb),0.94)), ${cssUrl(market.coverImageUrl)} center / cover no-repeat`
+                    ? `linear-gradient(160deg, var(--k-card-veil-a), var(--k-card-veil-b)), ${cssUrl(market.coverImageUrl)} center / cover no-repeat`
                     : "var(--k-surface)",
                   transition: "border-color 0.15s, filter 0.15s",
                   display: "flex",
@@ -1032,7 +1032,7 @@ export default function Feed({ hub }) {
                       style={{
                         flex: 1, padding: "7px", borderRadius: "7px", cursor: "pointer",
                         border: "0.5px solid rgba(34,197,94,0.35)", background: "rgba(34,197,94,0.12)",
-                        color: "#22c55e", fontWeight: "600", fontSize: "12px",
+                        color: "var(--k-yes)", fontWeight: "600", fontSize: "12px",
                       }}
                     >
                       Oui · {pctYes}%
@@ -1047,7 +1047,7 @@ export default function Feed({ hub }) {
                       style={{
                         flex: 1, padding: "7px", borderRadius: "7px", cursor: "pointer",
                         border: "0.5px solid rgba(239,68,68,0.35)", background: "rgba(239,68,68,0.12)",
-                        color: "#ef4444", fontWeight: "600", fontSize: "12px",
+                        color: "var(--k-no)", fontWeight: "600", fontSize: "12px",
                       }}
                     >
                       Non · {pctNo}%

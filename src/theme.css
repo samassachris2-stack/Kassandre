@@ -28,6 +28,17 @@
   --k-inset-rgb: 15, 15, 23;
   color-scheme: dark;
 
+  /* Cartes avec photo : voile posé sur l'image, et couleurs Oui / Non */
+  --k-hero-veil-a: rgba(var(--k-bg-rgb), 0.92);
+  --k-hero-veil-b: rgba(var(--k-bg-rgb), 0.55);
+  --k-hero-text: var(--k-text);
+  --k-hero-muted: var(--k-muted2);
+  --k-hero-accent: var(--k-accent-text);
+  --k-card-veil-a: rgba(var(--k-bg-rgb), 0.78);
+  --k-card-veil-b: rgba(var(--k-bg-rgb), 0.94);
+  --k-yes: #22c55e;
+  --k-no: #ef4444;
+
   /* variables historiques du modèle Vite, reliées au thème */
   --text: var(--k-muted2);
   --text-h: var(--k-text);
@@ -71,6 +82,16 @@
   --k-bg-rgb: 237, 233, 249;
   --k-inset-rgb: 229, 224, 245;
   color-scheme: light;
+  /* Thème clair : photo nette sous un voile sombre avec texte blanc (à la une), voile blanc franc sur les cartes */
+  --k-hero-veil-a: rgba(18, 12, 44, 0.82);
+  --k-hero-veil-b: rgba(18, 12, 44, 0.30);
+  --k-hero-text: #ffffff;
+  --k-hero-muted: rgba(255, 255, 255, 0.85);
+  --k-hero-accent: #ddd0ff;
+  --k-card-veil-a: rgba(255, 255, 255, 0.93);
+  --k-card-veil-b: rgba(255, 255, 255, 0.97);
+  --k-yes: #15803d;
+  --k-no: #b91c1c;
 }
 
 /* Contraste élevé : bordures et textes plus marqués */

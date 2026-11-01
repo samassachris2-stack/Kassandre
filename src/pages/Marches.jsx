@@ -124,8 +124,8 @@ function MarketCard({ m, resolved }) {
 
           {!isMulti && pct !== null && (
             <div style={{ display: "flex", gap: "6px", marginTop: "auto", marginBottom: "12px" }}>
-              <div style={{ flex: 1, padding: "7px", borderRadius: "7px", textAlign: "center", border: "0.5px solid rgba(34,197,94,0.35)", background: "rgba(34,197,94,0.12)", color: "#22c55e", fontWeight: 600, fontSize: "12px" }}>Oui · {pct}%</div>
-              <div style={{ flex: 1, padding: "7px", borderRadius: "7px", textAlign: "center", border: "0.5px solid rgba(239,68,68,0.35)", background: "rgba(239,68,68,0.12)", color: "#ef4444", fontWeight: 600, fontSize: "12px" }}>Non · {100 - pct}%</div>
+              <div style={{ flex: 1, padding: "7px", borderRadius: "7px", textAlign: "center", border: "0.5px solid rgba(34,197,94,0.35)", background: "rgba(34,197,94,0.12)", color: "var(--k-yes)", fontWeight: 600, fontSize: "12px" }}>Oui · {pct}%</div>
+              <div style={{ flex: 1, padding: "7px", borderRadius: "7px", textAlign: "center", border: "0.5px solid rgba(239,68,68,0.35)", background: "rgba(239,68,68,0.12)", color: "var(--k-no)", fontWeight: 600, fontSize: "12px" }}>Non · {100 - pct}%</div>
             </div>
           )}
           {isMulti && <p style={{ fontSize: "11px", color: "var(--k-muted)", marginTop: "auto", marginBottom: "12px" }}>Multi-choix</p>}
