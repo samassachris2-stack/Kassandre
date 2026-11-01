@@ -235,56 +235,6 @@ export default function BlogList() {
         </div>
       </header>
 
-      {!filtering && topicColumns.length > 0 && (
-        <section className="bl-topics" aria-label="Vos thèmes">
-          <div className="bl-topics-panel">
-            <div style={S.asideTitle}>Suivre des thèmes</div>
-            <p style={S.asideHint}>Choisissez vos thèmes : ils s'affichent à côté.</p>
-            <div style={S.chipWrap}>
-              {(followAll ? tags : tags.slice(0, FOLLOW_SHOWN)).map(([t]) => {
-                const on = followed.includes(tagKey(t));
-                return (
-                  <button key={tagKey(t)} type="button" aria-pressed={on} onClick={() => toggleFollow(t)} style={S.chip(on)}>
-                    <span aria-hidden="true">{on ? "✓" : "+"}</span> {t}
-                  </button>
-                );
-              })}
-            </div>
-            {tags.length > FOLLOW_SHOWN && (
-              <button type="button" onClick={() => setFollowAll((v) => !v)} style={S.followMore}>
-                {followAll ? "Voir moins" : `Voir tous les thèmes (${tags.length})`}
-              </button>
-            )}
-          </div>
-          <div className="bl-topics-cols">
-            {topicColumns.map(({ label, items, on }) => (
-              <div key={tagKey(label)} className="bl-topic-col">
-                <div style={S.topicColHead}>
-                  <span style={S.topicColTitle}>{label}</span>
-                  <button type="button" aria-pressed={on} onClick={() => toggleFollow(label)} style={S.followPill(on)}>
-                    {on ? "Suivi ✓" : "+ Suivre"}
-                  </button>
-                </div>
-                <ul style={S.latestList}>
-                  {items.map((a) => (
-                    <li key={a.id}>
-                      <Link to={`/blog/${a.slug}`} style={S.topicItemLink}>
-                        <div style={S.topicThumb(a.coverImageUrl)} />
-                        <div style={{ minWidth: 0 }}>
-                          <div style={S.topicItemTitle}>{a.title}</div>
-                          <div style={S.metaSmall}>{dateLabel(a.publishedAt)}</div>
-                        </div>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-                <Link to={`/blog?tag=${encodeURIComponent(label)}`} style={{ ...S.sectionMore, marginTop: "auto", paddingTop: "12px" }}>Voir tout →</Link>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
       {articles.length > 0 && (
         <nav aria-label="Rubriques du blog" className="bl-cats" style={S.cats}>
           <Link to="/blog" style={S.catPill(!category)}>Toutes</Link>
@@ -388,6 +338,56 @@ export default function BlogList() {
                   <div style={S.metaSmall}>{dateLabel(a.publishedAt)} · {minutesOf(a)} min</div>
                 </div>
               </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {!filtering && topicColumns.length > 0 && (
+        <section className="bl-topics" aria-label="Vos thèmes">
+          <div className="bl-topics-panel">
+            <div style={S.asideTitle}>Suivre des thèmes</div>
+            <p style={S.asideHint}>Choisissez vos thèmes : ils s'affichent à côté.</p>
+            <div style={S.chipWrap}>
+              {(followAll ? tags : tags.slice(0, FOLLOW_SHOWN)).map(([t]) => {
+                const on = followed.includes(tagKey(t));
+                return (
+                  <button key={tagKey(t)} type="button" aria-pressed={on} onClick={() => toggleFollow(t)} style={S.chip(on)}>
+                    <span aria-hidden="true">{on ? "✓" : "+"}</span> {t}
+                  </button>
+                );
+              })}
+            </div>
+            {tags.length > FOLLOW_SHOWN && (
+              <button type="button" onClick={() => setFollowAll((v) => !v)} style={S.followMore}>
+                {followAll ? "Voir moins" : `Voir tous les thèmes (${tags.length})`}
+              </button>
+            )}
+          </div>
+          <div className="bl-topics-cols">
+            {topicColumns.map(({ label, items, on }) => (
+              <div key={tagKey(label)} className="bl-topic-col">
+                <div style={S.topicColHead}>
+                  <span style={S.topicColTitle}>{label}</span>
+                  <button type="button" aria-pressed={on} onClick={() => toggleFollow(label)} style={S.followPill(on)}>
+                    {on ? "Suivi ✓" : "+ Suivre"}
+                  </button>
+                </div>
+                <ul style={S.latestList}>
+                  {items.map((a) => (
+                    <li key={a.id}>
+                      <Link to={`/blog/${a.slug}`} style={S.topicItemLink}>
+                        <div style={S.topicThumb(a.coverImageUrl)} />
+                        <div style={{ minWidth: 0 }}>
+                          <div style={S.topicItemTitle}>{a.title}</div>
+                          <div style={S.metaSmall}>{dateLabel(a.publishedAt)}</div>
+                        </div>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+                <Link to={`/blog?tag=${encodeURIComponent(label)}`} style={{ ...S.sectionMore, marginTop: "auto", paddingTop: "12px" }}>Voir tout →</Link>
+              </div>
             ))}
           </div>
         </section>
