@@ -22,6 +22,13 @@ window.addEventListener("vite:preloadError", (event) => {
   window.location.reload();
 });
 
+// Application installable : le service worker n'est actif qu'en production.
+if ("serviceWorker" in navigator && import.meta.env.PROD) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(() => { /* non bloquant */ });
+  });
+}
+
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <HelmetProvider>
