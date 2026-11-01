@@ -186,6 +186,15 @@ export default function BlogList() {
       .filter((s) => s.items.length >= (followed.includes(tagKey(s.tag)) ? 1 : 2));
   }, [showHero, top, hero, followed]);
 
+  // Colonnes « Vos thèmes » : les thèmes suivis, ou à défaut les trois plus fréquents.
+  const followedLabels = tags.map(([t]) => t).filter((t) => followed.includes(tagKey(t)));
+  const colLabels = (followedLabels.length ? followedLabels : tags.slice(0, 3).map(([t]) => t)).slice(0, 4);
+  const topicColumns = colLabels.map((label) => ({
+    label,
+    on: followed.includes(tagKey(label)),
+    items: articles.filter((a) => (a.tags || []).some((t) => sameTag(t, label))).slice(0, 4),
+  })).filter((c) => c.items.length > 0);
+
   const sectionIds = new Set(sections.flatMap((s) => s.items.map((a) => a.id)));
   const rest = showHero ? top.slice(4).filter((a) => !sectionIds.has(a.id)) : filtered;
   const shown = rest.slice(0, visible);
@@ -226,38 +235,55 @@ export default function BlogList() {
         </div>
       </header>
 
-      <div className="bl-layout">
-      <aside className="bl-aside" aria-label="Thèmes à suivre">
-        <div style={S.asideTitle}>Suivre des thèmes</div>
-        <p style={S.asideHint}>Les thèmes suivis apparaissent en haut de la page.</p>
-        <div style={S.chipWrap}>
-          {(followAll ? tags : tags.slice(0, FOLLOW_SHOWN)).map(([t]) => {
-            const on = followed.includes(tagKey(t));
-            return (
-              <button key={tagKey(t)} type="button" aria-pressed={on} onClick={() => toggleFollow(t)} style={S.chip(on)}>
-                <span aria-hidden="true">{on ? "✓" : "+"}</span> {t}
+      {!filtering && topicColumns.length > 0 && (
+        <section className="bl-topics" aria-label="Vos thèmes">
+          <div className="bl-topics-panel">
+            <div style={S.asideTitle}>Suivre des thèmes</div>
+            <p style={S.asideHint}>Choisissez vos thèmes : ils s'affichent à côté.</p>
+            <div style={S.chipWrap}>
+              {(followAll ? tags : tags.slice(0, FOLLOW_SHOWN)).map(([t]) => {
+                const on = followed.includes(tagKey(t));
+                return (
+                  <button key={tagKey(t)} type="button" aria-pressed={on} onClick={() => toggleFollow(t)} style={S.chip(on)}>
+                    <span aria-hidden="true">{on ? "✓" : "+"}</span> {t}
+                  </button>
+                );
+              })}
+            </div>
+            {tags.length > FOLLOW_SHOWN && (
+              <button type="button" onClick={() => setFollowAll((v) => !v)} style={S.followMore}>
+                {followAll ? "Voir moins" : `Voir tous les thèmes (${tags.length})`}
               </button>
-            );
-          })}
-        </div>
-        {tags.length > FOLLOW_SHOWN && (
-          <button type="button" onClick={() => setFollowAll((v) => !v)} style={S.followMore}>
-            {followAll ? "Voir moins" : `Voir tous les thèmes (${tags.length})`}
-          </button>
-        )}
-        <div style={S.asideBlock}>
-          <div style={S.asideTitle}>Derniers articles</div>
-          <ul style={S.latestList}>
-            {articles.slice(0, 5).map((a) => (
-              <li key={a.id}>
-                <Link to={`/blog/${a.slug}`} style={S.latestLink}>{a.title}</Link>
-                <div style={S.metaSmall}>{dateLabel(a.publishedAt)}</div>
-              </li>
+            )}
+          </div>
+          <div className="bl-topics-cols">
+            {topicColumns.map(({ label, items, on }) => (
+              <div key={tagKey(label)} className="bl-topic-col">
+                <div style={S.topicColHead}>
+                  <span style={S.topicColTitle}>{label}</span>
+                  <button type="button" aria-pressed={on} onClick={() => toggleFollow(label)} style={S.followPill(on)}>
+                    {on ? "Suivi ✓" : "+ Suivre"}
+                  </button>
+                </div>
+                <ul style={S.latestList}>
+                  {items.map((a) => (
+                    <li key={a.id}>
+                      <Link to={`/blog/${a.slug}`} style={S.topicItemLink}>
+                        <div style={S.topicThumb(a.coverImageUrl)} />
+                        <div style={{ minWidth: 0 }}>
+                          <div style={S.topicItemTitle}>{a.title}</div>
+                          <div style={S.metaSmall}>{dateLabel(a.publishedAt)}</div>
+                        </div>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+                <Link to={`/blog?tag=${encodeURIComponent(label)}`} style={{ ...S.sectionMore, marginTop: "auto", paddingTop: "12px" }}>Voir tout →</Link>
+              </div>
             ))}
-          </ul>
-        </div>
-      </aside>
-      <div className="bl-main">
+          </div>
+        </section>
+      )}
 
       {articles.length > 0 && (
         <nav aria-label="Rubriques du blog" className="bl-cats" style={S.cats}>
@@ -393,8 +419,6 @@ export default function BlogList() {
           Voir plus d'articles ({rest.length - visible})
         </button>
       )}
-      </div>
-      </div>
     </div>
   );
 }
@@ -415,10 +439,16 @@ const CSS = `
   .bl-side-item:first-of-type { border-top: none; }
   .bl-side-item:hover div:first-child { color: var(--k-accent-text); }
   .bl-pills { overflow-x: auto; }
+  .bl-topics { display: flex; gap: 16px; align-items: stretch; margin-bottom: 32px; }
+  .bl-topics-panel { width: 260px; flex-shrink: 0; background: var(--k-inset); border: 1px solid rgba(var(--k-accent-rgb),0.25); border-radius: 14px; padding: 18px; }
+  .bl-topics-cols { display: flex; gap: 16px; flex: 1; min-width: 0; overflow-x: auto; }
+  .bl-topic-col { width: 250px; flex-shrink: 0; display: flex; flex-direction: column; background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 14px; padding: 16px; }
   .bl-layout { display: flex; gap: 32px; align-items: flex-start; }
   .bl-main { flex: 1; min-width: 0; }
   .bl-aside { width: 260px; flex-shrink: 0; position: sticky; top: 90px; max-height: calc(100vh - 110px); overflow-y: auto; background: var(--k-inset); border: 1px solid rgba(var(--k-accent-rgb),0.25); border-radius: 14px; padding: 18px; }
   @media (max-width: 900px) {
+    .bl-topics { flex-direction: column; }
+    .bl-topics-panel { width: 100%; }
     .bl-layout { flex-direction: column; gap: 20px; }
     .bl-aside { width: 100%; position: static; max-height: 280px; }
   }
@@ -510,6 +540,20 @@ const S = {
   asideBlock: { marginTop: "18px", paddingTop: "16px", borderTop: "1px solid var(--k-surface2)" },
   latestList: { listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "12px" },
   latestLink: { display: "block", fontSize: "0.88rem", fontWeight: 600, lineHeight: 1.35, color: "var(--k-text)", textDecoration: "none", marginBottom: "3px" },
+  topicColHead: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px", marginBottom: "12px" },
+  topicColTitle: { fontSize: "1rem", fontWeight: 700, color: "var(--k-text)", textTransform: "capitalize", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
+  followPill: (on) => ({
+    fontSize: "0.75rem", fontWeight: 600, padding: "4px 10px", borderRadius: "999px", cursor: "pointer", whiteSpace: "nowrap",
+    border: on ? "1px solid var(--k-accent)" : "1px solid var(--k-border2)",
+    background: on ? "var(--k-accent)" : "transparent",
+    color: on ? "#fff" : "var(--k-text2)",
+  }),
+  topicItemLink: { display: "flex", gap: "10px", alignItems: "flex-start", textDecoration: "none", color: "inherit", marginBottom: "12px" },
+  topicThumb: (url) => ({
+    width: "56px", height: "44px", borderRadius: "8px", flexShrink: 0,
+    background: url ? `linear-gradient(to top, rgba(0,0,0,0.25), rgba(0,0,0,0.25)), ${cssUrl(url)} center / cover no-repeat` : "linear-gradient(135deg,var(--k-accent-deep),var(--k-inset))",
+  }),
+  topicItemTitle: { fontSize: "0.88rem", fontWeight: 600, lineHeight: 1.35, color: "var(--k-text)", marginBottom: "3px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" },
   chipWrap: { display: "flex", flexWrap: "wrap", gap: "8px" },
   followMore: { marginTop: "12px", background: "none", border: "none", padding: 0, color: "var(--k-accent-text)", fontSize: "0.85rem", fontWeight: 600, cursor: "pointer" },
   chip: (on) => ({
