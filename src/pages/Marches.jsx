@@ -8,6 +8,18 @@ import { cssUrl } from "../lib/cssUrl";
 
 const CATEGORIES = ["Sport", "Politique", "Crypto", "Tech", "Économie", "International", "Culture", "Climat", "Autre"];
 const PAGE = 18;
+const FOLLOW_KEY = "kassandre_markets_follow";
+const FOLLOW_SHOWN = 10;
+
+// Les tags saisis à la main varient (« france », « France », « États-Unis »).
+const tagKey = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[\s_]+/g, "-").trim();
+const prettyTag = (t) => { const x = String(t || "").trim(); return x.charAt(0).toUpperCase() + x.slice(1); };
+function readFollowed() {
+  try {
+    const v = JSON.parse(localStorage.getItem(FOLLOW_KEY) || "[]");
+    return Array.isArray(v) ? v.filter((x) => typeof x === "string") : [];
+  } catch { return []; }
+}
 
 const catsOf = (m) => (Array.isArray(m.categories) ? m.categories : m.category ? [m.category] : []);
 const pctOf = (m) => {
@@ -75,12 +87,23 @@ export default function Marches() {
   const [markets, setMarkets] = useState([]);
   const [loadedStatus, setLoadedStatus] = useState(null);
   const [visible, setVisible] = useState(PAGE);
+  const [followed, setFollowed] = useState(() => readFollowed());
+  const [followAll, setFollowAll] = useState(false);
+  const toggleFollow = (label) => {
+    const k = tagKey(label);
+    setFollowed((prev) => {
+      const next = prev.includes(k) ? prev.filter((x) => x !== k) : [...prev, k];
+      try { localStorage.setItem(FOLLOW_KEY, JSON.stringify(next)); } catch { /* navigation privée */ }
+      return next;
+    });
+  };
 
   const status = params.get("statut") || "open";
   const loading = loadedStatus !== status;
   const q = params.get("q") || "";
   const cat = params.get("cat") || "";
   const type = params.get("type") || "";
+  const tag = params.get("tag") || "";
   const sort = params.get("tri") || "volume";
   const resolved = status === "resolved";
 
@@ -109,20 +132,50 @@ export default function Marches() {
 
   const totalVolume = useMemo(() => markets.reduce((a, m) => a + (m.totalVolume || 0), 0), [markets]);
 
+  // Thèmes (tags) des marchés, regroupés sans casse ni accents.
+  const tags = useMemo(() => {
+    const map = new Map();
+    markets.forEach((m) => {
+      const seen = new Set();
+      (m.tags || []).forEach((t) => {
+        const k = tagKey(t);
+        if (!k || seen.has(k)) return;
+        seen.add(k);
+        if (!map.has(k)) map.set(k, { label: prettyTag(t), n: 0 });
+        map.get(k).n += 1;
+      });
+    });
+    return [...map.entries()].map(([k, v]) => ({ key: k, ...v })).sort((a, b) => b.n - a.n || a.label.localeCompare(b.label, "fr"));
+  }, [markets]);
+
+  const topicColumns = useMemo(() => {
+    const chosen = tags.filter((t) => followed.includes(t.key));
+    const base = (chosen.length ? chosen : tags.slice(0, 3)).slice(0, 4);
+    return base.map((t) => ({
+      ...t,
+      on: followed.includes(t.key),
+      items: [...markets]
+        .filter((m) => (m.tags || []).some((x) => tagKey(x) === t.key))
+        .sort((a, b) => (b.totalVolume || 0) - (a.totalVolume || 0))
+        .slice(0, 4),
+    })).filter((c) => c.items.length > 0);
+  }, [tags, followed, markets]);
+
   const list = useMemo(() => {
     const needle = normalize(q).trim();
     const out = markets.filter((m) => {
       if (cat && !catsOf(m).includes(cat)) return false;
       if (type && (m.type === "multi" ? "multi" : "binary") !== type) return false;
+      if (tag && !(m.tags || []).some((x) => tagKey(x) === tag)) return false;
       if (!needle) return true;
       return needle.split(/\s+/).every((w) => normalize([m.question, ...(m.tags || [])].join(" ")).includes(w));
     });
     if (sort === "closing") out.sort((a, b) => String(a.resolutionDate || "9").localeCompare(String(b.resolutionDate || "9")));
     else if (sort === "volume") out.sort((a, b) => (b.totalVolume || 0) - (a.totalVolume || 0));
     return out;
-  }, [markets, q, cat, type, sort]);
+  }, [markets, q, cat, type, tag, sort]);
 
-  const filtering = Boolean(q || cat || type);
+  const filtering = Boolean(q || cat || type || tag);
   const showHero = !loading && !resolved && !filtering && sort === "volume" && list.length >= 5;
   const pinned = list.filter((m) => m.pinnedFeatured);
   const hero = showHero ? (pinned[0] || list[0]) : null;
@@ -187,6 +240,13 @@ export default function Marches() {
         </button>
       </nav>
 
+      {tag && (
+        <p style={S.activeTag}>
+          Thème : <strong>{tags.find((t) => t.key === tag)?.label || tag}</strong>
+          <button style={S.reset} onClick={() => setParam("tag", "")}>Effacer</button>
+        </p>
+      )}
+
       {loading && <div className="mk-grid">{[0, 1, 2, 3, 4, 5].map((i) => <div key={i} className="mk-skel" />)}</div>}
       {!loading && list.length === 0 && <p style={S.empty}>Aucun marché ne correspond à votre recherche.</p>}
 
@@ -217,6 +277,52 @@ export default function Marches() {
                 </div>
                 <div style={S.sidePct}>{pctOf(m) !== null ? `${pctOf(m)} %` : "Multi"}</div>
               </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {!loading && !resolved && !filtering && topicColumns.length > 0 && (
+        <section className="mk-topics" aria-label="Vos thèmes">
+          <div className="mk-topics-panel">
+            <div style={S.panelTitle}>Suivre des thèmes</div>
+            <p style={S.panelHint}>Choisissez vos thèmes : leurs marchés s'affichent à côté.</p>
+            <div style={S.chipWrap}>
+              {(followAll ? tags : tags.slice(0, FOLLOW_SHOWN)).map((t) => {
+                const on = followed.includes(t.key);
+                return (
+                  <button key={t.key} type="button" aria-pressed={on} onClick={() => toggleFollow(t.label)} style={S.chip(on)}>
+                    <span aria-hidden="true">{on ? "✓" : "+"}</span> {t.label}
+                  </button>
+                );
+              })}
+            </div>
+            {tags.length > FOLLOW_SHOWN && (
+              <button type="button" onClick={() => setFollowAll((v) => !v)} style={S.followMore}>
+                {followAll ? "Voir moins" : `Voir tous les thèmes (${tags.length})`}
+              </button>
+            )}
+          </div>
+          <div className="mk-topics-cols">
+            {topicColumns.map((c) => (
+              <div key={c.key} className="mk-topic-col">
+                <div style={S.topicHead}>
+                  <span style={S.topicTitle}>{c.label}</span>
+                  <button type="button" aria-pressed={c.on} onClick={() => toggleFollow(c.label)} style={S.followPill(c.on)}>
+                    {c.on ? "Suivi ✓" : "+ Suivre"}
+                  </button>
+                </div>
+                {c.items.map((m) => (
+                  <Link key={m.id} to={`/market/${m.id}`} className="mk-side-item">
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <div style={S.sideQ}>{m.question}</div>
+                      <div style={S.sideMeta}>{whenLabel(m, false)}</div>
+                    </div>
+                    <div style={S.sidePct}>{pctOf(m) !== null ? `${pctOf(m)} %` : "Multi"}</div>
+                  </Link>
+                ))}
+                <Link to={`/marches?tag=${encodeURIComponent(c.key)}`} style={S.topicMore}>Voir tout ({c.n}) →</Link>
+              </div>
             ))}
           </div>
         </section>
@@ -253,12 +359,20 @@ const CSS = `
   .mk-side-item { display: flex; gap: 12px; padding: 12px 0; border-top: 1px solid var(--k-surface2); text-decoration: none; align-items: center; }
   .mk-side-item:first-of-type { border-top: none; }
   .mk-side-item:hover div:first-child > div:first-child { color: var(--k-accent-text); }
+  .mk-topics { display: flex; gap: 16px; align-items: stretch; margin: 0 0 40px; }
+  .mk-topics-panel { width: 270px; flex-shrink: 0; background: var(--k-inset); border: 1px solid rgba(var(--k-accent-rgb),0.25); border-radius: 16px; padding: 20px; }
+  .mk-topics-cols { display: flex; gap: 16px; flex: 1; min-width: 0; overflow-x: auto; padding-bottom: 10px; scrollbar-width: thin; scrollbar-color: rgba(var(--k-accent-rgb),0.55) transparent; }
+  .mk-topics-cols::-webkit-scrollbar { height: 6px; }
+  .mk-topics-cols::-webkit-scrollbar-thumb { background: rgba(var(--k-accent-rgb),0.45); border-radius: 999px; }
+  .mk-topic-col { width: 270px; flex-shrink: 0; display: flex; flex-direction: column; background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 16px; padding: 16px 18px; }
   .mk-pills { scrollbar-width: thin; scrollbar-color: rgba(var(--k-accent-rgb),0.55) transparent; }
   .mk-pills::-webkit-scrollbar { height: 6px; }
   .mk-pills::-webkit-scrollbar-thumb { background: rgba(var(--k-accent-rgb),0.45); border-radius: 999px; }
   @media (max-width: 900px) {
     .mk-grid { grid-template-columns: repeat(2, 1fr); }
     .mk-hero { grid-template-columns: 1fr; }
+    .mk-topics { flex-direction: column; }
+    .mk-topics-panel { width: 100%; box-sizing: border-box; }
     .mk-hero-main { min-height: 320px; }
   }
   @media (max-width: 600px) {
@@ -301,6 +415,17 @@ const S = {
   cardFoot: { display: "flex", justifyContent: "space-between", gap: "8px", fontSize: "0.78rem", color: "var(--k-muted)", marginTop: "auto", paddingTop: "10px", borderTop: "1px solid var(--k-surface2)" },
   track: { height: "6px", borderRadius: "999px", background: "rgba(var(--k-accent-rgb),0.18)", overflow: "hidden" },
   fill: { height: "100%", borderRadius: "999px", background: "linear-gradient(90deg, var(--k-accent), var(--k-accent-text))" },
+  panelTitle: { fontSize: "1rem", fontWeight: 700, color: "var(--k-accent-text)", marginBottom: "6px" },
+  panelHint: { fontSize: "0.8rem", color: "var(--k-muted)", margin: "0 0 16px", lineHeight: 1.4 },
+  chipWrap: { display: "flex", flexWrap: "wrap", gap: "8px" },
+  chip: (on) => ({ fontSize: "0.85rem", fontWeight: 500, padding: "6px 12px", borderRadius: "999px", cursor: "pointer", whiteSpace: "nowrap", border: on ? "1px solid var(--k-accent)" : "1px solid var(--k-border2)", background: on ? "rgba(var(--k-accent-rgb),0.25)" : "transparent", color: on ? "var(--k-accent-text)" : "var(--k-text2)" }),
+  followMore: { marginTop: "12px", background: "none", border: "none", padding: 0, color: "var(--k-accent-text)", fontSize: "0.85rem", fontWeight: 600, cursor: "pointer" },
+  topicHead: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px", marginBottom: "6px" },
+  topicTitle: { fontSize: "1rem", fontWeight: 700, color: "var(--k-text)", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
+  followPill: (on) => ({ fontSize: "0.75rem", fontWeight: 600, padding: "4px 10px", borderRadius: "999px", cursor: "pointer", whiteSpace: "nowrap", border: on ? "1px solid var(--k-accent)" : "1px solid var(--k-border2)", background: on ? "var(--k-accent)" : "transparent", color: on ? "#fff" : "var(--k-text2)" }),
+  topicMore: { marginTop: "auto", paddingTop: "12px", fontSize: "0.85rem", fontWeight: 600, color: "var(--k-accent-text)", textDecoration: "none" },
+  activeTag: { fontSize: "0.9rem", color: "var(--k-muted2)", margin: "0 0 18px" },
+  reset: { marginLeft: "12px", background: "none", border: "none", color: "var(--k-accent-text)", cursor: "pointer", fontSize: "0.9rem", textDecoration: "underline" },
   multi: { fontWeight: 700, color: "var(--k-accent-text)" },
   more: { display: "block", margin: "28px auto 0", padding: "12px 28px", borderRadius: "10px", background: "transparent", border: "1px solid var(--k-accent)", color: "var(--k-accent-text)", fontSize: "0.95rem", fontWeight: 600, cursor: "pointer" },
 };
