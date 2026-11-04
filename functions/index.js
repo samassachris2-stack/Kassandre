@@ -6,6 +6,7 @@ import { buildOgPayload, buildIndexPayload, ID_RE } from "./og-data.js";
 import { detectMove, outcomeLabelFor } from "./follow-alerts.js";
 import {
   LICENSE, MARKET_COLUMNS, getCalibration, getHistory, getInsights, getMarket, getStats, getTrackRecord, listMarkets, toCsv,
+  listPublishedArticles, getPublishedArticle,
 } from "./public-api.js";
 import { computeDaily } from "./daily-bonus.js";
 import {
@@ -943,6 +944,8 @@ export const publicApi = onRequest({ cors: true, maxInstances: 5, memory: "512Mi
           "/api/v1/insights/{marketId}",
           "/api/v1/track-record?category=Politique",
           "/api/v1/stats",
+          "/api/v1/articles",
+          "/api/v1/articles/{slug}",
         ],
       });
       return;
@@ -1001,6 +1004,18 @@ export const publicApi = onRequest({ cors: true, maxInstances: 5, memory: "512Mi
     }
     if (parts[0] === "stats") {
       reply(await getStats(db));
+      return;
+    }
+    if (parts[0] === "articles" && parts.length === 1) {
+      reply(await listPublishedArticles(db), 60);
+      return;
+    }
+    if (parts[0] === "articles" && parts.length === 2) {
+      const slug = decodeURIComponent(parts[1]);
+      if (!ID_RE.test(slug)) { res.status(400).json({ error: "bad slug" }); return; }
+      const a = await getPublishedArticle(db, slug);
+      if (!a) { res.status(404).json({ error: "not found" }); return; }
+      reply(a, 60);
       return;
     }
     res.status(404).json({ error: "not found" });

@@ -441,3 +441,42 @@ export async function getTrackRecord(db, category) {
     };
   });
 }
+
+// ── Articles du blog publiés ─────────────────────────────────────────────────
+// Le site lit le blog par cette route plutôt que directement dans Firestore :
+// un visiteur dont le navigateur échoue au test App Check (poste partagé de
+// bibliothèque, réseau d'entreprise...) voyait sinon une page vide.
+// Jamais de brouillon : filtre status == "published". Tri en JS, sans index.
+const ARTICLE_FIELDS = [
+  "title", "slug", "excerpt", "content", "coverImageUrl", "tags", "category",
+  "readingTime", "featuredRank", "linkedMarkets",
+];
+const ARTICLE_DATES = ["publishedAt", "updatedAt", "createdAt"];
+
+function publicArticle(id, a) {
+  const out = { id };
+  for (const k of ARTICLE_FIELDS) if (a[k] !== undefined) out[k] = a[k];
+  for (const k of ARTICLE_DATES) out[k] = iso(a[k]);
+  return out;
+}
+
+export async function listPublishedArticles(db) {
+  return memo("articles", 30_000, async () => {
+    const snap = await db.collection("articles").where("status", "==", "published").limit(500).get();
+    const data = snap.docs
+      .map((d) => publicArticle(d.id, d.data()))
+      .sort((x, y) => (y.publishedAt || y.createdAt || "").localeCompare(x.publishedAt || x.createdAt || ""));
+    return { data };
+  });
+}
+
+export async function getPublishedArticle(db, slug) {
+  const snap = await db
+    .collection("articles")
+    .where("slug", "==", slug)
+    .where("status", "==", "published")
+    .limit(1)
+    .get();
+  if (snap.empty) return null;
+  return publicArticle(snap.docs[0].id, snap.docs[0].data());
+}

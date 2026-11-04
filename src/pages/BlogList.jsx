@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { getPublishedArticles } from "../lib/articles";
+import { fetchPublishedArticles } from "../lib/articles";
 import {
   readingMinutes,
   tagCounts,
@@ -94,6 +94,7 @@ function BlogCard({ a }) {
 export default function BlogList() {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [params, setParams] = useSearchParams();
   const [visible, setVisible] = useState(PAGE_SIZE);
   const [allTags, setAllTags] = useState(false);
@@ -107,11 +108,17 @@ export default function BlogList() {
 
   useEffect(() => {
     let alive = true;
-    getPublishedArticles().then((data) => {
-      if (!alive) return;
-      setArticles(data);
-      setLoading(false);
-    });
+    fetchPublishedArticles()
+      .then((data) => {
+        if (alive) setArticles(data);
+      })
+      .catch((e) => {
+        console.error("Chargement du blog impossible :", e);
+        if (alive) setLoadError(true);
+      })
+      .finally(() => {
+        if (alive) setLoading(false);
+      });
     return () => { alive = false; };
   }, []);
 
@@ -295,7 +302,15 @@ export default function BlogList() {
         </div>
       )}
 
-      {!loading && articles.length === 0 && <p style={S.empty}>Aucun article publié pour le moment.</p>}
+      {!loading && loadError && (
+        <p style={S.empty}>
+          Impossible de charger les articles pour le moment.{" "}
+          <button type="button" onClick={() => window.location.reload()} style={{ background: "none", border: "none", color: "var(--k-accent)", cursor: "pointer", font: "inherit", textDecoration: "underline", padding: 0 }}>
+            Réessayer
+          </button>
+        </p>
+      )}
+      {!loading && !loadError && articles.length === 0 && <p style={S.empty}>Aucun article publié pour le moment.</p>}
 
       {!loading && articles.length > 0 && filtering && (
         <p style={S.resultCount}>

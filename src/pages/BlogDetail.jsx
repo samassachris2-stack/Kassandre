@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { getArticleBySlug } from "../lib/articles";
+import { fetchArticleBySlug } from "../lib/articles";
 import { useSEO } from "../hooks/useSEO";
 import { generateArticleStructuredData } from "../lib/structuredData";
 import ShareButtons from "../components/ShareButtons";
@@ -15,15 +15,20 @@ export default function BlogDetail() {
   const [article, setArticle] = useState(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
     const fetchArticle = async () => {
       setLoading(true);
-      const data = await getArticleBySlug(slug);
-      if (data) {
-        setArticle(data);
-      } else {
-        setNotFound(true);
+      setLoadError(false);
+      setNotFound(false);
+      try {
+        const data = await fetchArticleBySlug(slug);
+        if (data) setArticle(data);
+        else setNotFound(true);
+      } catch (e) {
+        console.error("Chargement de l'article impossible :", e);
+        setLoadError(true);
       }
       setLoading(false);
     };
@@ -69,6 +74,14 @@ export default function BlogDetail() {
     return (
       <div style={styles.container}>
         <p style={styles.loading}>Chargement de l'article...</p>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div style={styles.container}>
+        <p style={styles.notFound}>Impossible de charger l'article pour le moment. Réessayez dans un instant.</p>
       </div>
     );
   }
