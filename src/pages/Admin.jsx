@@ -11,6 +11,53 @@ import CopyIdButton from "../components/CopyIdButton";
 import ReportedComments from "../components/ReportedComments";
 import { prepareImageForUpload } from "../lib/imageUtils";
 
+// Envoie l'image de couverture d'un marché (déjà recadrée) et l'attache au marché.
+async function uploadMarketCover(marketId, blob) {
+  const imgRef = ref(storage, `market-covers/${marketId}`);
+  const light = await prepareImageForUpload(blob, 1200, 0.82).catch(() => blob);
+  await uploadBytes(imgRef, light, { contentType: "image/jpeg" });
+  const url = await getDownloadURL(imgRef);
+  await updateDoc(doc(db, "markets", marketId), { coverImageUrl: url });
+}
+
+// Bouton « + Image » avec recadrage, utilisé avant la création (formulaire et liste d'attente).
+function PendingImagePicker({ image, onChange }) {
+  const [file, setFile] = useState(null);
+  const inputRef = useRef(null);
+  function pick(e) {
+    const f = e.target.files?.[0];
+    e.target.value = "";
+    if (!f) return;
+    if (!f.type.startsWith("image/")) { notify("Le fichier doit être une image.", "warning"); return; }
+    if (f.size > 10 * 1024 * 1024) { notify("L'image doit faire moins de 10 Mo.", "warning"); return; }
+    setFile(f);
+  }
+  return (
+    <>
+      {image && <img src={image.preview} alt="" style={{ width: "40px", height: "40px", borderRadius: "6px", objectFit: "cover" }} />}
+      <button type="button" onClick={() => inputRef.current?.click()}
+        style={{ padding: "6px 10px", background: "var(--k-surface2)", color: "var(--k-accent)", borderRadius: "6px", border: "1px solid var(--k-accent)", cursor: "pointer", fontSize: "13px", flexShrink: 0 }}>
+        {image ? "Changer l'image" : "+ Image"}
+      </button>
+      {image && (
+        <button type="button" onClick={() => { URL.revokeObjectURL(image.preview); onChange(null); }}
+          style={{ padding: "6px 8px", background: "transparent", color: "var(--k-faint)", borderRadius: "6px", border: "1px solid var(--k-border)", cursor: "pointer", fontSize: "13px", flexShrink: 0 }}>
+          ×
+        </button>
+      )}
+      <input ref={inputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={pick} />
+      {file && (
+        <ImageCropper file={file} onCancel={() => setFile(null)}
+          onConfirm={(blob) => {
+            if (image) URL.revokeObjectURL(image.preview);
+            onChange({ blob, preview: URL.createObjectURL(blob) });
+            setFile(null);
+          }} />
+      )}
+    </>
+  );
+}
+
 function MultiResolveButtons({ marketId }) {
   const [options, setOptions] = useState([]);
 
@@ -642,6 +689,7 @@ export default function Admin() {
   const [deleting, setDeleting] = useState(false);
   const [idsText, setIdsText] = useState("");
   const [queue, setQueue] = useState([]);
+  const [formImage, setFormImage] = useState(null);
   const [creatingQueue, setCreatingQueue] = useState(false);
   const [queueProgress, setQueueProgress] = useState(null);
   const [marketSearch, setMarketSearch] = useState("");
@@ -724,6 +772,7 @@ export default function Admin() {
     setResolutionDate("");
     setResolutionSource("");
     setOptions(["", ""]);
+    setFormImage(null);
     // category n'est pas reset : pratique pour créer plusieurs marchés de suite
     // dans la même catégorie sans avoir à la resélectionner à chaque fois.
   }
@@ -736,18 +785,27 @@ export default function Admin() {
       if (validOptions.length < 2) return null;
       return {
         marketType, question, description, categories, tags, resolutionDate, resolutionSource,
-        options: validOptions,
+        options: validOptions, image: formImage,
       };
     }
     return {
       marketType, question, description, categories, tags, resolutionDate, resolutionSource,
-      options: [],
+      options: [], image: formImage,
     };
+  }
+
+  async function attachCover(marketId, payload) {
+    if (!payload.image?.blob) return;
+    try {
+      await uploadMarketCover(marketId, payload.image.blob);
+    } catch (e) {
+      notify(`Marché créé, mais l'image n'a pas pu être envoyée : ${e.message}`, "warning");
+    }
   }
 
   async function createOneMarket(payload) {
     if (payload.marketType === "binary") {
-      await addDoc(collection(db, "markets"), {
+      const created = await addDoc(collection(db, "markets"), {
         question: payload.question,
         description: payload.description,
         categories: payload.categories,
@@ -761,6 +819,7 @@ export default function Admin() {
         createdBy: user.uid,
         createdAt: serverTimestamp(),
       });
+      await attachCover(created.id, payload);
     } else {
       const liquidityB = Math.round(75 * Math.log(payload.options.length + 1));
       // Marché et options écrits dans un seul lot : pas de marché créé sans ses options
@@ -806,6 +865,7 @@ export default function Admin() {
         });
       }
       await batch.commit();
+      await attachCover(marketRef.id, payload);
     }
   }
 
@@ -1152,6 +1212,11 @@ export default function Admin() {
           </div>
         )}
 
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <span style={{ fontSize: "13px", color: "var(--k-muted)" }}>Image de couverture (facultatif)</span>
+          <PendingImagePicker image={formImage} onChange={setFormImage} />
+        </div>
+
         <div style={{ display: "flex", gap: "8px" }}>
           <button
             onClick={addToQueue}
@@ -1186,12 +1251,15 @@ export default function Admin() {
                   {item.marketType === "multi" ? `Multi-choix (${item.options.length} options)` : "Oui/Non"} · {item.categories.join(", ")}{item.tags?.length > 0 && ` · #${item.tags.join(" #")}`} · {item.resolutionDate}
                 </p>
               </div>
+              <div style={{ display: "flex", alignItems: "center", gap: "6px", flexShrink: 0 }}>
+              <PendingImagePicker image={item.image} onChange={(img) => setQueue((prev) => prev.map((q) => (q._id === item._id ? { ...q, image: img } : q)))} />
               <button
                 onClick={() => removeFromQueue(item._id)}
                 style={{ padding: "6px 10px", background: "#ef4444", color: "#fff", borderRadius: "6px", border: "none", cursor: "pointer", fontSize: "13px", flexShrink: 0 }}
               >
                 Retirer
               </button>
+              </div>
             </div>
           ))}
           <button
