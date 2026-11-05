@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import AppearancePanel from "../components/AppearancePanel";
 import DemographicsPanel from "../components/DemographicsPanel";
+import FollowsPanel from "../components/FollowsPanel";
 
 export default function Settings() {
   const { user } = useAuth();
@@ -39,6 +40,7 @@ export default function Settings() {
     return (
       <div style={{ maxWidth: "500px", margin: "40px auto", padding: "0 16px" }}>
         <h1 style={{ fontSize: "22px", marginBottom: "20px" }}>Paramètres</h1>
+        <FollowsPanel />
         <AppearancePanel />
         <p style={{ color: "var(--k-faint)", fontSize: "13px", marginTop: "20px" }}>
           Connecte-toi pour modifier ton profil.
@@ -143,6 +145,8 @@ export default function Settings() {
         >
           Voir mon profil public
         </button>
+
+        <FollowsPanel />
 
         <DemographicsPanel />
 
