@@ -15,12 +15,12 @@ const TABS = [
   { key: "deuxieme", label: "2e du 1er tour", match: /deuxième|deuxieme|second|2e/i },
 ];
 
-// Familles politiques (repère visuel, indicatif) : couleur de barre et regroupement.
+// Familles politiques, rangées de gauche à droite (c'est l'ordre de la barre de poids).
 const CAMPS = [
-  { key: "rn", label: "Extrême droite", color: "#5b7cfa", match: /le pen|bardella/i },
-  { key: "droite", label: "Droite", color: "#38bdf8", match: /retailleau/i },
-  { key: "centre", label: "Centre", color: "#f59e0b", match: /philippe|attal|villepin/i },
   { key: "gauche", label: "Gauche", color: "#ef4444", match: /mélenchon|melenchon|glucksmann|tondelier|ruffin|hollande/i },
+  { key: "centre", label: "Centre", color: "#f59e0b", match: /philippe|attal|villepin/i },
+  { key: "droite", label: "Droite", color: "#38bdf8", match: /retailleau/i },
+  { key: "rn", label: "Extrême droite", color: "#5b7cfa", match: /le pen|bardella/i },
 ];
 const OTHER = { key: "autre", label: "Autres", color: "#6b7280" };
 const campOf = (label) => CAMPS.find((c) => c.match.test(label)) || OTHER;
@@ -138,16 +138,16 @@ export default function PresidentialBarometer({ markets }) {
           <ol style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "10px" }}>
             {top.map((r) => (
               <li key={r.label} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                <span aria-hidden="true" style={{ flex: "0 0 34px", height: "34px", borderRadius: "50%", background: `${r.camp.color}33`, border: `2px solid ${r.camp.color}`, color: r.camp.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: 700 }}>
+                <span aria-hidden="true" style={{ flex: "0 0 30px", height: "30px", borderRadius: "50%", background: `${r.camp.color}33`, border: `1.5px solid ${r.camp.color}`, color: r.camp.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: 700 }}>
                   {r.camp.key === "autre" ? "…" : initials(r.label)}
                 </span>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "14px", marginBottom: "4px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "14px", marginBottom: "6px" }}>
                     <span style={{ color: "var(--k-text)", fontWeight: r === leader ? 700 : 500 }}>{r.label}</span>
                     <span style={{ fontWeight: 700, color: r.camp.color }}>{Math.round(r.pct)} %</span>
                   </div>
-                  <div style={{ height: "10px", borderRadius: "5px", background: "var(--k-surface2)", overflow: "hidden" }}>
-                    <div style={{ width: `${Math.max(1.5, (r.pct / scale) * 100)}%`, height: "100%", background: r.camp.color, borderRadius: "5px", transition: "width .5s" }} />
+                  <div style={{ height: "4px", borderRadius: "2px", background: "var(--k-surface2)", overflow: "hidden" }}>
+                    <div style={{ width: `${Math.max(1.5, (r.pct / scale) * 100)}%`, height: "100%", background: r.camp.color, borderRadius: "2px", transition: "width .5s" }} />
                   </div>
                 </div>
               </li>
@@ -156,8 +156,8 @@ export default function PresidentialBarometer({ markets }) {
 
           {camps.length > 1 && (
             <div style={{ marginTop: "16px" }}>
-              <div style={{ fontSize: "12px", color: "var(--k-muted)", marginBottom: "6px" }}>Poids de chaque famille politique (somme des candidats)</div>
-              <div style={{ display: "flex", height: "14px", borderRadius: "7px", overflow: "hidden", gap: "2px" }}>
+              <div style={{ fontSize: "12px", color: "var(--k-muted)", marginBottom: "6px" }}>Poids de chaque famille politique, de la gauche à l'extrême droite</div>
+              <div style={{ display: "flex", height: "6px", borderRadius: "3px", overflow: "hidden", gap: "2px" }}>
                 {camps.map((c) => <div key={c.key} title={`${c.label} : ${Math.round(c.pct)} %`} style={{ flex: c.pct, background: c.color }} />)}
               </div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 14px", marginTop: "8px", fontSize: "12px", color: "var(--k-muted)" }}>
