@@ -173,8 +173,9 @@ export default function BlogList() {
   // Sections par thème : les tags qui reviennent (au moins 2 articles) ont leur rangée sur la page.
   const sections = useMemo(() => {
     if (!showHero) return [];
-    const pool = top.slice(4);
-    const used = new Set([hero?.id, ...top.slice(1, 4).map((a) => a.id)].filter(Boolean));
+    // Tous les articles comptent, même ceux déjà « À la une » ou dans les derniers :
+    // un tag qui revient au moins 2 fois a toujours sa rangée.
+    const pool = top;
     const counts = tagCounts(pool);
     // Thèmes suivis d'abord (même avec un seul article), puis les thèmes qui reviennent.
     const followedLabels = counts.map(([t]) => t).filter((t) => followed.includes(tagKey(t)));
@@ -185,13 +186,12 @@ export default function BlogList() {
     return [...followedLabels, ...autoLabels]
       .map((tag) => {
         const items = pool
-          .filter((a) => !used.has(a.id) && (a.tags || []).some((t) => sameTag(t, tag)))
+          .filter((a) => (a.tags || []).some((t) => sameTag(t, tag)))
           .slice(0, SECTION_SIZE);
-        items.forEach((a) => used.add(a.id));
         return { tag, items };
       })
       .filter((s) => s.items.length >= (followed.includes(tagKey(s.tag)) ? 1 : 2));
-  }, [showHero, top, hero, followed]);
+  }, [showHero, top, followed]);
 
   // Colonnes « Vos thèmes » : les thèmes suivis, ou à défaut les trois plus fréquents.
   const followedLabels = tags.map(([t]) => t).filter((t) => followed.includes(tagKey(t)));
