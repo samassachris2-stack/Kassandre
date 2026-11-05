@@ -451,12 +451,14 @@ const ARTICLE_FIELDS = [
   "title", "slug", "excerpt", "content", "coverImageUrl", "tags", "category",
   "readingTime", "featuredRank", "linkedMarkets",
 ];
-const ARTICLE_DATES = ["publishedAt", "updatedAt", "createdAt"];
+const ARTICLE_DATES = ["publishedAt", "updatedAt", "createdAt", "featuredUntil"];
 
 function publicArticle(id, a) {
   const out = { id };
   for (const k of ARTICLE_FIELDS) if (a[k] !== undefined) out[k] = a[k];
   for (const k of ARTICLE_DATES) out[k] = iso(a[k]);
+  // Une expirée : l'article n'est plus à la une (le cache de 30 s peut retarder l'effet).
+  if (out.featuredUntil && Date.parse(out.featuredUntil) <= Date.now()) out.featuredRank = null;
   return out;
 }
 

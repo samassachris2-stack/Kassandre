@@ -17,7 +17,7 @@ import {
   generateSlug,
 } from "../lib/articles";
 import { notify, askConfirm } from "../lib/notify";
-import { BLOG_CATEGORIES } from "../lib/blogUtils";
+import { BLOG_CATEGORIES, featuredUntilMs } from "../lib/blogUtils";
 
 // Date d'un article (Timestamp Firestore) au format attendu par <input type="datetime-local">.
 function toLocalInput(ts) {
@@ -43,6 +43,7 @@ export default function BlogAdminPage() {
     content: "",
     category: "",
     featuredRank: "",
+    featuredDays: "7",
     tags: "",
     linkedMarkets: "",
     status: "draft",
@@ -99,6 +100,15 @@ export default function BlogAdminPage() {
       status: formData.status,
       coverImageUrl: formData.coverImageUrl || null,
     };
+    // Échéance de la une : l'article quitte seul la une à la date choisie.
+    if (!articleData.featuredRank) {
+      articleData.featuredUntil = null;
+    } else if (formData.featuredDays === "none") {
+      articleData.featuredUntil = null;
+    } else if (formData.featuredDays !== "keep") {
+      const days = Number(formData.featuredDays) || 7;
+      articleData.featuredUntil = Timestamp.fromMillis(new Date().getTime() + days * 86400000);
+    }
     if (formData.publishedAt) {
       const d = new Date(formData.publishedAt);
       if (!Number.isNaN(d.getTime())) articleData.publishedAt = Timestamp.fromDate(d);
@@ -111,7 +121,7 @@ export default function BlogAdminPage() {
           (a) => a.featuredRank === articleData.featuredRank && a.id !== editingId
         );
         for (const a of displaced) {
-          await updateArticle(a.id, { featuredRank: null });
+          await updateArticle(a.id, { featuredRank: null, featuredUntil: null });
         }
       }
       if (editingId) {
@@ -136,6 +146,7 @@ export default function BlogAdminPage() {
       content: article.content,
       category: article.category || "",
       featuredRank: article.featuredRank ? String(article.featuredRank) : "",
+      featuredDays: article.featuredRank ? "keep" : "7",
       tags: article.tags ? article.tags.join(", ") : "",
       linkedMarkets: article.linkedMarkets ? article.linkedMarkets.join(", ") : "",
       status: article.status,
@@ -193,6 +204,7 @@ export default function BlogAdminPage() {
       content: "",
       category: "",
       featuredRank: "",
+      featuredDays: "7",
       tags: "",
       linkedMarkets: "",
       status: "draft",
@@ -390,6 +402,27 @@ export default function BlogAdminPage() {
                   <option value="3">Position 3 : liste de côté</option>
                   <option value="4">Position 4 : liste de côté</option>
                 </select>
+                {formData.featuredRank && (
+                  <div style={{ marginTop: "10px" }}>
+                    <label style={styles.label}>Durée à la une</label>
+                    <select
+                      value={formData.featuredDays}
+                      onChange={(e) => setFormData({ ...formData, featuredDays: e.target.value })}
+                      style={styles.input}
+                    >
+                      {editingId && <option value="keep">Garder l'échéance actuelle</option>}
+                      <option value="1">1 jour</option>
+                      <option value="3">3 jours</option>
+                      <option value="7">7 jours</option>
+                      <option value="14">14 jours</option>
+                      <option value="30">30 jours</option>
+                      <option value="none">Sans limite</option>
+                    </select>
+                    <div style={{ fontSize: "0.8rem", color: "var(--k-muted2)", marginTop: "6px" }}>
+                      À la fin de la durée, l'article quitte la une tout seul.
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div style={styles.formGroup}>
@@ -494,7 +527,22 @@ export default function BlogAdminPage() {
               <tbody>
                 {articles.map((article) => (
                   <tr key={article.id} style={styles.tr}>
-                    <td style={styles.td}>{article.title}</td>
+                    <td style={styles.td}>
+                      {article.title}
+                      {(() => {
+                        if (!article.featuredRank) return null;
+                        const until = featuredUntilMs(article);
+                        const expired = until !== null && until <= new Date().getTime();
+                        const label = expired
+                          ? "Une expirée"
+                          : `À la une n°${article.featuredRank} · ${until === null ? "sans limite" : "jusqu'au " + new Date(until).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" })}`;
+                        return (
+                          <div style={{ fontSize: "0.78rem", marginTop: "4px", color: expired ? "var(--k-muted2)" : until === null ? "#f59e0b" : "var(--k-accent)" }}>
+                            {label}
+                          </div>
+                        );
+                      })()}
+                    </td>
                     <td style={styles.td}>
                       <span
                         style={{

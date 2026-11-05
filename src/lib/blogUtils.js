@@ -132,9 +132,25 @@ export function categoryCounts(articles) {
 // Une : jusqu'à 4 articles, positionnés par l'admin (1 = article principal, 2 à 4 = liste de côté).
 export const FEATURED_SLOTS = 4;
 
+// Échéance de la une (ms), tolérante : Timestamp Firestore, date ISO (API publique) ou null.
+export function featuredUntilMs(a) {
+  const t = a && a.featuredUntil;
+  if (!t) return null;
+  const ms = t.toMillis ? t.toMillis() : t.seconds ? t.seconds * 1000 : new Date(t).getTime();
+  return Number.isNaN(ms) ? null : ms;
+}
+
+// Une place à la une expire toute seule quand une échéance est fixée (sans échéance : sans limite).
+export function isFeaturedActive(a, now = Date.now()) {
+  if (!(Number.isInteger(a.featuredRank) && a.featuredRank >= 1 && a.featuredRank <= FEATURED_SLOTS)) return false;
+  const until = featuredUntilMs(a);
+  return until === null || until > now;
+}
+
 export function featuredOf(articles) {
+  const now = Date.now();
   return articles
-    .filter((a) => Number.isInteger(a.featuredRank) && a.featuredRank >= 1 && a.featuredRank <= FEATURED_SLOTS)
+    .filter((a) => isFeaturedActive(a, now))
     .sort((a, b) => a.featuredRank - b.featuredRank);
 }
 
