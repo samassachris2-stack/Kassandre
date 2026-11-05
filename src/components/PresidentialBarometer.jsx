@@ -103,11 +103,7 @@ export default function PresidentialBarometer({ markets, linkToHub = false }) {
     <section aria-label="Baromètre de la présidentielle 2027" style={{ background: "var(--k-inset)", border: "1px solid var(--k-border)", borderRadius: "12px", padding: "18px", margin: "0 0 24px" }}>
       <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", flexWrap: "wrap", gap: "6px", marginBottom: "12px" }}>
         <h2 style={{ margin: 0, fontSize: "1.1rem", color: "var(--k-text)" }}>Le baromètre Kassandre</h2>
-        {linkToHub ? (
-          <Link to="/presidentielle-2027" style={{ fontSize: "13px", color: "var(--k-accent)", textDecoration: "none", fontWeight: 600 }}>Tous les marchés de la présidentielle →</Link>
-        ) : (
-          <span style={{ fontSize: "12px", color: "var(--k-muted)" }}>Premier tour le 18 avril 2027, second tour le 2 mai</span>
-        )}
+        <span style={{ fontSize: "12px", color: "var(--k-muted)" }}>Premier tour le 18 avril 2027, second tour le 2 mai</span>
       </div>
 
       {tabs.length > 1 && (
@@ -158,7 +154,7 @@ export default function PresidentialBarometer({ markets, linkToHub = false }) {
             ))}
           </ol>
 
-          {camps.length > 1 && (
+          {!linkToHub && camps.length > 1 && (
             <div style={{ marginTop: "16px" }}>
               <div style={{ fontSize: "12px", color: "var(--k-muted)", marginBottom: "6px" }}>Poids de chaque famille politique, de la gauche à l'extrême droite</div>
               <div style={{ display: "flex", height: "6px", borderRadius: "3px", overflow: "hidden", gap: "2px" }}>
@@ -174,6 +170,12 @@ export default function PresidentialBarometer({ markets, linkToHub = false }) {
         </>
       )}
 
+      {linkToHub ? (
+        <Link to="/presidentielle-2027" style={{ ...btn, display: "inline-block", marginTop: "14px", textDecoration: "none", fontWeight: 600 }}>
+          Voir tous les marchés de la présidentielle →
+        </Link>
+      ) : (
+        <>
       <p style={{ fontSize: "12px", color: "var(--k-muted)", margin: "12px 0" }}>
         Probabilités estimées en direct par la communauté, en points virtuels. Ce n'est pas un sondage.
       </p>
@@ -185,6 +187,8 @@ export default function PresidentialBarometer({ markets, linkToHub = false }) {
         <button onClick={copyLink} style={btn}>Copier le lien</button>
         <EmbedCode marketId={current.market.id} question={current.market.question} isMulti />
       </div>
+        </>
+      )}
     </section>
   );
 }
