@@ -238,6 +238,7 @@ export default function BlogEditor({ content, onChange }) {
         }
       `}</style>
 
+      <div style={styles.stickyWrap}>
       <div style={styles.toolbar}>
         <ToolButton
           onClick={() => editor.chain().focus().undo().run()}
@@ -464,6 +465,8 @@ export default function BlogEditor({ content, onChange }) {
         </div>
       )}
 
+      </div>
+
       <div className="blog-editor-content" style={styles.editor}>
         <EditorContent editor={editor} />
       </div>    </div>
@@ -479,11 +482,16 @@ const styles = {
     // ce qui laisse la barre d'outils collante fonctionner.
     overflow: "clip",
   },
-  toolbar: {
+  // Barre d'outils + sous-menus (lien, image) collent ensemble en haut :
+  // sinon le sous-menu reste hors écran quand on a défilé dans l'article.
+  stickyWrap: {
     position: "sticky",
     // La navbar du site est masquée sur /admin/blog, la barre colle donc en haut
     top: 0,
     zIndex: 10,
+    backgroundColor: "var(--k-bg)",
+  },
+  toolbar: {
     display: "flex",
     gap: "6px",
     padding: "10px 12px",
