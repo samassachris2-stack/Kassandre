@@ -36,6 +36,7 @@ const chip = (on) => ({
 // Liste de thèmes suivis + suggestions à ajouter, pour un jeu de tags donné.
 function TagManager({ title, hint, storageKey, keyOf, available }) {
   const [followed, setFollowed] = useState(() => read(storageKey));
+  const [search, setSearch] = useState("");
   const labels = useMemo(() => new Map(available.map(([label]) => [keyOf(label), pretty(label)])), [available, keyOf]);
 
   function toggle(k) {
@@ -46,14 +47,16 @@ function TagManager({ title, hint, storageKey, keyOf, available }) {
     });
   }
 
-  const suggestions = available.filter(([label]) => !followed.includes(keyOf(label))).slice(0, 14);
+  const needle = keyOf(search);
+  const pool = available.filter(([label]) => !followed.includes(keyOf(label)));
+  const suggestions = needle ? pool.filter(([label]) => keyOf(label).includes(needle)).slice(0, 30) : pool.slice(0, 14);
 
   return (
     <div style={box}>
       <p style={{ fontWeight: 600, margin: "0 0 4px" }}>{title}</p>
       <p style={{ fontSize: "13px", color: "var(--k-muted)", margin: "0 0 12px", lineHeight: 1.5 }}>{hint}</p>
 
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: suggestions.length ? "14px" : 0 }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "14px" }}>
         {followed.length === 0 && <span style={{ fontSize: "13px", color: "var(--k-faint)" }}>Aucun thème suivi pour l'instant.</span>}
         {followed.map((k) => (
           <button key={k} type="button" onClick={() => toggle(k)} style={chip(true)} title="Ne plus suivre">
@@ -62,9 +65,22 @@ function TagManager({ title, hint, storageKey, keyOf, available }) {
         ))}
       </div>
 
+      <input
+        type="search"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="Rechercher un thème…"
+        aria-label={`Rechercher parmi les ${title.toLowerCase()}`}
+        style={{ width: "100%", boxSizing: "border-box", padding: "8px 12px", marginBottom: "12px", borderRadius: "8px", border: "1px solid var(--k-border)", background: "var(--k-bg)", color: "var(--k-text)", fontSize: "13px" }}
+      />
+
+      {needle && suggestions.length === 0 && (
+        <p style={{ fontSize: "13px", color: "var(--k-faint)", margin: 0 }}>Aucun thème ne correspond à « {search.trim()} ».</p>
+      )}
+
       {suggestions.length > 0 && (
         <>
-          <p style={{ fontSize: "12px", color: "var(--k-faint)", margin: "0 0 6px" }}>À ajouter</p>
+          <p style={{ fontSize: "12px", color: "var(--k-faint)", margin: "0 0 6px" }}>{needle ? "Résultats" : "À ajouter"}</p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
             {suggestions.map(([label, n]) => (
               <button key={label} type="button" onClick={() => toggle(keyOf(label))} style={chip(false)}>
