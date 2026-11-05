@@ -21,7 +21,7 @@ const TAGS_SHOWN = 8;
 const FILTERS_FROM = 6;
 const OPINION_TAGS = ["tribune", "opinion", "édito", "edito"];
 // Sections par thème sur la page d'accueil du blog.
-const SECTIONS_MAX = 10;
+const SECTIONS_MAX = 20;
 const SECTION_SIZE = 3;
 // Thèmes affichés par défaut dans la colonne « Suivre des thèmes ».
 const FOLLOW_SHOWN = 8;
