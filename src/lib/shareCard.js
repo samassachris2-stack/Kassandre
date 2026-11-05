@@ -242,7 +242,7 @@ export async function generateBarometerImage({ title, rows }) {
     ctx.fillStyle = "#23233a";
     roundRect(ctx, 90, ry + 14, barW, 22, 11);
     ctx.fill();
-    ctx.fillStyle = i === 0 ? "#7c3aed" : "#5b3fb0";
+    ctx.fillStyle = r.color || (i === 0 ? "#7c3aed" : "#5b3fb0");
     roundRect(ctx, 90, ry + 14, Math.max(22, (r.pct / max) * barW), 22, 11);
     ctx.fill();
     ctx.fillStyle = "#e8e8f0";
