@@ -13,7 +13,7 @@ const OG_DATA_URL = "https://us-central1-kassandre-f868e.cloudfunctions.net/ogDa
 const slugifyRubrique = (label) =>
   String(label).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim().replace(/\s+/g, "-");
 
-const STATIC_PAGES =["/", "/presidentielle-2027", "/marches", "/blog", "/leaderboard", "/resolution", "/donnees", "/cgu", "/confidentialite", "/mentions-legales"];
+const STATIC_PAGES =["/", "/presidentielle-2027", "/lab/prix", "/marches", "/blog", "/leaderboard", "/resolution", "/donnees", "/cgu", "/confidentialite", "/mentions-legales"];
 const CATEGORIES = ["Sport", "Politique", "Crypto", "Tech", "Économie", "International", "Culture", "Climat", "Autre"];
 
 const xmlEsc = (s) =>

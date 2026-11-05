@@ -22,6 +22,7 @@ const Confidentialite = lazy(() => import("./pages/Confidentialite"));
 const MentionsLegales = lazy(() => import("./pages/MentionsLegales"));
 const BlogList = lazy(() => import("./pages/BlogList"));
 const BlogDetail = lazy(() => import("./pages/BlogDetail"));
+const LabPrix = lazy(() => import("./pages/LabPrix"));
 const Resolution = lazy(() => import("./pages/Resolution"));
 const Marches = lazy(() => import("./pages/Marches"));
 const EmbedMarket = lazy(() => import("./pages/EmbedMarket"));
@@ -73,6 +74,7 @@ function Shell() {
             <Route path="/" element={<Feed />} />
             <Route path="/marches" element={<Marches />} />
             <Route path="/resolution" element={<Resolution />} />
+            <Route path="/lab/prix" element={<LabPrix />} />
             <Route path="/presidentielle-2027" element={<Feed hub="presidentielle" />} />
             <Route path="/:cat" element={<Feed />} />
             <Route path="/:cat/:tag" element={<Feed />} />
