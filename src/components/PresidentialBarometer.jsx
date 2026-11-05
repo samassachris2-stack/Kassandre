@@ -36,7 +36,7 @@ function pickMarkets(markets) {
   return out;
 }
 
-export default function PresidentialBarometer({ markets }) {
+export default function PresidentialBarometer({ markets, linkToHub = false }) {
   const tabs = useMemo(() => pickMarkets(markets), [markets]);
   const [active, setActive] = useState(0);
   const [options, setOptions] = useState([]);
@@ -103,7 +103,11 @@ export default function PresidentialBarometer({ markets }) {
     <section aria-label="Baromètre de la présidentielle 2027" style={{ background: "var(--k-inset)", border: "1px solid var(--k-border)", borderRadius: "12px", padding: "18px", margin: "0 0 24px" }}>
       <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", flexWrap: "wrap", gap: "6px", marginBottom: "12px" }}>
         <h2 style={{ margin: 0, fontSize: "1.1rem", color: "var(--k-text)" }}>Le baromètre Kassandre</h2>
-        <span style={{ fontSize: "12px", color: "var(--k-muted)" }}>Premier tour le 18 avril 2027, second tour le 2 mai</span>
+        {linkToHub ? (
+          <Link to="/presidentielle-2027" style={{ fontSize: "13px", color: "var(--k-accent)", textDecoration: "none", fontWeight: 600 }}>Tous les marchés de la présidentielle →</Link>
+        ) : (
+          <span style={{ fontSize: "12px", color: "var(--k-muted)" }}>Premier tour le 18 avril 2027, second tour le 2 mai</span>
+        )}
       </div>
 
       {tabs.length > 1 && (

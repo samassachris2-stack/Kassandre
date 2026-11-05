@@ -841,6 +841,7 @@ export default function Feed({ hub }) {
       {!hubDef && !catFromRoute && !tagFromRoute && <MoversSection />}
       {!hubDef && !catFromRoute && !tagFromRoute && <TrackerWidget />}
       {!catFromRoute && !tagFromRoute && <BlogPreviewSection />}
+      {!hubDef && !catFromRoute && !tagFromRoute && <PresidentialBarometer markets={markets.filter(HUBS.presidentielle.match)} linkToHub />}
 
       {/* ── Barre de recherche ── */}
       <div ref={searchSentinelRef} style={{ height: "1px" }} />
