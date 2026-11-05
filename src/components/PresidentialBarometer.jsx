@@ -49,14 +49,14 @@ export default function PresidentialBarometer({ markets }) {
   }, [options]);
 
   if (!current) return null;
-  const top = rows.slice(0, 6);
+  const top = rows.slice(0, 7);
   const maxPct = top[0]?.pct || 1;
 
   async function shareImage() {
     const { generateBarometerImage, shareBarometerImage } = await import("../lib/shareCard.js");
     const blob = await generateBarometerImage({
       title: current.market.question,
-      rows: top.map((r) => ({ label: r.label, pct: Math.round(r.pct) })),
+      rows: top.slice(0, 6).map((r) => ({ label: r.label, pct: Math.round(r.pct) })),
     });
     shareBarometerImage(blob, { linkUrl: PAGE_URL });
   }
