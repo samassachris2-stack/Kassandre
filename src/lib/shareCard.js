@@ -197,3 +197,78 @@ function downloadImage(blob, filename) {
   document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+/**
+ * Image carrée 1080x1080 du baromètre : jusqu'à 6 lignes (nom, barre, pourcentage).
+ * @param {{title:string, rows:{label:string,pct:number}[]}} params
+ */
+export async function generateBarometerImage({ title, rows }) {
+  const canvas = document.createElement("canvas");
+  canvas.width = WIDTH;
+  canvas.height = HEIGHT;
+  const ctx = canvas.getContext("2d");
+  const FONT = "-apple-system, system-ui, sans-serif";
+
+  ctx.fillStyle = "#0a0a0f";
+  ctx.fillRect(0, 0, WIDTH, HEIGHT);
+  const g = ctx.createRadialGradient(WIDTH * 0.85, HEIGHT * 0.1, 0, WIDTH * 0.85, HEIGHT * 0.1, 500);
+  g.addColorStop(0, "rgba(124,58,237,0.25)");
+  g.addColorStop(1, "rgba(124,58,237,0)");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+  ctx.textBaseline = "alphabetic";
+  ctx.fillStyle = "#a78bfa";
+  ctx.font = `600 34px ${FONT}`;
+  ctx.fillText("PRÉSIDENTIELLE 2027 · BAROMÈTRE KASSANDRE", 90, 130);
+
+  ctx.fillStyle = "#e8e8f0";
+  ctx.font = `700 52px ${FONT}`;
+  let y = 215;
+  for (const line of wrapText(ctx, title, WIDTH - 180).slice(0, 3)) {
+    ctx.fillText(line, 90, y);
+    y += 62;
+  }
+
+  const list = rows.slice(0, 6);
+  const max = Math.max(...list.map((r) => r.pct), 1);
+  const top = 400;
+  const step = 96;
+  const barW = WIDTH - 180 - 150;
+  list.forEach((r, i) => {
+    const ry = top + i * step;
+    ctx.fillStyle = "#e8e8f0";
+    ctx.font = `600 34px ${FONT}`;
+    ctx.fillText(r.label, 90, ry);
+    ctx.fillStyle = "#23233a";
+    roundRect(ctx, 90, ry + 14, barW, 22, 11);
+    ctx.fill();
+    ctx.fillStyle = i === 0 ? "#7c3aed" : "#5b3fb0";
+    roundRect(ctx, 90, ry + 14, Math.max(22, (r.pct / max) * barW), 22, 11);
+    ctx.fill();
+    ctx.fillStyle = "#e8e8f0";
+    ctx.font = `800 40px ${FONT}`;
+    ctx.textAlign = "right";
+    ctx.fillText(`${r.pct} %`, WIDTH - 90, ry + 36);
+    ctx.textAlign = "left";
+  });
+
+  ctx.font = `500 28px ${FONT}`;
+  ctx.fillStyle = "#6b6b80";
+  ctx.fillText("Probabilités estimées par la communauté, en points virtuels", 90, HEIGHT - 110);
+  ctx.font = `600 34px ${FONT}`;
+  ctx.fillStyle = "#a8a8b8";
+  ctx.fillText("kassandre.app/presidentielle-2027", 90, HEIGHT - 60);
+
+  return new Promise((resolve) => canvas.toBlob((b) => resolve(b), "image/png"));
+}
+
+export function shareBarometerImage(blob, { linkUrl } = {}) {
+  const file = new File([blob], "kassandre-barometre-2027.png", { type: "image/png" });
+  if (isMobileDevice() && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+    navigator.share({ files: [file], title: "Présidentielle 2027 sur Kassandre", text: linkUrl ? `Présidentielle 2027, les probabilités en direct : ${linkUrl}` : "" })
+      .catch(() => downloadImage(blob, "kassandre-barometre-2027.png"));
+    return;
+  }
+  downloadImage(blob, "kassandre-barometre-2027.png");
+  notify("Image téléchargée, prête à être publiée.", "info");
+}

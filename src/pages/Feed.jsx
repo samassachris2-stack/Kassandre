@@ -10,6 +10,7 @@ import { useSEO } from "../hooks/useSEO";
 import { generateOrganizationStructuredData } from "../lib/structuredData";
 import MoversSection from "../components/MoversSection";
 import TrackerWidget from "../components/TrackerWidget";
+import PresidentialBarometer from "../components/PresidentialBarometer";
 import { cssUrl } from "../lib/cssUrl";
 
 // Nombre de cartes affichées par "page" (les filtres, tris et compteurs de tags
@@ -835,6 +836,7 @@ export default function Feed({ hub }) {
         </p>
       )}
 
+      {hubDef && hub === "presidentielle" && <PresidentialBarometer markets={marketsInCategory} />}
       {(hubDef || (!catFromRoute && !tagFromRoute)) && <FeaturedCarousel markets={hubDef ? marketsInCategory : markets} />}
       {!hubDef && !catFromRoute && !tagFromRoute && <MoversSection />}
       {!hubDef && !catFromRoute && !tagFromRoute && <TrackerWidget />}
